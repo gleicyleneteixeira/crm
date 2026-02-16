@@ -6,14 +6,15 @@
         
         <%# CONFIGURAÇÃO DAS BARRINHAS %>
         <% if stage == deal.stage or deal.stage.position > stage.position %>
-          <div class="h-2 w-full rounded-sm <%= deal.status == 'won' ? 'bg-green-600' : (deal.status == 'lost' ? 'bg-red-600' : 'bg-green-400') %>" style="z-index: #{30 - index}"></div>
+          <%# 'bg-emerald-500' é o Verde vivo (Ganho), 'bg-red-600' (Perdido) e 'bg-teal-400' (Ciano/Andamento) %>
+          <div class="h-2 w-full rounded-sm <%= deal.status == 'won' ? 'bg-emerald-500' : (deal.status == 'lost' ? 'bg-red-600' : 'bg-teal-400') %>" style="z-index: #{30 - index}"></div>
         <% else %>
           <div class="h-2 w-full rounded-sm bg-gray-300" style="z-index: #{30 - index}"></div>
         <% end %>
         
         <%# CONFIGURAÇÃO DA ESCRITA (NOME DA FASE) %>
         <% if stage == deal.stage %>
-          <p class="text-[10px] font-bold mt-1 truncate <%= deal.status == 'won' ? 'text-green-700' : (deal.status == 'lost' ? 'text-red-700' : 'text-black') %>">
+          <p class="text-[10px] font-bold mt-1 truncate <%= deal.status == 'won' ? 'text-emerald-700' : (deal.status == 'lost' ? 'text-red-700' : 'text-teal-600') %>">
             <%= stage.name %>
           </p>
         <% end %>
