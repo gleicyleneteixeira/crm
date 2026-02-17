@@ -1,7 +1,7 @@
 <%= content_tag :li, id: dom_id(deal), data: { id: deal.id, account_id: Current.account.id, position: deal.position } , class: 'hover:shadow-sm select-none cursor-pointer' do %>
   <%= turbo_stream_from deal %>
-  <%# QUADRO PRETO PURO %>
-  <div class="rounded border-2 color-border-default dark:border-gray-800 color-bg-fill-default dark:bg-black transition-colors duration-200" data-controller='load-lucid-icons'>
+  <%# QUADRO: Voltamos para o cinza grafite profundo (gray-900) para não ficar "pesado" %>
+  <div class="rounded border-2 color-border-default dark:border-gray-700 color-bg-fill-default dark:bg-gray-900 transition-colors duration-200" data-controller='load-lucid-icons'>
     <%= link_to account_deal_path(Current.account, deal.id), data: { turbo_frame: :_top }, class: 'flex flex-col gap-2 pt-2 px-4' do %>
       <% unless deal.open? %>
         <div class='w-full flex'>
@@ -13,18 +13,19 @@
         </div>
       <% end %>
       
+      <%# Nome do cliente com destaque suave %>
       <div class="flex items-center gap-2">
         <div class="w-2.5 h-2.5 rounded-full bg-[#39FF14] shadow-[0_0_8px_#39FF14]"></div>
-        <p class="typography-body-900 color-fg-default dark:text-white font-bold text-[13px] leading-tight">
+        <p class="typography-body-900 color-fg-default dark:text-gray-100 font-bold text-[13px]">
           <%= deal.name %>
         </p>
       </div>
-      <div class="w-full border-[0.5px] color-border-default dark:border-gray-800"></div>
+      <div class="w-full border-[0.5px] color-border-default dark:border-gray-700"></div>
     <% end %>
 
-    <div class='flex items-center py-1 text-[11px]'>
+    <div class='flex items-center py-1'>
       <%= link_to account_contact_path(Current.account, deal.contact), class: "cursor-pointer peer" , data: { turbo_frame: :drawer } do %>
-        <div class='flex items-start pl-4 gap-1'>
+        <div class='flex items-start pl-4 gap-1 text-[11px]'>
           <i data-lucide="user" class="w-3.5 h-3.5 dark:text-gray-400"></i>
           <p class='typography-body-900 color-fg-soft dark:text-gray-300 hover:color-fg-default dark:hover:text-white <%= dom_id(deal.contact, :stream_full_name) %>'>
             <%= deal.contact.full_name %>
@@ -38,7 +39,7 @@
         <% if deal.users.present? %>
           <div class='flex -space-x-2'>
             <% deal.users.order(id: :desc).limit(2).each do |user| %>
-              <div class="w-5 h-5 rounded-full bg-gray-600 border-2 border-white dark:border-gray-900 flex items-center justify-center">
+              <div class="w-5 h-5 rounded-full bg-gray-600 border border-white dark:border-gray-800 flex items-center justify-center">
                 <i data-lucide="user" class="w-3 text-white"></i>
               </div>
             <% end %>
@@ -47,23 +48,20 @@
       </div>
 
       <div class='flex flex-col items-end gap-1.5'>
-        <%# QUADRO DO VALOR: Estilo sólido que funciona sempre %>
+        <%# VALOR: Mantido o quadro azul com texto branco %>
         <% unless deal.total_amount_in_cents.zero? %>
-          <div class='bg-blue-600 px-2 py-0.5 rounded shadow-lg flex items-center gap-1.5'>
-            <i data-lucide="circle-dollar-sign" class="w-3.5 h-3.5 text-white"></i>
+          <div class='bg-blue-600 px-2 py-0.5 rounded shadow-md flex items-center gap-1.5'>
+            <i data-lucide="circle-dollar-sign" class="w-3 h-3 text-white"></i>
             <span class='text-white font-black text-[11px]'>
               <%= render 'components/formatters/currency', value: deal.total_amount_in_cents %>
             </span>
           </div>
         <% end %>
         
-        <%# QUADRO DA TAREFA: Borda cinza fixa para nunca mais dar erro de Content Missing %>
+        <%# TAREFAS: Quadro discreto que deixa a cor original (Verde/Vermelho) brilhar sozinha %>
         <% if deal.next_event_planned? %>
-          <div class='px-2 py-0.5 rounded border border-gray-600 bg-gray-900/50 shadow-md flex items-center gap-1.5'>
-            <i data-lucide="clock" class="w-3 h-3 text-gray-400"></i>
-            <span class='font-black text-[11px] dark:text-white'>
-               <%= render partial: 'accounts/pipelines/deal_event', locals: {event: deal.next_event_planned} %>
-            </span>
+          <div class='px-2 py-0.5 rounded border border-gray-700 bg-black/40 shadow-sm font-bold text-[11px]'>
+             <%= render partial: 'accounts/pipelines/deal_event', locals: {event: deal.next_event_planned} %>
           </div>
         <% end %>
       </div>
