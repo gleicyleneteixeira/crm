@@ -1,6 +1,7 @@
 <%= content_tag :li, id: dom_id(deal), data: { id: deal.id, account_id: Current.account.id, position: deal.position } , class: 'hover:shadow-sm select-none cursor-pointer' do %>
   <%= turbo_stream_from deal %>
-  <div class="rounded border-2 color-border-default dark:border-gray-600 color-bg-fill-default dark:bg-gray-700 transition-colors duration-200" data-controller='load-lucid-icons'>
+  <%# ESCURECIMENTO DO QUADRO: Usando bg-gray-800 para um fundo bem profundo %>
+  <div class="rounded border-2 color-border-default dark:border-gray-600 color-bg-fill-default dark:bg-gray-800 transition-colors duration-200" data-controller='load-lucid-icons'>
     <%= link_to account_deal_path(Current.account, deal.id), data: { turbo_frame: :_top }, class: 'flex flex-col gap-2 pt-2 px-4' do %>
       <% unless deal.open? %>
         <div class='w-full flex'>
@@ -24,8 +25,8 @@
     <div class='flex items-center py-1'>
       <%= link_to account_contact_path(Current.account, deal.contact), class: "cursor-pointer peer" , data: { turbo_frame: :drawer } do %>
         <div class='flex items-start pl-4 gap-1'>
-          <i data-lucide="user" class="w-3.5 h-3.5 dark:text-gray-300"></i>
-          <p class='typography-body-900 color-fg-soft dark:text-gray-200 text-[11px] <%= dom_id(deal.contact, :stream_full_name) %>'>
+          <i data-lucide="user" class="w-3.5 h-3.5 dark:text-gray-400"></i>
+          <p class='typography-body-900 color-fg-soft dark:text-gray-300 text-[11px] <%= dom_id(deal.contact, :stream_full_name) %>'>
             <%= deal.contact.full_name %>
           </p>
         </div>
@@ -36,7 +37,7 @@
        <div class="flex -space-x-2">
           <% if deal.users.present? %>
             <% deal.users.order(id: :desc).limit(2).each do |user| %>
-              <div class="w-5 h-5 rounded-full bg-gray-500 border border-white dark:border-gray-800 flex items-center justify-center">
+              <div class="w-5 h-5 rounded-full bg-gray-600 border border-white dark:border-gray-700 flex items-center justify-center">
                 <i data-lucide="user" class="w-3 text-white"></i>
               </div>
             <% end %>
@@ -44,7 +45,7 @@
        </div>
 
       <div class='flex flex-col items-end gap-1.5'>
-        <%# VALOR: Branco sólido no fundo azul %>
+        <%# VALOR: Branco sólido no fundo azul para destaque total %>
         <% unless deal.total_amount_in_cents.zero? %>
           <div class='bg-blue-600 px-2 py-0.5 rounded shadow-md flex items-center gap-1'>
             <i data-lucide="circle-dollar-sign" class="w-3 h-3 text-white"></i>
@@ -54,15 +55,11 @@
           </div>
         <% end %>
 
-        <%# RELÓGIO: Verde para no prazo e Vermelho para vencido (Usando a lógica original do sistema) %>
+        <%# RELÓGIO: Lógica original com cores Verde Neon e Vermelho Vivo sobre o fundo escuro %>
         <% if deal.next_event_planned? %>
-          <%# Criamos uma caixa preta para dar contraste absoluto %>
-          <div class="flex items-center gap-1.5 px-2 py-0.5 rounded bg-black/60 border border-gray-600">
-            <%# Aqui a lógica do seu sistema decide a cor, mas nós forçamos ela a ser vibrante no dark mode %>
-            <div class="flex items-center gap-1 font-black text-[11px] <%= deal.next_event_planned.date < Time.zone.now ? 'text-red-500' : 'text-[#39FF14]' %>">
-               <i data-lucide="clock" class="w-3 h-3"></i>
-               <%= render partial: 'accounts/pipelines/deal_event', locals: {event: deal.next_event_planned} %>
-            </div>
+          <div class="flex items-center gap-1 font-black text-[11px] <%= deal.next_event_planned.date < Time.zone.now ? 'text-red-500' : 'text-[#39FF14]' %>">
+             <i data-lucide="clock" class="w-3 h-3"></i>
+             <%= render partial: 'accounts/pipelines/deal_event', locals: {event: deal.next_event_planned} %>
           </div>
         <% end %>
       </div>
