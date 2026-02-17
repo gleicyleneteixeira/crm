@@ -33,13 +33,14 @@
 ]
 %>
 
-<%# MUDANÇA: dark:bg-[#0f172a] (Azul Marinho) e dark:border-slate-800 %>
-<div data-controller="element-expanded" aria-expanded="true" class="group ease-in h-screen duration-300 border-r-[1.5px] color-border-default dark:border-slate-800 color-bg-surface-default dark:bg-[#0f172a] relative p-4 space-y-4 aria-expanded:space-y-8 w-[72px] aria-expanded:w-[200px] flex flex-col transition-colors duration-200" id="element-expand" data-element-expanded-target='sidebar'>
+<%# MUDANÇA: dark:bg-slate-950 (Igual à Navbar) e dark:border-slate-800 %>
+<div data-controller="element-expanded" aria-expanded="true" class="group ease-in h-screen duration-300 border-r-[1.5px] color-border-default dark:border-slate-800 color-bg-surface-default dark:bg-slate-950 relative p-4 space-y-4 aria-expanded:space-y-8 w-[72px] aria-expanded:w-[200px] flex flex-col transition-colors duration-200" id="element-expand" data-element-expanded-target='sidebar'>
   <div class="flex items-center flex-wrap justify-between">
     <%= link_to(root_path(), class: 'w-28') do %>
       <%= image_tag "logo.svg", class: 'w-full h-full object-cover block group-aria-[expanded=false]:hidden' %>
     <% end %>
     <%= link_to(root_path()) do %>
+      <%# MUDANÇA: Bordas em slate-700 e hover em slate-800 %>
       <div class= 'hidden group-aria-[expanded=false]:flex items-center justify-center w-10 h-10 border-[1.5px] color-border-default dark:border-slate-700 rounded-md hover:color-bg-fill-hard dark:hover:bg-slate-800' >
         <%= image_tag "logo-patinha.svg", class: 'w-6 h-6' %>
       </div>
@@ -50,8 +51,10 @@
   </div>
 
   <ul class="flex flex-col flex-1 gap-4">
+    <%# MUDANÇA: Divisor em slate-800 %>
     <div class="hidden group-aria-[expanded=false]:block h-[1.5px] w-full bg-light-palette-p3 dark:bg-slate-800"></div>
     <li>
+      <%# MUDANÇA: Busca com fundo slate-800 %>
       <%= link_to account_advanced_search_path(Current.account), class: "button-menu-default-md w-full group-aria-[expanded=false]:w-10 group-aria-[expanded=false]:h-10 group-aria-[expanded=false]:flex group-aria-[expanded=false]:items-center group-aria-[expanded=false]:justify-center group-aria-[expanded=false]:px-0 rounded-full color-bg-fill-default dark:bg-slate-800 hover:color-bg-fill-hard dark:hover:bg-slate-700 focus:border-transparent focus:color-fg-default dark:text-slate-300 h-9 gap-2", data: { turbo_frame: :modal, track: 'access_advanced_search_page' } do %>
         <i data-lucide="search" class="w-4 h-4"></i>
         <span class="group-aria-[expanded=false]:hidden inline-block typography-body-800 dark:text-slate-300">
@@ -62,7 +65,7 @@
 
     <% menu_items.each do |item| %>
       <li>
-        <%# MUDANÇA: Active em dark:bg-blue-900/40 e hover em dark:bg-slate-800 %>
+        <%# MUDANÇA: Item selecionado com azul mais nítido e hover em slate-800 %>
         <%= link_to(item[:path], class: "#{'button-menu-default-selected-md dark:bg-blue-900/40 dark:text-white dark:border-blue-500/50' if item[:active_if].call } button-menu-default-md w-full group-aria-[expanded=false]:w-10 group-aria-[expanded=false]:h-10 group-aria-[expanded=false]:flex group-aria-[expanded=false]:items-center group-aria-[expanded=false]:justify-center group-aria-[expanded=false]:px-0 dark:text-slate-400 dark:hover:bg-slate-800", data: item[:link_data]) do %>
           <i data-lucide="<%= item[:icon] %>"></i>
           <span class="group-aria-[expanded=false]:hidden inline-block ml-2">
