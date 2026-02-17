@@ -1,15 +1,11 @@
 <div class="flex items-center justify-between w-full mt-1">
-  <%# VALOR TOTAL: No branco fica um azul mais forte, no escuro fica o pastel %>
-  <div class="text-blue-600 dark:text-blue-300 font-extrabold text-[13px] tracking-tight">
-    <% if stage.deals_total_amount.present? %>
-      <%= render 'components/formatters/currency', value: stage.deals_total_amount %>
-    <% else %>
-      R$ 0,00
-    <% end %>
+  <%# VALOR TOTAL: Forçando a cor preta (claro) e branca (escuro) %>
+  <div class="text-black dark:text-gray-100 font-bold text-[13px] tracking-tight">
+    <%= render 'components/formatters/currency', value: stage.deals_total_amount %>
   </div>
 
-  <%# CONTADOR: No branco ele ganha uma borda cinza, no escuro ele brilha %>
-  <div class="bg-white dark:bg-slate-100 text-slate-900 min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center text-[10px] font-black shadow-sm border border-slate-200 dark:border-slate-700">
+  <%# CONTADOR: Mantendo a estrutura original mas com cor nítida %>
+  <div class="text-black dark:text-gray-200 text-[11px] font-black">
     <%= stage.deals_count %>
   </div>
 </div>
