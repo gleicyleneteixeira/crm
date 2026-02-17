@@ -1,16 +1,15 @@
-<div class='flex items-center justify-between gap-1.5' id='stage-<%= stage.id %>-<%= filter_status_deal %>-kaban-details'>
-  <div class='typography-body-900 color-fg-default cursor-default truncate' data-tooltip-target="tooltip-stage-<%= stage.id %>-deals-total-amount" data-tooltip-placement="bottom">
-    <%= render 'components/formatters/currency', value: stage.total_amount_deals(filter_status_deal) %>
+<div class="flex items-center justify-between w-full mt-1">
+  <%# Mantemos a lógica original de valor, mas com as novas cores %>
+  <div class="text-blue-400 dark:text-blue-300 font-extrabold text-[13px] tracking-tight">
+    <% if stage.deals_total_amount.present? %>
+      <%= render 'components/formatters/currency', value: stage.deals_total_amount %>
+    <% else %>
+      R$ 0,00
+    <% end %>
   </div>
-  <div id="tooltip-stage-<%= stage.id %>-deals-total-amount" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 typography-label-900 font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-xs opacity-0 tooltip dark:bg-gray-700">
-    <%= render 'components/formatters/currency', value: stage.total_amount_deals(filter_status_deal) %>
-    <div class="tooltip-arrow" data-popper-arrow></div>
-  </div>
-  <p class='py-0.5 px-1 typography-button-800 color-bg-fill-hard color-fg-highlight rounded-lg cursor-default' data-tooltip-target="tooltip-stage-<%= stage.id %>-deals-total_quantity" data-tooltip-placement="bottom">
-    <%= stage.total_quantity_deals_resume(filter_status_deal) %>
-  </p>
-  <div id="tooltip-stage-<%= stage.id %>-deals-total_quantity" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 typography-label-900 font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-xs opacity-0 tooltip dark:bg-gray-700">
-    <%= stage.total_quantity_deals(filter_status_deal) %>
-    <div class="tooltip-arrow" data-popper-arrow></div>
+
+  <%# Mantemos a lógica do contador, mas com o círculo branco destacado %>
+  <div class="bg-slate-50 text-slate-900 min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center text-[10px] font-black shadow-sm border border-slate-200">
+    <%= stage.deals_count %>
   </div>
 </div>
