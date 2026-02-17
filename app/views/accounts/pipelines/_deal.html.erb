@@ -44,7 +44,7 @@
        </div>
 
       <div class='flex flex-col items-end gap-1.5'>
-        <%# VALOR: Fundo azul sólido com texto BRANCO PURO %>
+        <%# VALOR: Branco sólido no fundo azul %>
         <% unless deal.total_amount_in_cents.zero? %>
           <div class='bg-blue-600 px-2 py-0.5 rounded shadow-md flex items-center gap-1'>
             <i data-lucide="circle-dollar-sign" class="w-3 h-3 text-white"></i>
@@ -54,9 +54,11 @@
           </div>
         <% end %>
 
-        <%# TEMPORIZADORES: Verde para o que está no prazo e Vermelho para o vencido %>
+        <%# RELÓGIO: Verde para no prazo e Vermelho para vencido (Usando a lógica original do sistema) %>
         <% if deal.next_event_planned? %>
-          <div class="flex items-center gap-1.5 px-2 py-0.5 rounded bg-black/40">
+          <%# Criamos uma caixa preta para dar contraste absoluto %>
+          <div class="flex items-center gap-1.5 px-2 py-0.5 rounded bg-black/60 border border-gray-600">
+            <%# Aqui a lógica do seu sistema decide a cor, mas nós forçamos ela a ser vibrante no dark mode %>
             <div class="flex items-center gap-1 font-black text-[11px] <%= deal.next_event_planned.date < Time.zone.now ? 'text-red-500' : 'text-[#39FF14]' %>">
                <i data-lucide="clock" class="w-3 h-3"></i>
                <%= render partial: 'accounts/pipelines/deal_event', locals: {event: deal.next_event_planned} %>
