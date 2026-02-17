@@ -1,6 +1,5 @@
 <%= content_tag :li, id: dom_id(deal), data: { id: deal.id, account_id: Current.account.id, position: deal.position } , class: 'hover:shadow-sm select-none cursor-pointer' do %>
   <%= turbo_stream_from deal %>
-  <%# QUADRO: Voltamos para o cinza grafite profundo (gray-900) para não ficar "pesado" %>
   <div class="rounded border-2 color-border-default dark:border-gray-700 color-bg-fill-default dark:bg-gray-900 transition-colors duration-200" data-controller='load-lucid-icons'>
     <%= link_to account_deal_path(Current.account, deal.id), data: { turbo_frame: :_top }, class: 'flex flex-col gap-2 pt-2 px-4' do %>
       <% unless deal.open? %>
@@ -13,13 +12,10 @@
         </div>
       <% end %>
       
-      <%# Nome do cliente com destaque suave %>
-      <div class="flex items-center gap-2">
-        <div class="w-2.5 h-2.5 rounded-full bg-[#39FF14] shadow-[0_0_8px_#39FF14]"></div>
-        <p class="typography-body-900 color-fg-default dark:text-gray-100 font-bold text-[13px]">
-          <%= deal.name %>
-        </p>
-      </div>
+      <%# NOME: Puro, conforme seu sistema original %>
+      <p class="typography-body-900 color-fg-default dark:text-white font-bold text-[13px] leading-tight">
+        <%= deal.name %>
+      </p>
       <div class="w-full border-[0.5px] color-border-default dark:border-gray-700"></div>
     <% end %>
 
@@ -35,7 +31,7 @@
     </div>
 
     <div class='flex items-end justify-between px-4 pb-3'>
-      <div class='flex grow'>
+      <div class='flex grow pl-1'>
         <% if deal.users.present? %>
           <div class='flex -space-x-2'>
             <% deal.users.order(id: :desc).limit(2).each do |user| %>
@@ -48,19 +44,18 @@
       </div>
 
       <div class='flex flex-col items-end gap-1.5'>
-        <%# VALOR: Mantido o quadro azul com texto branco %>
+        <%# VALOR: Pílula Azul sólida %>
         <% unless deal.total_amount_in_cents.zero? %>
-          <div class='bg-blue-600 px-2 py-0.5 rounded shadow-md flex items-center gap-1.5'>
-            <i data-lucide="circle-dollar-sign" class="w-3 h-3 text-white"></i>
-            <span class='text-white font-black text-[11px]'>
-              <%= render 'components/formatters/currency', value: deal.total_amount_in_cents %>
-            </span>
+          <div class='bg-blue-600 px-2 py-0.5 rounded-full shadow-md text-white font-bold text-[11px]'>
+            <%= render 'components/formatters/currency', value: deal.total_amount_in_cents %>
           </div>
         <% end %>
         
-        <%# TAREFAS: Quadro discreto que deixa a cor original (Verde/Vermelho) brilhar sozinha %>
+        <%# TAREFAS: Modelo Pill (Verde/Vermelho) sem ícones extras %>
         <% if deal.next_event_planned? %>
-          <div class='px-2 py-0.5 rounded border border-gray-700 bg-black/40 shadow-sm font-bold text-[11px]'>
+          <% is_overdue = deal.next_event_planned.date < Time.zone.now %>
+          <div class='inline-flex items-center px-3 py-0.5 rounded-full shadow-md font-bold text-[11px] text-white 
+            <%= is_overdue ? "bg-red-600" : "bg-green-600" %>'>
              <%= render partial: 'accounts/pipelines/deal_event', locals: {event: deal.next_event_planned} %>
           </div>
         <% end %>
