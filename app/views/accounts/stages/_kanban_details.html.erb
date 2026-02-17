@@ -1,6 +1,6 @@
 <div class='flex items-center justify-between gap-1.5' id='stage-<%= stage.id %>-<%= filter_status_deal %>-kaban-details'>
-  <%# VALOR: Agora em Preto (Claro) ou Branco (Escuro) com negrito %>
-  <div class='typography-body-900 text-black dark:text-white font-bold cursor-default truncate' data-tooltip-target="tooltip-stage-<%= stage.id %>-deals-total-amount" data-tooltip-placement="bottom">
+  <%# VALOR: Cinza no tema claro e Branco no tema escuro %>
+  <div class='typography-body-900 text-gray-600 dark:text-white font-bold cursor-default truncate' data-tooltip-target="tooltip-stage-<%= stage.id %>-deals-total-amount" data-tooltip-placement="bottom">
     <%= render 'components/formatters/currency', value: stage.total_amount_deals(filter_status_deal) %>
   </div>
 
@@ -9,8 +9,8 @@
     <div class="tooltip-arrow" data-popper-arrow></div>
   </div>
 
-  <%# CONTADOR: Fundo Branco com texto Preto para destaque total %>
-  <p class='py-0.5 px-2 typography-button-800 bg-white text-black border border-gray-200 shadow-sm rounded-lg cursor-default font-black' data-tooltip-target="tooltip-stage-<%= stage.id %>-deals-total_quantity" data-tooltip-placement="bottom">
+  <%# QUANTIDADE: Voltando para a cor de destaque, mas com ajuste de contraste %>
+  <p class='py-0.5 px-2 typography-button-800 color-bg-fill-hard color-fg-highlight rounded-lg cursor-default shadow-sm' data-tooltip-target="tooltip-stage-<%= stage.id %>-deals-total_quantity" data-tooltip-placement="bottom">
     <%= stage.total_quantity_deals_resume(filter_status_deal) %>
   </p>
 
