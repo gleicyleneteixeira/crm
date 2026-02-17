@@ -1,7 +1,7 @@
 <%= turbo_stream_from :stages %>
 <%= turbo_frame_tag :stages do %>
-  <%# Adicionamos w-full e min-h-screen para a cor escura cobrir a tela toda %>
-  <div data-controller="lists" data-lists-id="<%= @pipeline.id %>" class="w-full min-h-screen bg-white dark:bg-gray-900 transition-colors duration-200">
+  <%# Removemos a cor escura do fundo para o teste %>
+  <div data-controller="lists" data-lists-id="<%= @pipeline.id %>" class="min-h-screen min-w-full inline-block bg-white transition-colors duration-200">
     <section class="p-8 grid grid-flow-col auto-cols-[18.75rem] h-auto gap-5" data-lists-target="lists">
       <% @pipeline.stages.sort_by(&:position).each do |stage| %>
         <%= turbo_frame_tag stage, src: account_stage_path(current_user.account, stage, filter_status_deal: @filter_status_deal), loading: :lazy do  %>
