@@ -1,82 +1,78 @@
 <%= content_tag :li, id: dom_id(deal), data: { id: deal.id, account_id: Current.account.id, position: deal.position } , class: 'hover:shadow-sm select-none cursor-pointer' do %>
   <%= turbo_stream_from deal %>
-  <%# QUADRO ESCURECIDO: Trocamos apenas a cor de fundo para o cinza mais profundo %>
-  <div class="rounded border-2 color-border-default dark:border-gray-700 color-bg-fill-default dark:bg-gray-900 transition-colors duration-200" data-controller='load-lucid-icons'>
+  <div class="rounded border-2 color-border-default dark:border-gray-800 color-bg-fill-default dark:bg-black transition-colors duration-200" data-controller='load-lucid-icons'>
     <%= link_to account_deal_path(Current.account, deal.id), data: { turbo_frame: :_top }, class: 'flex flex-col gap-2 pt-2 px-4' do %>
       <% unless deal.open? %>
         <div class='w-full flex'>
-          <div class='inline-flex gap-1 items-center <%= 'color-border-feedback-danger-hard color-fg-feedback-danger color-bg-feedback-danger-default' if deal.lost? %>
-        <%= 'color-border-feedback-success-harder color-fg-feedback-success color-bg-feedback-success-default' if deal.won? %> border rounded p-1 h-4'>
-            <span class='typography-body-800'>
+          <div class='inline-flex gap-1 items-center px-2 py-0.5 rounded text-[10px] font-black uppercase
+            <%= 'bg-red-600 text-white' if deal.lost? %>
+            <%= 'bg-green-600 text-white' if deal.won? %>'>
               <%= Deal.human_enum_name(:status, deal.status) %>
-            </span>
           </div>
         </div>
       <% end %>
       
-      <%# NOME: Branco Puro para contraste máximo %>
-      <p class="typography-body-900 color-fg-default dark:text-white font-bold">
-        <%= deal.name %>
-      </p>
+      <div class="flex items-center gap-2">
+        <div class="w-2.5 h-2.5 rounded-full bg-[#39FF14] shadow-[0_0_8px_#39FF14]"></div>
+        <p class="typography-body-900 color-fg-default dark:text-white font-bold text-[13px] leading-tight">
+          <%= deal.name %>
+        </p>
+      </div>
       <div class="w-full border-[0.5px] color-border-default dark:border-gray-800"></div>
     <% end %>
 
-    <div class='flex items-center'>
+    <div class='flex items-center py-1'>
       <%= link_to account_contact_path(Current.account, deal.contact), class: "cursor-pointer peer" , data: { turbo_frame: :drawer } do %>
-        <div class='flex items-start py-2 pl-4 gap-1'>
-          <svg class="w-4 h-4 color-fg-default dark:text-gray-400 mt-px shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
-          </svg>
-          <p class='typography-body-900 color-fg-soft dark:text-gray-300 hover:color-fg-default dark:hover:text-white break-all <%= dom_id(deal.contact, :stream_full_name) %>'>
+        <div class='flex items-start pl-4 gap-1'>
+          <i data-lucide="user" class="w-3.5 h-3.5 dark:text-gray-400"></i>
+          <p class='typography-body-900 color-fg-soft dark:text-gray-300 hover:color-fg-default dark:hover:text-white text-[11px] <%= dom_id(deal.contact, :stream_full_name) %>'>
             <%= deal.contact.full_name %>
           </p>
         </div>
       <% end %>
     </div>
 
-    <div class='flex'>
+    <div class='flex items-end justify-between px-4 pb-3'>
       <div class='flex grow'>
         <% if deal.users.present? %>
-          <div class='flex flex-col'>
-            <div class='flex pl-4 pb-2'>
-              <div class="flex -space-x-2">
-                <% deal.users.order(id: :desc).limit(2).each do |user| %>
-                  <div class='w-5 h-5'>
-                    <% if user.avatar_url.present? %>
-                      <img class="w-5 h-5 rounded-full object-cover border dark:border-gray-800" src="<%= user.avatar_url %>">
-                    <% else %>
-                      <div class="w-5 h-5 flex items-center justify-center bg-gray-500 rounded-full border dark:border-gray-800">
-                        <i data-lucide="user" class="w-3 text-white"></i>
-                      </div>
-                    <% end %>
+          <div class='flex -space-x-2'>
+            <% deal.users.order(id: :desc).limit(2).each do |user| %>
+              <div class='w-5 h-5'>
+                <% if user.avatar_url.present? %>
+                  <img class="w-5 h-5 rounded-full object-cover border-2 border-white dark:border-gray-900" src="<%= user.avatar_url %>">
+                <% else %>
+                  <div class="w-5 h-5 rounded-full bg-gray-600 border-2 border-white dark:border-gray-900 flex items-center justify-center">
+                    <i data-lucide="user" class="w-3 text-white"></i>
                   </div>
                 <% end %>
               </div>
-            </div>
+            <% end %>
           </div>
         <% end %>
       </div>
 
-      <% if !deal.total_amount_in_cents.zero? || deal.next_event_planned? %>
-        <%= link_to account_deal_path(Current.account, deal.id), data: { turbo_frame: :_top } do %>
-          <div class='flex items-center flex-wrap justify-end gap-1.5 pr-4 pb-2'>
-            <%# VALOR: Mantido em Branco sobre Azul (estilo aprovado por você) %>
-            <% unless deal.total_amount_in_cents.zero? %>
-              <div class='inline-flex gap-1 items-center bg-blue-700 px-2 py-0.5 rounded shadow-md'>
-                <i data-lucide="circle-dollar-sign" class="w-3.5 h-3.5 text-white"></i>
-                <span class='text-white font-black text-[11px]'>
-                  <%= render 'components/formatters/currency', value: deal.total_amount_in_cents %>
-                </span>
-              </div>
-            <% end %>
-            
-            <%# PRAZOS: Usando a lógica original pura para evitar erro de Content Missing %>
-            <div class="dark:text-[#39FF14] font-bold">
-               <%= render partial: 'accounts/pipelines/deal_event', locals: {event: deal.next_event_planned} if deal.next_event_planned? %>
-            </div>
+      <div class='flex flex-col items-end gap-1.5'>
+        <%# QUADRO DO VALOR: Mantido como você aprovou %>
+        <% unless deal.total_amount_in_cents.zero? %>
+          <div class='bg-blue-600 px-2 py-0.5 rounded shadow-lg flex items-center gap-1.5'>
+            <i data-lucide="circle-dollar-sign" class="w-3.5 h-3.5 text-white"></i>
+            <span class='text-white font-black text-[11px]'>
+              <%= render 'components/formatters/currency', value: deal.total_amount_in_cents %>
+            </span>
           </div>
         <% end %>
-      <% end %>
+        
+        <%# QUADRO DA TAREFA: Agora com borda e fundo para destacar o Verde e o Vermelho %>
+        <% if deal.next_event_planned? %>
+          <% is_overdue = deal.next_event_planned.date < Time.zone.now %>
+          <div class='px-2 py-0.5 rounded border shadow-md flex items-center gap-1.5 <%= is_overdue ? 'bg-red-950/40 border-red-500 text-red-500' : 'bg-green-950/40 border-green-500 text-[#39FF14]' %>'>
+            <i data-lucide="clock" class="w-3 h-3"></i>
+            <span class='font-black text-[11px]'>
+               <%= render partial: 'accounts/pipelines/deal_event', locals: {event: deal.next_event_planned} %>
+            </span>
+          </div>
+        <% end %>
+      </div>
     </div>
   </div>
 <% end %>
