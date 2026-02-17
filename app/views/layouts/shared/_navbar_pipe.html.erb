@@ -6,10 +6,10 @@
   </nav>
 <% else %>
   <nav class="bg-white dark:bg-gray-900 px-6 py-2 border-b-[1.5px] color-border-default transition-colors duration-200">
-    <div class="flex items-center justify-between w-full">
+    <div class="flex flex-wrap items-center justify-between w-full gap-4">
       
-      <%# LADO ESQUERDO: SELETOR DE FUNIL E NOVO NEGÓCIO %>
-      <div class="flex items-center space-x-4">
+      <%# LADO ESQUERDO: SELETOR DE FUNIL E EDITAR %>
+      <div class="flex items-center space-x-2">
         <div class="flex items-center h-10 border-solid border-2 border-light-palette-p3 rounded-lg overflow-hidden bg-white">
           <div class="h-10 w-10 flex items-center justify-center bg-brand-palette-08 border-r-2 border-light-palette-p3">
             <%= embedded_svg('vectooor2.svg', { class: 'h-5 w-5 color-fg-soft' }) %>
@@ -25,20 +25,40 @@
             <%= embedded_svg('pencil-icon.svg') %>
           <% end %>
         </div>
+      </div>
 
+      <%# DIREITA: TODOS OS BOTÕES ORIGINAIS + LUA %>
+      <div class="flex items-center flex-wrap gap-3">
+        <%# Novo Negócio %>
         <%= link_to new_select_contact_account_deals_path(Current.account), class: 'button-default-fill-primary-md' do %>
           <i data-lucide="clipboard-plus"></i>
           <span class="ml-2 hidden lg:inline"><%= t('activerecord.models.deal.new') %></span>
         <% end %>
-      </div>
 
-      <%# LADO DIREITO: MODO ESCURO E USUÁRIO %>
-      <div class="flex items-center space-x-4">
-        <%# BOTÃO MODO ESCURO %>
-        <button id="theme-toggle" type="button" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg p-2.5">
+        <%# Novo Funil %>
+        <%= link_to new_account_pipeline_path(Current.account), class: 'button-default-blank-secondary-md' do %>
+          <i data-lucide="funnel-plus"></i>
+          <span class="ml-2 hidden lg:inline"><%= t('activerecord.models.pipeline.new') %></span>
+        <% end %>
+
+        <%# Filtros %>
+        <div data-controller="filter-select-status-deal">
+          <button id="dropdownSortDeals" data-dropdown-toggle="dropdownSort" class="button-default-blank-secondary-md" type="button">
+            <i data-lucide="sliders-horizontal"></i>
+          </button>
+        </div>
+
+        <%# Modo Lista %>
+        <%= link_to account_deals_path(Current.account), class: 'button-default-blank-secondary-md' do %>
+          <i data-lucide="list"></i>
+        <% end %>
+
+        <%# --- BOTÃO MODO ESCURO (LUA) --- %>
+        <button id="theme-toggle" type="button" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg p-2.5 ml-2">
           <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-          <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+          <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
         </button>
+
         <%= render 'components/navs/user_menu' %>
       </div>
     </div>
