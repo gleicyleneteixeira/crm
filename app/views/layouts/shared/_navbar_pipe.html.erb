@@ -1,126 +1,45 @@
-<% if ['edit'].include?(action_name) %>
+<% if ['edit', 'new'].include?(action_name) %>
   <nav class="navbar-container">
     <h1 class="typography-title-b-lh150 text-dark-gray-palette-p1">
-      <%= t('activerecord.models.pipeline.edit') %>
-    </h1>
-  </nav>
-<% elsif ['new'].include?(action_name) %>
-  <nav class="navbar-container">
-    <h1 class="typography-title-b-lh150 text-dark-gray-palette-p1">
-      <%= t('activerecord.models.pipeline.new') %>
+      <%= t("activerecord.models.pipeline.#{action_name}") %>
     </h1>
   </nav>
 <% else %>
-  <nav class="bg-light-palette-p5 px-6 py-2 sm:py-4 sm:px-4 md:px-8 border-b-[1.5px] color-border-default">
-    <div class="flex flex-wrap gap-4 items-center justify-end sm:justify-between">
-      <div class="flex items-center sm:order-2 space-x-3 sm:space-x-0 justify-end rtl:space-x-reverse">
-        
-        <%# --- BOTÃO DE MODO ESCURO --- %>
-        <button id="theme-toggle" type="button" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 mr-2">
-            <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-            <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
-        </button>
-
-        <%= render 'components/navs/user_menu' %>
-        <button data-collapse-toggle="navbar-user" type="button" class="button-default-outline-secondary-md-icon-only-md sm:hidden" aria-controls="navbar-user" aria-expanded="false">
-          <span class="sr-only">Open main menu</span>
-          <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15"/>
-          </svg>
-        </button>
-      </div>
-      <div class="items-center justify-between hidden w-full sm:flex sm:w-auto sm:order-1" id="navbar-user">
-        <div class="flex flex-col pb-4 gap-2 sm:pb-0 rounded-lg sm:gap-4 rtl:space-x-reverse sm:flex-row sm:mt-0 sm:border-0 sm:bg-white ">
-          <div class="flex flex-wrap flex-1 h-10 shrink-0">
-            <div class="h-10 w-10 flex items-center justify-center border-solid border-2 border-light-palette-p3 rounded-l-md bg-brand-palette-08">
-              <%= embedded_svg('vectooor2.svg', { class: 'h-5 w-5 color-fg-soft' }) %>
-            </div>
-            <select class="px-2.5 h-10 mx-[-2px] border-solid border-2 border-light-palette-p3 flex-1 sm:flex-none sm:w-40 md:w-52 hover:border-light-palette-p2 hover:z-10 hover:cursor-pointer focus:border-light-palette-p2 focus:ring-0 hover:text-brand-palette-04 focus:z-10 typography-text-r-lh150 text-dark-gray-palette-p3 truncate" onchange="window.location=this.value">
-              <% @pipelines.each do |pipeline| %>
-                <option value="<%= account_pipeline_path(Current.account, pipeline.id) %>" <%= pipeline.id == @pipeline.id ? 'selected' : '' %>>
-                  <%= pipeline.name %>
-                </option>
-                <% end %>
-              </select>
-              <%= link_to edit_account_pipeline_path(Current.account, @pipeline), class:'h-10 w-10 flex items-center justify-center border-solid border-2 border-light-palette-p3 rounded-r-lg sm:flex-1 hover:border-light-palette-p2' do %>
-                <%= embedded_svg('pencil-icon.svg') %>
-              <% end %>
-            </div>
-            <div id="tooltip-new-deal-link" role="tooltip" class="hidden sm:inline-block lg:hidden absolute z-10 invisible px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-xs opacity-0 tooltip dark:bg-gray-700">
-              <%= t('activerecord.models.deal.new') %>
-              <div class="tooltip-arrow" data-popper-arrow></div>
-            </div>
-            <%= link_to new_select_contact_account_deals_path(Current.account), class: 'button-default-fill-primary-md', data: {tooltip_target: 'tooltip-new-deal-link'} do %>
-              <i data-lucide="clipboard-plus"></i>
-              <p class="block sm:hidden lg:block">
-                <%= t('activerecord.models.deal.new') %>
-              </p>
-            <% end %>
-            <div id="tooltip-new-pipeline-link" role="tooltip" class="hidden sm:inline-block lg:hidden absolute z-10 invisible px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-xs opacity-0 tooltip dark:bg-gray-700">
-              <%= t('activerecord.models.pipeline.new') %>
-              <div class="tooltip-arrow" data-popper-arrow></div>
-            </div>
-            <%= link_to new_account_pipeline_path(Current.account), class: 'button-default-blank-secondary-md', data: {tooltip_target: 'tooltip-new-pipeline-link'} do %>
-              <i data-lucide="funnel-plus"></i>
-              <p class="block sm:hidden lg:block">
-                <%= t('activerecord.models.pipeline.new') %>
-              </p>
-            <% end %>
-            <div id="tooltip-filter-deal" role="tooltip" class="hidden absolute z-10 invisible sm:inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-xs opacity-0 tooltip dark:bg-gray-700">
-              <%= t('activerecord.models.filter', model: Deal.model_name.human.pluralize) %>
-              <div class="tooltip-arrow" data-popper-arrow></div>
-            </div>
-            <div data-controller="filter-select-status-deal" class='w-full sm:w-auto'>
-              <button id="dropdownSortDeals" data-dropdown-toggle="dropdownSort" class="button-default-blank-secondary-md aria-selected:button-default-fill-primary-md w-full sm:auto" type="button" aria-selected="false" data-filter-select-status-deal-target="button" data-tooltip-target='tooltip-filter-deal'>
-                <i data-lucide="sliders-horizontal"></i>
-                <p class="block sm:hidden">
-                  <%= t('activerecord.models.filter', model: Deal.model_name.human.pluralize) %>
-                </p>
-              </button>
-              <%= form_with(url: account_pipeline_path(Current.account, @pipeline),method: :get,data: {turbo_frame: :stages, 'filter-select-status-deal-target': 'form', turbo_action: 'advance' } ) do |form| %>
-                <%= hidden_field_tag "filter_status_deal", nil, data: { 'filter-select-status-deal-target': 'status' } %>
-                <div id="dropdownSort" class="z-10 hidden bg-white divide-y divide-gray-300 rounded-lg shadow w-64 dark:bg-gray-700 dark:divide-gray-600">
-                  <ul class="py-2 typography-text-m-lh150 text-dark-gray-palette-p3 dark:text-gray-200" aria-labelledby="dropdownDefaultButton" data-filter-select-status-deal-target="links" >
-                    <li>
-                      <%= link_to "", data: { action: "click->filter-select-status-deal#select" }, class: "flex items-center space-x-2 px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 hover:text-dark-gray-palette-p1 dark:hover:text-white aria-selected:bg-brand-palette-07 aria-selected:text-brand-palette-03 aria-selected:pointer-events-none", value: "", 'aria-selected': 'false' do %>
-                        <i data-lucide="copy-plus"></i>
-                        <p><%= t('views.layouts.shared.navbar_pipe.all_open_deals') %></p>
-                      <% end %>
-                    </li>
-                    <li>
-                      <%= link_to "", data: { action: "click->filter-select-status-deal#select" }, class: "flex items-center space-x-2 px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 hover:text-dark-gray-palette-p1 dark:hover:text-white aria-selected:bg-brand-palette-07 aria-selected:text-brand-palette-03 aria-selected:pointer-events-none", value: "won", 'aria-selected': 'false' do %>
-                        <i data-lucide="copy-check"></i>
-                        <p><%= t('views.layouts.shared.navbar_pipe.all_won_deals') %></p>
-                      <% end %>
-                    </li>
-                    <li>
-                      <%= link_to "", data: { action: "click->filter-select-status-deal#select" }, class: "flex items-center space-x-2 px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 hover:text-dark-gray-palette-p1 dark:hover:text-white aria-selected:bg-brand-palette-07 aria-selected:text-brand-palette-03 aria-selected:pointer-events-none", value: "lost", 'aria-selected': 'false' do %>
-                        <i data-lucide="copy-x"></i>
-                        <p><%= t('views.layouts.shared.navbar_pipe.all_lost_deals') %></p>
-                      <% end %>
-                    </li>
-                    <li>
-                      <%= link_to "", data: { action: "click->filter-select-status-deal#select" }, class: "flex items-center space-x-2 px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 hover:text-dark-gray-palette-p1 dark:hover:text-white aria-selected:bg-brand-palette-07 aria-selected:text-brand-palette-03 aria-selected:pointer-events-none", value: "all", 'aria-selected': 'false' do %>
-                        <i data-lucide="copy"></i>
-                        <p><%= t('views.layouts.shared.navbar_pipe.all_deals') %></p>
-                      <% end %>
-                    </li>
-                  </ul>
-                </div>
-              <% end %>
-            </div>
-            <div id="tooltip-deal-list-link" role="tooltip" class="hidden absolute z-10 invisible sm:inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-xs opacity-0 tooltip dark:bg-gray-700">
-              <%= t('activerecord.models.deal.list_mode') %>
-              <div class="tooltip-arrow" data-popper-arrow></div>
-            </div>
-            <%= link_to account_deals_path(Current.account), class: 'button-default-blank-secondary-md', data: { tooltip_target: "tooltip-deal-list-link" } do %>
-              <i data-lucide="list"></i>
-              <p class="block sm:hidden">
-                <%= t('activerecord.models.deal.list_mode') %>
-              </p>
-            <% end %>
+  <nav class="bg-white dark:bg-gray-900 px-6 py-2 border-b-[1.5px] color-border-default transition-colors duration-200">
+    <div class="flex items-center justify-between w-full">
+      
+      <%# LADO ESQUERDO: SELETOR DE FUNIL E NOVO NEGÓCIO %>
+      <div class="flex items-center space-x-4">
+        <div class="flex items-center h-10 border-solid border-2 border-light-palette-p3 rounded-lg overflow-hidden bg-white">
+          <div class="h-10 w-10 flex items-center justify-center bg-brand-palette-08 border-r-2 border-light-palette-p3">
+            <%= embedded_svg('vectooor2.svg', { class: 'h-5 w-5 color-fg-soft' }) %>
           </div>
+          <select class="px-2 h-full border-none focus:ring-0 typography-text-r-lh150 text-dark-gray-palette-p3 bg-transparent" onchange="window.location=this.value">
+            <% @pipelines.each do |pipeline| %>
+              <option value="<%= account_pipeline_path(Current.account, pipeline.id) %>" <%= pipeline.id == @pipeline.id ? 'selected' : '' %>>
+                <%= pipeline.name %>
+              </option>
+            <% end %>
+          </select>
+          <%= link_to edit_account_pipeline_path(Current.account, @pipeline), class:'h-10 w-10 flex items-center justify-center border-l-2 border-light-palette-p3 hover:bg-gray-100' do %>
+            <%= embedded_svg('pencil-icon.svg') %>
+          <% end %>
         </div>
+
+        <%= link_to new_select_contact_account_deals_path(Current.account), class: 'button-default-fill-primary-md' do %>
+          <i data-lucide="clipboard-plus"></i>
+          <span class="ml-2 hidden lg:inline"><%= t('activerecord.models.deal.new') %></span>
+        <% end %>
+      </div>
+
+      <%# LADO DIREITO: MODO ESCURO E USUÁRIO %>
+      <div class="flex items-center space-x-4">
+        <%# BOTÃO MODO ESCURO %>
+        <button id="theme-toggle" type="button" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg p-2.5">
+          <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+          <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+        </button>
+        <%= render 'components/navs/user_menu' %>
       </div>
     </div>
   </nav>
@@ -128,7 +47,6 @@
   <script>
     var themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
     var themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
-
     if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         themeToggleLightIcon.classList.remove('hidden');
         document.documentElement.classList.add('dark');
@@ -136,12 +54,10 @@
         themeToggleDarkIcon.classList.remove('hidden');
         document.documentElement.classList.remove('dark');
     }
-
     var themeToggleBtn = document.getElementById('theme-toggle');
     themeToggleBtn.addEventListener('click', function() {
         themeToggleDarkIcon.classList.toggle('hidden');
         themeToggleLightIcon.classList.toggle('hidden');
-
         if (localStorage.getItem('color-theme')) {
             if (localStorage.getItem('color-theme') === 'light') {
                 document.documentElement.classList.add('dark');
