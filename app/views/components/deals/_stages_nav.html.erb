@@ -7,12 +7,11 @@
       <div class="flex-1 flex flex-col items-center min-w-[25px]">
         
         <% if stage == deal.stage or deal.stage.position > stage.position %>
-          <%# Cores: Um tom abaixo para suavizar, mantendo a visibilidade %>
           <% 
             bg_color = case deal.status
-                       when 'won' then 'bg-[#a7f3d0]'  # Verde Suave (Ganho)
-                       when 'lost' then 'bg-[#fca5a5]' # Vermelho Suave (Perdido)
-                       else 'bg-green-500'             # Andamento Verde Forte
+                       when 'won' then 'bg-[#a7f3d0]' 
+                       when 'lost' then 'bg-[#fca5a5]' 
+                       else 'bg-green-500'             
                        end 
             
             arrow_color = case deal.status
@@ -22,23 +21,22 @@
                            end
           %>
 
-          <%# Barra fina h-2 para um visual limpo %>
-          <%= link_to account_deal_path(deal.account, deal, deal: { status: deal.status, stage_id: stage.id } ), method: :patch, data: { confirm: t('views.accounts.deals.stages_nav_desktop.are_you_sure?'), tooltip_target:"tooltip-default-#{stage.id}-#{stage.name}", data_tooltip_placement:"bottom" }, class: "first:rounded-l-lg last:rounded-r-lg justify-center flex w-full h-2 #{bg_color} group relative before:absolute #{ index == stages.length - 1 ? '' : "before:top-0 before:z-10 before:right-[-4px] before:border-solid #{arrow_color} before:border-l-[4px] before:border-y-transparent before:border-y-[4px] after:absolute after:top-0 after:border-solid after:border-y-transparent after:border-y-[4px] inline-block after:border-l-light-palette-p5 after:border-l-[4px] after:right-[-7px] " }", style:"z-index: #{30 - index} ", aria_current:"page" do %>
+          <%# AJUSTE: dark:after:border-l-slate-950 para a seta sumir no fundo azul %>
+          <%= link_to account_deal_path(deal.account, deal, deal: { status: deal.status, stage_id: stage.id } ), method: :patch, data: { confirm: t('views.accounts.deals.stages_nav_desktop.are_you_sure?'), tooltip_target:"tooltip-default-#{stage.id}-#{stage.name}", data_tooltip_placement:"bottom" }, class: "first:rounded-l-lg last:rounded-r-lg justify-center flex w-full h-2 #{bg_color} group relative before:absolute #{ index == stages.length - 1 ? '' : "before:top-0 before:z-10 before:right-[-4px] before:border-solid #{arrow_color} before:border-l-[4px] before:border-y-transparent before:border-y-[4px] after:absolute after:top-0 after:border-solid after:border-y-transparent after:border-y-[4px] inline-block after:border-l-light-palette-p5 dark:after:border-l-slate-950 after:border-l-[4px] after:right-[-7px] " }", style:"z-index: #{30 - index} ", aria_current:"page" do %>
             &nbsp;
           <% end %>
         <% else %>
-          <%# Fases futuras em cinza claro %>
-          <div class="flex w-full h-2 bg-gray-200 relative first:rounded-l-lg last:rounded-r-lg"></div>
+          <%# AJUSTE: Fases futuras agora em azul ardósia (slate-800) %>
+          <div class="flex w-full h-2 bg-gray-200 dark:bg-slate-800 relative first:rounded-l-lg last:rounded-r-lg"></div>
         <% end %>
 
-        <%# ESCRITA VIVIDA: Nome da etapa e status Ganho/Perdido %>
         <% if stage == deal.stage %>
           <div class="flex flex-col items-center mt-1">
-            <p class="text-[9px] font-black text-center leading-none <%= deal.status == 'won' ? 'text-green-900' : (deal.status == 'lost' ? 'text-red-900' : 'text-black') %>">
+            <%# AJUSTE: Nome da etapa fica branco no modo escuro %>
+            <p class="text-[9px] font-black text-center leading-none <%= deal.status == 'won' ? 'text-green-900' : (deal.status == 'lost' ? 'text-red-900' : 'text-black dark:text-slate-100') %>">
               <%= stage.name %>
             </p>
             
-            <%# Etiquetas atualizadas conforme sua solicitação %>
             <% if deal.status == 'won' %>
               <span class="text-[7px] font-bold text-green-700 mt-0.5">● GANHO</span>
             <% elsif deal.status == 'lost' %>
