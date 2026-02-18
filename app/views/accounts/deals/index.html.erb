@@ -1,47 +1,57 @@
-<div class="bg-light-palette-p5 dark:bg-slate-950 border-2 border-light-palette-p3 dark:border-slate-800 rounded m-8 transition-colors duration-200">
-  <header class="border-b-2 border-light-palette-p3 dark:border-slate-800 flex items-center justify-end gap-2 p-4 sticky top-0 bg-light-palette-p5 dark:bg-slate-950 z-20">
-    <%= render '/components/form/input_expandable_search',
-               search_url: account_deals_path(Current.account),
-               turbo_frame_search: :deals_table,
-               placeholder: t('activerecord.models.search', model: @deals.model_name.human) %>
-    <%= link_to new_select_contact_account_deals_path(current_user.account), class: 'button-default-blank-secondary-icon-only-sm dark:text-slate-400 dark:hover:text-white', data: { turbo_frame: :_top } do %>
-      <i data-lucide="plus" class='h-4 w-4'></i>
-    <% end %>
-  </header>
+<%# Estrutura principal com fundo escuro total para eliminar bordas brancas %>
+<div class="bg-light-palette-p5 dark:bg-slate-950 min-h-screen transition-colors duration-200">
+  
+  <%# Espaçamento interno (padding) que mantém a cor escura nas laterais %>
+  <div class="p-8">
+    <div class="bg-white dark:bg-slate-900 border-2 border-light-palette-p3 dark:border-slate-800 rounded-lg shadow-xl overflow-hidden">
+      
+      <%# Cabeçalho da Tabela %>
+      <header class="border-b-2 border-light-palette-p3 dark:border-slate-800 flex items-center justify-end gap-2 p-4 sticky top-0 bg-light-palette-p5 dark:bg-slate-900 z-20">
+        <%= render '/components/form/input_expandable_search',
+                   search_url: account_deals_path(Current.account),
+                   turbo_frame_search: :deals_table,
+                   placeholder: t('activerecord.models.search', model: @deals.model_name.human) %>
+        
+        <%= link_to new_select_contact_account_deals_path(current_user.account), class: 'button-default-blank-secondary-icon-only-sm dark:text-slate-400 dark:hover:text-white', data: { turbo_frame: :_top } do %>
+          <i data-lucide="plus" class='h-4 w-4'></i>
+        <% end %>
+      </header>
 
-  <%= turbo_frame_tag :deals_table do %>
-    <div class="overflow-x-auto">
-      <table class="w-full text-left rtl:text-right min-w-[1950px]">
-        <thead class="border-b border-light-palette-p3 dark:border-slate-800 bg-light-palette-p4 dark:bg-slate-900">
-          <tr>
-            <th scope="col" class="py-3 pl-4 pr-4 w-[52px]"></th>
-            <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 dark:text-slate-300">
-              <%= t('activerecord.attributes.deal.name') %>
-            </th>
-            <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 dark:text-slate-300">
-              <%= t('activerecord.attributes.deal.status') %>
-            </th>
-            <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 dark:text-slate-300">
-              <%= t('activerecord.attributes.deal.total_amount_in_cents') %>
-            </th>
-            <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 dark:text-slate-300">
-              <%= t('activerecord.attributes.deal.contact') %>
-            </th>
-            <th scope="col" class="py-3 pl-4 pr-4 sticky right-0 bg-light-palette-p4 dark:bg-slate-900 z-10 w-[50px]"></th>
-          </tr>
-        </thead>
-        <tbody class="w-full" id='deals'>
-          <%# VOLTAMOS PARA O PADRÃO ORIGINAL PARA NÃO QUEBRAR %>
-          <%= render partial: '/accounts/deals/deal', collection: @deals, as: :deal %>
-        </tbody>
-      </table>
-    </div>
+      <%= turbo_frame_tag :deals_table do %>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left rtl:text-right min-w-[1950px]">
+            <thead class="border-b border-light-palette-p3 dark:border-slate-800 bg-light-palette-p4 dark:bg-slate-800">
+              <tr>
+                <th scope="col" class="py-3 pl-4 pr-4 w-[52px]"></th>
+                <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 dark:text-slate-300">
+                  <%= t('activerecord.attributes.deal.name') %>
+                </th>
+                <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 dark:text-slate-300">
+                  <%= t('activerecord.attributes.deal.status') %>
+                </th>
+                <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 dark:text-slate-300">
+                  <%= t('activerecord.attributes.deal.total_amount_in_cents') %>
+                </th>
+                <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 dark:text-slate-300">
+                  <%= t('activerecord.attributes.deal.contact') %>
+                </th>
+                <th scope="col" class="py-3 pl-4 pr-4 sticky right-0 bg-light-palette-p4 dark:bg-slate-800 z-10 w-[50px]"></th>
+              </tr>
+            </thead>
+            <tbody class="w-full" id='deals'>
+              <%# Uso do @deals original para evitar erro de paginação %>
+              <%= render partial: '/accounts/deals/deal', collection: @deals, as: :deal %>
+            </tbody>
+          </table>
+        </div>
 
-    <div class="sticky bottom-0 bg-light-palette-p5 dark:bg-slate-950 z-10 py-2 px-4 border-t-2 border-light-palette-p3 dark:border-slate-800">
-      <div class="flex justify-end">
-        <%# O Pagy precisa do @deals original para funcionar %>
-        <%== pagy_nav(@pagy) %>
-      </div>
+        <%# Rodapé com Paginação %>
+        <div class="sticky bottom-0 bg-light-palette-p5 dark:bg-slate-900 z-10 py-2 px-4 border-t-2 border-light-palette-p3 dark:border-slate-800">
+          <div class="flex justify-end">
+            <%== pagy_nav(@pagy) %>
+          </div>
+        </div>
+      <% end %>
     </div>
-  <% end %>
+  </div>
 </div>
