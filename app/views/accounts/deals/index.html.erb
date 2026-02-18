@@ -1,53 +1,64 @@
-<%# Estrutura principal com fundo escuro total para eliminar bordas brancas %>
-<div class="bg-light-palette-p5 dark:bg-slate-950 min-h-screen transition-colors duration-200">
+<%# ESTILO PARA MATAR O BRANCO DAS BORDAS EXTERNAS %>
+<style>
+  /* Força o fundo escuro no wrapper que abraça a página */
+  .dark body, 
+  .dark .app-wrapper, 
+  .dark #main-content { 
+    background-color: #020617 !important; /* Cor Navy/Slate-950 */
+  }
+</style>
+
+<%# Container principal sem margens externas (m-8 removido) para não vazar branco %>
+<div class="bg-slate-50 dark:bg-slate-950 min-h-screen transition-colors duration-200">
   
-  <%# Espaçamento interno (padding) que mantém a cor escura nas laterais %>
-  <div class="p-8">
-    <div class="bg-white dark:bg-slate-900 border-2 border-light-palette-p3 dark:border-slate-800 rounded-lg shadow-xl overflow-hidden">
+  <%# Adicionamos o espaçamento por dentro (p-4) para a tabela não colar na tela %>
+  <div class="p-4 md:p-6">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl overflow-hidden">
       
-      <%# Cabeçalho da Tabela %>
-      <header class="border-b-2 border-light-palette-p3 dark:border-slate-800 flex items-center justify-end gap-2 p-4 sticky top-0 bg-light-palette-p5 dark:bg-slate-900 z-20">
+      <header class="border-b border-slate-200 dark:border-slate-800 flex items-center justify-end gap-3 p-4 bg-white dark:bg-slate-900 sticky top-0 z-20">
         <%= render '/components/form/input_expandable_search',
                    search_url: account_deals_path(Current.account),
                    turbo_frame_search: :deals_table,
                    placeholder: t('activerecord.models.search', model: @deals.model_name.human) %>
         
-        <%= link_to new_select_contact_account_deals_path(current_user.account), class: 'button-default-blank-secondary-icon-only-sm dark:text-slate-400 dark:hover:text-white', data: { turbo_frame: :_top } do %>
-          <i data-lucide="plus" class='h-4 w-4'></i>
+        <%= link_to new_select_contact_account_deals_path(current_user.account), 
+            class: 'p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all', 
+            data: { turbo_frame: :_top } do %>
+          <i data-lucide="plus" class='h-5 w-5'></i>
         <% end %>
       </header>
 
       <%= turbo_frame_tag :deals_table do %>
         <div class="overflow-x-auto">
-          <table class="w-full text-left rtl:text-right min-w-[1950px]">
-            <thead class="border-b border-light-palette-p3 dark:border-slate-800 bg-light-palette-p4 dark:bg-slate-800">
+          <table class="w-full text-left rtl:text-right min-w-[1200px]">
+            <thead class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
               <tr>
-                <th scope="col" class="py-3 pl-4 pr-4 w-[52px]"></th>
-                <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 dark:text-slate-300">
+                <th scope="col" class="py-4 pl-4 pr-4 w-[52px]"></th>
+                <th scope="col" class="pr-4 py-4 font-bold text-slate-700 dark:text-slate-200 uppercase text-xs tracking-widest">
                   <%= t('activerecord.attributes.deal.name') %>
                 </th>
-                <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 dark:text-slate-300">
+                <th scope="col" class="pr-4 py-4 font-bold text-slate-700 dark:text-slate-200 uppercase text-xs tracking-widest">
                   <%= t('activerecord.attributes.deal.status') %>
                 </th>
-                <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 dark:text-slate-300">
-                  <%= t('activerecord.attributes.deal.total_amount_in_cents') %>
+                <th scope="col" class="pr-4 py-4 font-bold text-slate-700 dark:text-slate-200 uppercase text-xs tracking-widest">
+                   Valor
                 </th>
-                <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 dark:text-slate-300">
-                  <%= t('activerecord.attributes.deal.contact') %>
+                <th scope="col" class="pr-4 py-4 font-bold text-slate-700 dark:text-slate-200 uppercase text-xs tracking-widest">
+                  Contato
                 </th>
-                <th scope="col" class="py-3 pl-4 pr-4 sticky right-0 bg-light-palette-p4 dark:bg-slate-800 z-10 w-[50px]"></th>
+                <th scope="col" class="py-4 pl-4 pr-4 sticky right-0 bg-slate-50 dark:bg-slate-800 z-10 w-[50px]"></th>
               </tr>
             </thead>
-            <tbody class="w-full" id='deals'>
-              <%# Uso do @deals original para evitar erro de paginação %>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800" id='deals'>
+              <%# Renderização segura para não dar erro "Something went wrong" %>
               <%= render partial: '/accounts/deals/deal', collection: @deals, as: :deal %>
             </tbody>
           </table>
         </div>
 
-        <%# Rodapé com Paginação %>
-        <div class="sticky bottom-0 bg-light-palette-p5 dark:bg-slate-900 z-10 py-2 px-4 border-t-2 border-light-palette-p3 dark:border-slate-800">
-          <div class="flex justify-end">
+        <%# Paginação harmônica %>
+        <div class="bg-white dark:bg-slate-900 p-4 border-t border-slate-200 dark:border-slate-800">
+          <div class="flex justify-end pagy-dark-theme">
             <%== pagy_nav(@pagy) %>
           </div>
         </div>
