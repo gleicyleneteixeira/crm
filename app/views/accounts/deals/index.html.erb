@@ -1,43 +1,91 @@
-<style>
-  .dark body, .dark .app-wrapper, .dark #main-content { background-color: #020617 !important; }
-</style>
-
-<div class="bg-slate-50 dark:bg-slate-950 min-h-screen transition-colors duration-200">
-  <div class="p-4 md:p-8">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl overflow-hidden">
-      
-      <header class="border-b border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2 p-4 bg-white dark:bg-slate-900 sticky top-0 z-20">
-        <%= render '/components/form/input_expandable_search',
-                   search_url: account_deals_path(Current.account),
-                   turbo_frame_search: :deals_table,
-                   placeholder: t('activerecord.models.search', model: @deals.model_name.human) %>
-        <%= link_to new_select_contact_account_deals_path(current_user.account), class: 'p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300', data: { turbo_frame: :_top } do %>
-          <i data-lucide="plus" class='h-5 w-5'></i>
-        <% end %>
-      </header>
-
-      <%= turbo_frame_tag :deals_table do %>
-        <div class="overflow-x-auto">
-          <%# Ajustamos o min-w para 1300px para dar fôlego às colunas %>
-          <table class="w-full text-left min-w-[1300px] table-fixed">
-            <thead class="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-800">
-              <tr>
-                <th class="w-[80px] py-4 pl-6 text-slate-700 dark:text-slate-200 font-bold uppercase text-xs">Ícone</th>
-                <th class="w-[35%] py-4 font-bold text-slate-700 dark:text-slate-200 uppercase text-xs">Nome</th>
-                <th class="w-[15%] py-4 font-bold text-slate-700 dark:text-slate-200 uppercase text-xs">Status</th>
-                <th class="w-[15%] py-4 font-bold text-slate-700 dark:text-slate-200 uppercase text-xs">Estágio</th>
-                <th class="w-[15%] py-4 font-bold text-slate-700 dark:text-slate-200 uppercase text-xs">Valor</th>
-                <th class="w-[15%] py-4 font-bold text-slate-700 dark:text-slate-200 uppercase text-xs">Contato</th>
-                <%# Coluna de ações com largura fixa para não sumir %>
-                <th class="w-[80px] py-4 pr-6 sticky right-0 bg-slate-50 dark:bg-slate-800 z-10 text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100 dark:divide-slate-800" id='deals'>
-              <%= render partial: '/accounts/deals/deal', collection: @deals, as: :deal %>
-            </tbody>
-          </table>
-        </div>
-      <% end %>
+<tr id="deal_<%= deal.id %>" is='turbo-frame' class="border-b-2 border-light-palette-p3 dark:border-slate-800 last:border-none transition-colors duration-200" data-controller='load-lucid-icons'>
+  <td class="py-2.5 pl-4 pr-4 flex-shrink-0">
+    <div class="w-[52px] h-[52px] flex">
+      <div class="border-2 bg-brand-palette-08 dark:bg-slate-800 rounded-md h-full w-full flex items-center justify-center color-fg-default">
+        <%= embedded_svg("deals-icon.svg", class: "fill-dark-gray-palette-p3 dark:fill-slate-400 m-auto w-6 h-6 ") %>
+      </div>
     </div>
-  </div>
+  </td>
+  
+  <%# Nome %>
+  <td class="pr-4 py-2.5 typography-body-r-lh150 text-dark-gray-palette-p2 dark:text-slate-100 max-w-[350px] truncate">
+    <%= deal.name %>
+  </td>
+
+  <%# Status %>
+  <td class="pr-4 py-2.5 typography-body-r-lh150 text-dark-gray-palette-p2 dark:text-slate-300 max-w-[100px] truncate">
+    <%= Deal.human_enum_name(:status, deal.status) %>
+  </td>
+
+  <%# Código %>
+  <td class="pr-4 py-2.5 typography-body-r-lh150 text-dark-gray-palette-p2 dark:text-slate-400 max-w-[150px] truncate">
+    <%= deal.id %>
+  </td>
+
+  <%# Estágio %>
+  <td class="pr-4 py-2.5 typography-body-r-lh150 text-dark-gray-palette-p2 dark:text-slate-200 max-w-[250px] truncate">
+    <%= deal.stage.name %>
+  </td>
+
+  <%# Valor %>
+  <td class="pr-4 py-2.5 typography-body-r-lh150 text-dark-gray-palette-p2 dark:text-slate-100 max-w-[200px] truncate font-medium">
+    <%= render 'components/formatters/currency', value: deal.total_amount_in_cents %>
+  </td>
+
+  <%# Pipeline %>
+  <td class="pr-4 py-2.5 typography-body-r-lh150 text-dark-gray-palette-p2 dark:text-slate-400 max-w-[250px] truncate">
+    <%= deal.pipeline.name %>
+  </td>
+
+  <%# Contato %>
+  <td class="pr-4 py-2.5 max-w-[280px]">
+    <%= render '/components/links/hovercard_trigger', model: deal.contact, hovercard_preview_url: hovercard_preview_account_contact_path(Current.account, deal.contact), details_url: account_contact_path(Current.account, deal.contact) do %>
+      <p class='typography-sub-title-900 color-fg-soft dark:text-blue-400 hover:color-fg-default h-full align-middle inline-block max-w-[280px] truncate <%= dom_id(deal.contact, :stream_full_name) %>'>
+        <%= deal.contact&.full_name %>
+      </p>
+    <% end %>
+  </td>
+
+  <%# Criador %>
+  <td class="pr-4 py-2.5 typography-body-r-lh150 text-dark-gray-palette-p2 dark:text-slate-400 max-w-[280px] truncate">
+    <%= deal.creator&.full_name %>
+  </td>
+
+  <%# Data %>
+  <td class="pr-4 py-2.5 typography-body-r-lh150 text-dark-gray-palette-p2 dark:text-slate-400 max-w-[250px] truncate">
+    <%= l(deal.created_at, format: :long) %>
+  </td>
+
+  <%# Menu Três Pontinhos - Corrigido com fundo dinâmico %>
+  <td class="py-2.5 pl-4 pr-4 sticky right-0 bg-light-palette-p5 dark:bg-slate-950 z-10 shadow-[-10px_0_15px_rgba(0,0,0,0.05)]">
+    <div class="flex justify-end gap-2">
+      <button id="dropdownuserBtn_<%= deal.id %>" data-dropdown-toggle="dropdownuserOptions<%= deal.id %>" data-dropdown-placement="left" class="button-default-blank-secondary-icon-only-sm dark:text-slate-400 dark:hover:text-white" type="button">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="more-vertical" class="stroke-dark-gray-palette-p3 dark:stroke-slate-400">
+          <circle cx="12" cy="12" r="1"></circle>
+          <circle cx="12" cy="5" r="1"></circle>
+          <circle cx="12" cy="19" r="1"></circle>
+        </svg>
+      </button>
+    </div>
+  </td>
+</tr>
+
+<%# O Dropdown que estava faltando aparecer no escuro %>
+<div id="dropdownuserOptions<%= deal.id %>" class="z-50 hidden bg-white divide-y divide-gray-200 rounded-lg shadow w-48 dark:bg-slate-800 dark:divide-slate-700">
+  <ul class="py-2 typography-text-m-lh150 text-dark-gray-palette-p3 dark:text-slate-200">
+    <li>
+      <%= link_to account_deal_path(Current.account, deal), data: {turbo_frame: :_top}, class: 'flex items-center space-x-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-700' do %>
+        <i data-lucide="info" class="w-4 h-4"></i>
+        <span><%= t('activerecord.models.show') %></span>
+      <% end %>
+    </li>
+    <li>
+      <%= link_to account_deal_path(current_user.account, deal),
+              method: :delete,
+              data: { confirm: t('views.layouts.shared.navbar_deal.are_you_sure?') }, class: 'flex items-center space-x-2 px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20' do %>
+        <i data-lucide="trash" class="w-4 h-4"></i>
+        <span><%= t('activerecord.models.delete') %></span>
+      <% end %>
+    </li>
+  </ul>
 </div>
