@@ -1,1 +1,88 @@
-<%= render '/accounts/contacts/drawer_show_contact', contact: @contact %>
+<%# CSS PARA MATAR O BRANCO E AJUSTAR A ESCRITA NA GD SOLUÇÕES FINANCEIRAS %>
+<style>
+  /* Quando o modo DARK está ativo, força o fundo de todas as áreas brancas */
+  .dark .show-model-container, 
+  .dark .color-bg-surface-default,
+  .dark .bg-white,
+  .dark [data-accordion-target],
+  .dark .drawer-content {
+    background-color: #0f172a !important; /* Azul Marinho Profundo */
+    border-color: #1e293b !important;
+  }
+
+  /* Ajusta os textos: Branco no Dark / Preto no Claro automaticamente */
+  .dark .color-fg-default, 
+  .dark .text-slate-800, 
+  .dark h1, .dark h2, .dark h3, .dark span, .dark p {
+    color: #f8fafc !important; 
+  }
+
+  /* Ajusta os rótulos (CPF, Convênio, etc) para cinza claro no dark */
+  .dark .color-fg-soft, 
+  .dark .text-slate-500 {
+    color: #94a3b8 !important;
+  }
+</style>
+
+<% content_for :show_additional_content do %>
+  <% if Apps::Chatwoot.first.present? %>
+    <%# Card Chatwoot Dinâmico %>
+    <div class="mb-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded shadow-sm transition-colors">
+      <header class="flex flex-wrap items-center justify-between gap-2 p-4 border-b border-slate-100 dark:border-slate-800">
+        <div class='flex items-center gap-2'>
+          <i data-lucide="message-circle" class='text-slate-400 dark:text-slate-300 w-5 h-5'></i>
+          <h1 class='text-slate-800 dark:text-white font-bold tracking-tight'>Chatwoot</h1>
+        </div>
+      </header>
+      <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <p class='text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 tracking-widest'>ID Chatwoot</p>
+          <p class='text-sm text-slate-800 dark:text-slate-200'><%= contact.additional_attributes['chatwoot_id'] %></p>
+        </div>
+        <div>
+          <p class='text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 tracking-widest'>Identificador</p>
+          <p class='text-sm text-slate-800 dark:text-slate-200'><%= contact.additional_attributes['chatwoot_identifier'] %></p>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <%# Card Negócios Dinâmico - Organizado: Verdes primeiro %>
+  <div class="mb-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded shadow-sm transition-colors">
+    <header class="flex flex-wrap items-center justify-between gap-2 p-4 border-b border-slate-100 dark:border-slate-800">
+      <div class='flex items-center gap-2'>
+        <i data-lucide="clipboard-list" class='text-slate-400 dark:text-slate-300 w-5 h-5'></i>
+        <h1 class='text-slate-800 dark:text-white font-bold tracking-tight'>Negócios</h1>
+      </div>
+    </header>
+    <ul class="p-4 flex flex-col gap-2">
+      <%# Lógica de Ordenação: Abertos primeiro %>
+      <% ordered_deals = contact.deals.sort_by { |d| { 'open' => 1, 'won' => 2, 'lost' => 3 }[d.status] || 4 } %>
+      <% ordered_deals.each do |deal| %>
+        <li class="flex items-center gap-4 py-3 border-b border-slate-50 dark:border-slate-800 last:border-none">
+          <div class="h-10 w-10 flex items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-300">
+            <i data-lucide="clipboard-list" class='w-5 h-5'></i>
+          </div>
+          <div class="mr-auto">
+            <h2 class="text-sm font-semibold text-slate-800 dark:text-white"><%= deal.name %></h2>
+            <span class="text-[10px] uppercase font-black <%= deal.status == 'open' ? 'text-green-600 dark:text-green-400' : (deal.status == 'won' ? 'text-blue-600' : 'text-red-500') %>">
+              ● <%= Deal.human_enum_name(:status, deal.status) %>
+            </span>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
+
+<% content_for :sidebar do %>
+  <%= render 'components/show_model/sidebar', model: contact,
+      links: [
+        { label: t('activerecord.models.show'), icon: "info" },
+        (Apps::Chatwoot.first.present? ? { label: "Chatwoot", icon: "message-circle" } : nil),
+        { label: "Negócios", icon: "clipboard-list" }
+      ].compact %>
+<% end %>
+
+<%# ESTA LINHA É A QUE ABRE A GAVETA E O FUNCIONAMENTO DO CLIQUE %>
+<%= render 'components/show_model/show_model', model: contact, edit_path: edit_account_contact_path(Current.account, contact) %>
