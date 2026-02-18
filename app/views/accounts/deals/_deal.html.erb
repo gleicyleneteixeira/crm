@@ -1,77 +1,64 @@
-<tr id="deal_<%= deal.id %>" is='turbo-frame' class="border-b-2 border-light-palette-p3 dark:border-slate-800 last:border-none transition-colors duration-200" data-controller='load-lucid-icons'>
+<tr id="deal_<%= deal.id %>" is='turbo-frame' class="border-b color-border-default dark:border-slate-800 last:border-none transition-colors duration-200" data-controller='load-lucid-icons'>
   <td class="py-2.5 pl-4 pr-4 flex-shrink-0">
     <div class="w-[52px] h-[52px] flex">
-      <%# MUDANÇA: dark:bg-slate-800 e dark:border-slate-700 no ícone %>
-      <div class="border-2 bg-brand-palette-08 dark:bg-slate-800 dark:border-slate-700 rounded-md h-full w-full flex items-center justify-center color-fg-default">
-        <%= embedded_svg("deals-icon.svg", class: "fill-dark-gray-palette-p3 dark:fill-slate-400 m-auto w-6 h-6 ") %>
+      <div class="border color-border-default bg-light-palette-p5 dark:bg-slate-800 dark:border-slate-700 rounded-md h-full w-full flex items-center justify-center">
+        <%= embedded_svg("deals-icon.svg", class: "fill-dark-gray-palette-p3 dark:fill-slate-400 m-auto w-6 h-6") %>
       </div>
     </div>
   </td>
   
-  <%# MUDANÇA: dark:text-slate-100 para todos os textos da linha %>
-  <td class="pr-4 py-2.5 typography-body-r-lh150 text-dark-gray-palette-p2 dark:text-slate-100 max-w-[350px] truncate">
+  <%# Nome do Negócio %>
+  <td class="pr-4 py-2.5 typography-body-r-lh150 color-fg-default dark:text-slate-100 max-w-[350px] truncate">
     <%= deal.name %>
   </td>
-  <td class="pr-4 py-2.5 typography-body-r-lh150 text-dark-gray-palette-p2 dark:text-slate-300 max-w-[100px] truncate">
-    <%= Deal.human_enum_name(:status, deal.status) %>
+
+  <%# Status com bolinha colorida para harmonia %>
+  <td class="pr-4 py-2.5 typography-body-r-lh150 dark:text-slate-300 max-w-[100px] truncate">
+    <span class="flex items-center gap-1.5">
+      <span class="w-2 h-2 rounded-full <%= deal.status == 'open' ? 'bg-green-500' : (deal.status == 'won' ? 'bg-blue-500' : 'bg-red-500') %>"></span>
+      <%= Deal.human_enum_name(:status, deal.status) %>
+    </span>
   </td>
-  <td class="pr-4 py-2.5 typography-body-r-lh150 text-dark-gray-palette-p2 dark:text-slate-400 max-w-[150px] truncate">
+
+  <td class="pr-4 py-2.5 typography-body-r-lh150 color-fg-subtle dark:text-slate-400 max-w-[150px] truncate">
     <%= deal.id %>
   </td>
-  <td class="pr-4 py-2.5 typography-body-r-lh150 text-dark-gray-palette-p2 dark:text-slate-300 max-w-[250px] truncate">
+
+  <td class="pr-4 py-2.5 typography-body-r-lh150 color-fg-default dark:text-slate-300 max-w-[250px] truncate">
     <%= deal.stage.name %>
   </td>
-  <td class="pr-4 py-2.5 typography-body-r-lh150 text-dark-gray-palette-p2 dark:text-slate-100 max-w-[200px] truncate">
+
+  <td class="pr-4 py-2.5 typography-body-r-lh150 color-fg-default dark:text-slate-100 max-w-[200px] truncate">
     <%= render 'components/formatters/currency', value: deal.total_amount_in_cents %>
   </td>
-  <td class="pr-4 py-2.5 typography-body-r-lh150 text-dark-gray-palette-p2 dark:text-slate-400 max-w-[250px] truncate">
+
+  <td class="pr-4 py-2.5 typography-body-r-lh150 color-fg-subtle dark:text-slate-400 max-w-[250px] truncate">
     <%= deal.pipeline.name %>
   </td>
+
+  <%# Contato com link azul harmônico %>
   <td class="pr-4 py-2.5 max-w-[280px]">
     <%= render '/components/links/hovercard_trigger', model: deal.contact, hovercard_preview_url: hovercard_preview_account_contact_path(Current.account, deal.contact), details_url: account_contact_path(Current.account, deal.contact) do %>
-      <%# MUDANÇA: color-fg-soft para dark:text-blue-400 (cor de link profissional) %>
-      <p class='typography-sub-title-900 color-fg-soft dark:text-blue-400 hover:color-fg-default dark:hover:text-blue-300 h-full align-middle inline-block max-w-[280px] truncate <%= dom_id(deal.contact, :stream_full_name) %>'>
+      <p class='typography-sub-title-900 text-blue-600 dark:text-blue-400 hover:underline truncate'>
         <%= deal.contact&.full_name %>
       </p>
     <% end %>
   </td>
-  <td class="pr-4 py-2.5 typography-body-r-lh150 text-dark-gray-palette-p2 dark:text-slate-400 max-w-[280px] truncate">
+
+  <td class="pr-4 py-2.5 typography-body-r-lh150 color-fg-subtle dark:text-slate-400 max-w-[280px] truncate">
     <%= deal.creator&.full_name %>
   </td>
-  <td class="pr-4 py-2.5 typography-body-r-lh150 text-dark-gray-palette-p2 dark:text-slate-400 max-w-[250px] truncate">
-    <%= l(deal.created_at, format: :long) %>
+
+  <td class="pr-4 py-2.5 typography-body-r-lh150 color-fg-subtle dark:text-slate-400 max-w-[250px] truncate">
+    <%= l(deal.created_at, format: :short) %>
   </td>
   
-  <%# MUDANÇA: O fundo da última célula (sticky) precisa ser dark:bg-slate-950 %>
-  <td class="py-2.5 pl-4 pr-4 sticky right-0 bg-light-palette-p5 dark:bg-slate-950 z-10">
-    <div class="flex justify-end gap-2">
-      <button id="dropdownuserBtn_<%= deal.id %>" data-dropdown-toggle="dropdownuserOptions<%= deal.id %>" data-dropdown-placement="left" class="button-default-blank-secondary-icon-only-sm dark:text-slate-400" type="button">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="more-vertical" class="stroke-dark-gray-palette-p3 dark:stroke-slate-400">
-          <circle cx="12" cy="12" r="1"></circle>
-          <circle cx="12" cy="5" r="1"></circle>
-          <circle cx="12" cy="19" r="1"></circle>
-        </svg>
+  <%# Botão de Ações (Sticky) ajustado %>
+  <td class="py-2.5 pl-4 pr-4 sticky right-0 bg-white dark:bg-slate-950 z-10 shadow-[-10px_0_15px_rgba(0,0,0,0.05)] dark:shadow-[-10px_0_15px_rgba(0,0,0,0.3)]">
+    <div class="flex justify-end">
+      <button id="dropdownuserBtn_<%= deal.id %>" data-dropdown-toggle="dropdownuserOptions<%= deal.id %>" class="color-fg-subtle dark:text-slate-400 hover:color-fg-default" type="button">
+        <i data-lucide="more-vertical" class="w-5 h-5"></i>
       </button>
     </div>
   </td>
 </tr>
-
-<%# MUDANÇA: O menu de opções agora é dark:bg-slate-900 %>
-<div id="dropdownuserOptions<%= deal.id %>" class="z-50 hidden bg-white dark:bg-slate-900 divide-y divide-gray-200 dark:divide-slate-800 rounded-lg shadow-xl w-48 border dark:border-slate-700">
-  <ul class="py-2 typography-text-m-lh150 text-dark-gray-palette-p3 dark:text-slate-200" aria-labelledby="dropdownDefaultButton">
-    <li>
-      <%= link_to account_deal_path(Current.account, deal), data: {turbo_frame: :_top}, class: 'flex items-center space-x-2 px-4 py-2 hover:bg-gray-300 dark:hover:bg-slate-800 hover:text-dark-gray-palette-p1 dark:hover:text-white' do %>
-        <i data-lucide="info"></i>
-        <p><%= t('activerecord.models.show') %></p>
-      <% end %>
-    </li>
-    <li>
-      <%= link_to account_deal_path(current_user.account, deal),
-              method: :delete,
-              data: { confirm: t('views.layouts.shared.navbar_deal.are_you_sure?') }, class: 'flex items-center space-x-2 px-4 py-2 hover:bg-gray-300 dark:hover:bg-slate-800 hover:text-dark-gray-palette-p1 dark:hover:text-white' do %>
-        <i data-lucide="trash"></i>
-        <p><%= t('activerecord.models.delete') %></p>
-      <% end %>
-    </li>
-  </ul>
-</div>
