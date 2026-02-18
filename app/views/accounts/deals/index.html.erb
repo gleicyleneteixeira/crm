@@ -18,30 +18,24 @@
 
       <%= turbo_frame_tag :deals_table do %>
         <div class="overflow-x-auto">
-          <%# Adicionamos table-fixed para as colunas não "dançarem" %>
-          <table class="w-full text-left min-w-[1100px] table-fixed">
+          <%# Ajustamos o min-w para 1300px para dar fôlego às colunas %>
+          <table class="w-full text-left min-w-[1300px] table-fixed">
             <thead class="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-800">
               <tr>
-                <th class="w-[60px] py-4 pl-4"></th>
-                <th class="w-[25%] py-4 font-bold text-slate-700 dark:text-slate-200 uppercase text-xs">Nome</th>
+                <th class="w-[80px] py-4 pl-6 text-slate-700 dark:text-slate-200 font-bold uppercase text-xs">Ícone</th>
+                <th class="w-[35%] py-4 font-bold text-slate-700 dark:text-slate-200 uppercase text-xs">Nome</th>
                 <th class="w-[15%] py-4 font-bold text-slate-700 dark:text-slate-200 uppercase text-xs">Status</th>
-                <%# ADICIONADO: Título do Estágio para alinhar com o seletor %>
-                <th class="w-[20%] py-4 font-bold text-slate-700 dark:text-slate-200 uppercase text-xs">Estágio</th>
+                <th class="w-[15%] py-4 font-bold text-slate-700 dark:text-slate-200 uppercase text-xs">Estágio</th>
                 <th class="w-[15%] py-4 font-bold text-slate-700 dark:text-slate-200 uppercase text-xs">Valor</th>
                 <th class="w-[15%] py-4 font-bold text-slate-700 dark:text-slate-200 uppercase text-xs">Contato</th>
-                <th class="w-[60px] py-4 sticky right-0 bg-slate-50 dark:bg-slate-800 z-10"></th>
+                <%# Coluna de ações com largura fixa para não sumir %>
+                <th class="w-[80px] py-4 pr-6 sticky right-0 bg-slate-50 dark:bg-slate-800 z-10 text-right">Ações</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800" id='deals'>
               <%= render partial: '/accounts/deals/deal', collection: @deals, as: :deal %>
             </tbody>
           </table>
-        </div>
-
-        <div class="bg-white dark:bg-slate-900 p-4 border-t border-slate-200 dark:border-slate-800">
-          <div class="flex justify-end">
-            <%== pagy_nav(@pagy) %>
-          </div>
         </div>
       <% end %>
     </div>
