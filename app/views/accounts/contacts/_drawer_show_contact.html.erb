@@ -1,87 +1,62 @@
-<% content_for :show_additional_content do %>
-  <% if Apps::Chatwoot.first.present? %>
-    <%# Card do Chatwoot: Dinâmico entre Branco (Claro) e Azul Marinho (Escuro) %>
-    <div class="mb-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded shadow-sm transition-colors" id="<%= "#{Apps::Chatwoot.model_name.human.downcase}-#{contact.class.name.downcase}" %>-section">
-      <header class="flex flex-wrap items-center justify-between gap-2 p-4">
-        <div class='flex items-center gap-2'>
-          <i data-lucide="message-circle" class='text-slate-400 dark:text-slate-300 stroke-1.04 w-5 h-5 -rotate-[101deg]'></i>
-          <h1 class='text-slate-800 dark:text-white font-bold typography-sub-title-900 '>
-            <%= Apps::Chatwoot.model_name.human %>
-          </h1>
-        </div>
-        <div class='flex items-center gap-2'>
-          <button type="button" class="button-default-blank-secondary-icon-only-sm text-slate-400" data-accordion-target="#accordion-collapse-<%= "#{Apps::Chatwoot.model_name.human}-#{contact.class.name.downcase}-#{contact.object_id}"%>">
-            <i data-accordion-icon data-lucide="chevron-down" class="shrink-0" height="16"></i>
-          </button>
-        </div>
-      </header>
-      <div class="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 border-t border-slate-200 dark:border-slate-700" id="accordion-collapse-<%= "#{Apps::Chatwoot.model_name.human}-#{contact.class.name.downcase}-#{contact.object_id}"%>">
-        <div class='flex flex-col gap-1'>
-          <p class='typography-body-900 text-slate-500 dark:text-slate-400 font-semibold'>ID Chatwoot</p>
-          <p class='typography-body-900 text-slate-800 dark:text-white break-all'><%= contact.additional_attributes['chatwoot_id'] %></p>
-        </div>
-        <div class='flex flex-col gap-1'>
-          <p class='typography-body-900 text-slate-500 dark:text-slate-400 font-semibold'>Identificador</p>
-          <p class='typography-body-900 text-slate-800 dark:text-white break-all'><%= contact.additional_attributes['chatwoot_identifier'] %></p>
-        </div>
+<%# 1. ESTILO GLOBAL PARA O FUNDO (Caso o container falhe) %>
+<style>
+  .dark .drawer-content, .dark .drawer-container { 
+    background-color: #020617 !important; 
+  }
+</style>
+
+<div class="flex flex-col h-full bg-white dark:bg-slate-950 transition-colors duration-200">
+  
+  <%# 2. CABEÇALHO DA GAVETA %>
+  <header class="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+    <div class="flex items-center gap-2">
+      <i data-lucide="user" class="text-slate-400 w-5 h-5"></i>
+      <h2 class="text-lg font-bold text-slate-800 dark:text-white">
+        <%= t('activerecord.models.contact') %>
+      </h2>
+    </div>
+    <button type="button" class="text-slate-400 hover:text-slate-600 dark:hover:text-white p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800" data-action="click->drawer#close">
+      <i data-lucide="x" class="w-6 h-6"></i>
+    </button>
+  </header>
+
+  <%# 3. ÁREA DE CONTEÚDO SCROLLÁVEL %>
+  <div class="flex-1 overflow-y-auto p-4 bg-slate-50 dark:bg-slate-950">
+    
+    <%# MINI CARD DE IDENTIFICAÇÃO %>
+    <div class="flex items-center gap-4 mb-6 p-4 bg-white dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800 shadow-sm">
+      <div class="h-12 w-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border-2 border-slate-200 dark:border-slate-700">
+        <i data-lucide="user-round" class="text-slate-400 dark:text-slate-300 w-6 h-6"></i>
+      </div>
+      <div>
+        <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase leading-tight">
+          <%= contact.full_name %>
+        </h3>
+        <p class="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-1">
+          ID: <%= contact.id %> | CPF: <%= contact.additional_attributes['cpf'].presence || 'Não informado' %>
+        </p>
       </div>
     </div>
-  <% end %>
 
-  <%# Card de Negócios: Dinâmico e Ordenado (Abertos > Ganhos > Perdidos) %>
-  <div class="mb-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded shadow-sm transition-colors" id="<%= "#{Deal.model_name.human(count: 2).downcase}-#{contact.class.name.downcase}" %>-section">
-    <header class="flex flex-wrap items-center justify-between gap-2 p-4">
-      <div class='flex items-center gap-2'>
-        <i data-lucide="clipboard-list" class='text-slate-400 dark:text-slate-300 stroke-1.04 w-5 h-5'></i>
-        <h1 class='text-slate-800 dark:text-white font-bold typography-sub-title-900 '>
-          <%= Deal.model_name.human(count: 2) %>
-        </h1>
-      </div>
-      <div class='flex items-center gap-2'>
-        <button type="button" class="button-default-blank-secondary-icon-only-sm text-slate-400" data-accordion-target="#accordion-collapse-<%= "#{Deal.model_name.human(count: 2)}-#{contact.class.name.downcase}-#{contact.object_id}"%>">
-          <i data-accordion-icon data-lucide="chevron-down" class="shrink-0" height="16"></i>
-        </button>
-      </div>
-    </header>
+    <%# NAVEGAÇÃO INTERNA %>
+    <nav class="flex gap-4 mb-6 border-b border-slate-200 dark:border-slate-800">
+      <button class="pb-2 text-xs font-bold uppercase tracking-wider border-b-2 border-blue-600 text-blue-600 dark:text-blue-400">
+        Informações do Cliente
+      </button>
+    </nav>
 
-    <ul class="p-4 flex flex-col gap-2 border-t border-slate-200 dark:border-slate-700" id="accordion-collapse-<%= "#{Deal.model_name.human(count: 2)}-#{contact.class.name.downcase}-#{contact.object_id}"%>">
-      <%# Lógica de Ordenação v1.0.2 %>
-      <% ordered_deals = contact.deals.sort_by { |d| { 'open' => 1, 'won' => 2, 'lost' => 3 }[d.status] || 4 } %>
-      
-      <% ordered_deals.each do |deal| %>
-        <%= content_tag :li, id: dom_id(deal), class: "grid gap-5 border-b border-slate-100 dark:border-slate-800 last:border-none py-5 first:pt-0 last:pb-0", data: {controller: 'load-lucid-icons'} do %>
-          <div class= "flex items-center gap-4">
-            <div class="h-10 w-10 flex items-center justify-center rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-300">
-              <i data-lucide="clipboard-list" class='w-5 h-5'></i>
-            </div>
-            <div class="mr-auto">
-              <div class="flex flex-col">
-                <h2 class="typography-text-s-lh150 text-slate-800 dark:text-white font-medium">
-                  <%= deal.name %>
-                </h2>
-                <span class="text-[10px] uppercase font-bold <%= deal.status == 'open' ? 'text-green-600 dark:text-green-400' : (deal.status == 'won' ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400') %>">
-                  ● <%= Deal.human_enum_name(:status, deal.status) %>
-                </span>
-              </div>
-            </div>
-            <%= link_to account_deal_path(Current.account, deal), data: {turbo_frame: :_top} , class: 'flex items-center justify-center rounded text-slate-400 w-8 h-8 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors' do %>
-              <i data-lucide="arrow-right" class="w-5 h-5"></i>
-            <% end %>
-          </div>
-        <% end %>
-      <% end %>
-    </ul>
+    <%# 4. CONTEÚDO DINÂMICO (Aqui entra Detalhes, Chatwoot e Negócios) %>
+    <div class="space-y-4">
+      <%= yield :show_additional_content %>
+      <%= yield %>
+    </div>
   </div>
-<% end %>
 
-<%# Sidebar Lateral (Menu Detalhes, Chatwoot, Negócios) %>
-<% content_for :sidebar do %>
-  <%= render 'components/show_model/sidebar', model: contact,
-      links: [
-        { label: t('activerecord.models.show'), icon: "info" },
-        (Apps::Chatwoot.first.present? ? { label: Apps::Chatwoot.model_name.human, icon: "message-circle" } : nil),
-        { label: t('activerecord.models.deal.other'), icon: "clipboard-list" }
-      ].compact %>
-<% end %>
-
-<%= render 'components/show_model/show_model', model: contact, edit_path: edit_account_contact_path(Current.account, contact) %>
+  <%# 5. RODAPÉ FIXO %>
+  <footer class="p-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 mt-auto">
+    <%= link_to edit_account_contact_path(Current.account, contact), class: 'flex items-center justify-center w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm shadow-sm transition-all active:scale-95' do %>
+      <i data-lucide="pencil" class="w-4 h-4 mr-2"></i>
+      EDITAR CONTATO
+    <% end %>
+  </footer>
+</div>
