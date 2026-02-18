@@ -1,4 +1,4 @@
-<%# 1. FORÇA O FUNDO ESCURO EM TODA A PÁGINA PARA MATAR O BRANCO %>
+<%# FORÇA O FUNDO ESCURO EM TUDO PARA MATAR A PARTE BRANCA EXTERNA %>
 <style>
   .dark body, .dark .app-wrapper, .dark #main-content { 
     background-color: #020617 !important; 
@@ -18,7 +18,7 @@
 
   <%= turbo_frame_tag :deals_table do %>
     <div class="overflow-x-auto">
-      <%# MANTÉM A LARGURA ORIGINAL DE 11 COLUNAS %>
+      <%# LARGURA MANTIDA PARA ACOMODAR AS 11 COLUNAS SEM APERTAR %>
       <table class="w-full text-left rtl:text-right min-w-[2100px] table-fixed">
         <thead class="border-b border-light-palette-p3 dark:border-slate-800 bg-light-palette-p4 dark:bg-slate-900">
           <tr>
@@ -37,9 +37,6 @@
         </thead>
         <tbody class="w-full" id='deals'><%= render partial: '/accounts/deals/deal', collection: @deals, as: :deal %></tbody>
       </table>
-    </div>
-    <div class="sticky bottom-0 bg-light-palette-p5 dark:bg-slate-950 z-10 py-2 px-4 border-t-2 border-light-palette-p3 dark:border-slate-800">
-      <div class="flex justify-end"><%== pagy_nav(@pagy) %></div>
     </div>
   <% end %>
 </div>
