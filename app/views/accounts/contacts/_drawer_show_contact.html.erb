@@ -1,51 +1,84 @@
-<%# 1. MANTÉM OS ATRIBUTOS ORIGINAIS DO DRAWER PARA O CLIQUE FUNCIONAR %>
-<div class="flex flex-col h-full bg-white dark:bg-slate-950 transition-colors duration-200" data-drawer-target="drawer-contact-show">
-  
-  <%# CABEÇALHO COM ID ORIGINAL %>
-  <header class="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm z-10">
-    <div class="flex items-center gap-2">
-      <i data-lucide="user-circle" class="text-slate-400 dark:text-slate-300 w-6 h-6"></i>
-      <h2 class="text-lg font-bold text-slate-800 dark:text-white uppercase tracking-tight">
-        <%= t('activerecord.models.contact') %>
-      </h2>
-    </div>
-    <%# O data-action abaixo é o que fecha a gaveta; ele precisa estar exato %>
-    <button type="button" class="text-slate-400 hover:text-slate-600 dark:hover:text-white p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" data-action="click->drawer#close">
-      <i data-lucide="x" class="w-6 h-6"></i>
-    </button>
-  </header>
+<%# BLOCO DE CORES PARA A GD SOLUÇÕES FINANCEIRAS %>
+<style>
+  /* Força o fundo da gaveta e dos cards a ficarem Azul Marinho no modo Dark */
+  .dark .bg-white, 
+  .dark .color-bg-surface-default,
+  .dark .show-model-container,
+  .dark .drawer-content { 
+    background-color: #0f172a !important; /* Azul Slate-900 */
+    color: #f1f5f9 !important;
+  }
 
-  <%# CONTEÚDO COM SCROLL E FUNDO ADAPTADO %>
-  <div class="flex-1 overflow-y-auto p-4 bg-slate-50 dark:bg-slate-950" id="contact-show-content">
-    
-    <%# MINI CARD DE IDENTIFICAÇÃO %>
-    <div class="flex items-center gap-4 mb-6 p-4 bg-white dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800 shadow-sm">
-      <div class="h-12 w-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700">
-        <i data-lucide="user" class="text-slate-400 dark:text-slate-300 w-6 h-6"></i>
-      </div>
-      <div>
-        <h3 class="text-sm font-extrabold text-slate-800 dark:text-white uppercase leading-none">
-          <%= contact.full_name %>
-        </h3>
-        <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-1">
-          CPF: <%= contact.additional_attributes['cpf'].presence || '---' %>
-        </p>
-      </div>
-    </div>
+  /* Ajusta os textos dos rótulos (idade, CPF, etc) para ficarem visíveis */
+  .dark .text-slate-500, .dark .color-fg-soft {
+    color: #94a3b8 !important;
+  }
 
-    <%# ÁREA DE CONTEÚDO DINÂMICO %>
-    <div class="space-y-4">
-      <%# Estas linhas são vitais para as informações aparecerem %>
-      <%= yield :show_additional_content %>
-      <%= yield %>
+  /* Garante que o título do contato fique branco */
+  .dark h1, .dark h2, .dark h3 {
+    color: #ffffff !important;
+  }
+</style>
+
+<% content_for :show_additional_content do %>
+  <% if Apps::Chatwoot.first.present? %>
+    <div class="mb-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded shadow-sm transition-colors" id="<%= "#{Apps::Chatwoot.model_name.human.downcase}-#{contact.class.name.downcase}" %>-section">
+      <header class="flex flex-wrap items-center justify-between gap-2 p-4">
+        <div class='flex items-center gap-2'>
+          <i data-lucide="message-circle" class='text-slate-400 dark:text-slate-300 w-5 h-5 -rotate-[101deg]'></i>
+          <h1 class='text-slate-800 dark:text-white font-bold'>
+            <%= Apps::Chatwoot.model_name.human %>
+          </h1>
+        </div>
+      </header>
+      <div class="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 border-t border-slate-200 dark:border-slate-700">
+        <div class='flex flex-col gap-1'>
+          <p class='text-xs font-semibold'><%= t("activerecord.attributes.contact.id") %></p>
+          <p class='text-sm break-all'><%= contact.additional_attributes['chatwoot_id'] %></p>
+        </div>
+        <div class='flex flex-col gap-1'>
+          <p class='text-xs font-semibold'><%= Contact.human_attribute_name(:chatwoot_identifier) %></p>
+          <p class='text-sm break-all'><%= contact.additional_attributes['chatwoot_identifier'] %></p>
+        </div>
+      </div>
     </div>
+  <% end %>
+
+  <div class="mb-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded shadow-sm transition-colors" id="<%= "#{Deal.model_name.human(count: 2).downcase}-#{contact.class.name.downcase}" %>-section">
+    <header class="flex flex-wrap items-center justify-between gap-2 p-4">
+      <div class='flex items-center gap-2'>
+        <i data-lucide="clipboard-list" class='text-slate-400 dark:text-slate-300 w-5 h-5'></i>
+        <h1 class='text-slate-800 dark:text-white font-bold'>
+          <%= Deal.model_name.human(count: 2) %>
+        </h1>
+      </div>
+    </header>
+    <ul class="p-4 flex flex-col gap-2 border-t border-slate-200 dark:border-slate-700">
+      <% ordered_deals = contact.deals.sort_by { |d| { 'open' => 1, 'won' => 2, 'lost' => 3 }[d.status] || 4 } %>
+      <% ordered_deals.each do |deal| %>
+        <%= content_tag :li, class: "flex items-center gap-4 py-3 border-b border-slate-100 dark:border-slate-800 last:border-none" do %>
+          <div class="h-10 w-10 flex items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-800">
+            <i data-lucide="clipboard-list" class='w-5 h-5'></i>
+          </div>
+          <div class="mr-auto">
+            <h2 class="text-sm font-medium"><%= deal.name %></h2>
+            <span class="text-[10px] uppercase font-bold <%= deal.status == 'open' ? 'text-green-600 dark:text-green-400' : 'text-red-500' %>">
+              ● <%= Deal.human_enum_name(:status, deal.status) %>
+            </span>
+          </div>
+        <% end %>
+      <% end %>
+    </ul>
   </div>
+<% end %>
 
-  <%# RODAPÉ COM BOTÃO DE EDITAR %>
-  <footer class="p-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 z-10 mt-auto">
-    <%= link_to edit_account_contact_path(Current.account, contact), class: 'flex items-center justify-center w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-xs tracking-widest shadow-lg transition-all active:scale-95' do %>
-      <i data-lucide="pencil" class="w-4 h-4 mr-2"></i>
-      EDITAR INFORMAÇÕES
-    <% end %>
-  </footer>
-</div>
+<% content_for :sidebar do %>
+  <%= render 'components/show_model/sidebar', model: contact,
+      links: [
+        { label: t('activerecord.models.show'), icon: "info" },
+        (Apps::Chatwoot.first.present? ? { label: Apps::Chatwoot.model_name.human, icon: "message-circle" } : nil),
+        { label: t('activerecord.models.deal.other'), icon: "clipboard-list" }
+      ].compact %>
+<% end %>
+
+<%= render 'components/show_model/show_model', model: contact, edit_path: edit_account_contact_path(Current.account, contact) %>
