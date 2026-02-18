@@ -1,49 +1,47 @@
-<tr id="deal_<%= deal.id %>" class="border-b color-border-default dark:border-slate-800 last:border-none hover:bg-gray-50 dark:hover:bg-slate-900 transition-colors duration-200">
-  <td class="py-2.5 pl-4 pr-4 flex-shrink-0">
-    <div class="w-[40px] h-[40px] flex border color-border-default dark:border-slate-700 bg-brand-palette-08 dark:bg-slate-800 rounded-md">
-      <%= embedded_svg("deals-icon.svg", class: "fill-dark-gray-palette-p3 dark:fill-slate-400 m-auto w-5 h-5") %>
+<div class="bg-light-palette-p5 dark:bg-slate-950 border-2 border-light-palette-p3 dark:border-slate-800 rounded m-8 transition-colors duration-200">
+  <header class="border-b-2 border-light-palette-p3 dark:border-slate-800 flex items-center justify-end gap-2 p-4 sticky top-0 bg-light-palette-p5 dark:bg-slate-950 z-20">
+    <%= render '/components/form/input_expandable_search',
+               search_url: account_deals_path(Current.account),
+               turbo_frame_search: :deals_table,
+               placeholder: t('activerecord.models.search', model: @deals.model_name.human) %>
+    <%= link_to new_select_contact_account_deals_path(current_user.account), class: 'button-default-blank-secondary-icon-only-sm dark:text-slate-400 dark:hover:text-white', data: { turbo_frame: :_top } do %>
+      <i data-lucide="plus" class='h-4 w-4'></i>
+    <% end %>
+  </header>
+
+  <%= turbo_frame_tag :deals_table do %>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left rtl:text-right min-w-[1950px]">
+        <thead class="border-b border-light-palette-p3 dark:border-slate-800 bg-light-palette-p4 dark:bg-slate-900">
+          <tr>
+            <th scope="col" class="py-3 pl-4 pr-4 w-[52px]"></th>
+            <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 dark:text-slate-300">
+              <%= t('activerecord.attributes.deal.name') %>
+            </th>
+            <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 dark:text-slate-300">
+              <%= t('activerecord.attributes.deal.status') %>
+            </th>
+            <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 dark:text-slate-300">
+              <%= t('activerecord.attributes.deal.total_amount_in_cents') %>
+            </th>
+            <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 dark:text-slate-300">
+              <%= t('activerecord.attributes.deal.contact') %>
+            </th>
+            <th scope="col" class="py-3 pl-4 pr-4 sticky right-0 bg-light-palette-p4 dark:bg-slate-900 z-10 w-[50px]"></th>
+          </tr>
+        </thead>
+        <tbody class="w-full" id='deals'>
+          <%# VOLTAMOS PARA O PADRÃO ORIGINAL PARA NÃO QUEBRAR %>
+          <%= render partial: '/accounts/deals/deal', collection: @deals, as: :deal %>
+        </tbody>
+      </table>
     </div>
-  </td>
-  
-  <%# Nome do Negócio - Texto claro no modo dark %>
-  <td class="pr-4 py-2.5 typography-body-r-lh150 color-fg-default dark:text-slate-100 truncate max-w-[300px]">
-    <%= deal.name %>
-  </td>
 
-  <%# Status com cores que saltam aos olhos %>
-  <td class="pr-4 py-2.5">
-    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold <%= deal.status == 'open' ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400' : (deal.status == 'won' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-400' : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400') %>">
-      ● <%= Deal.human_enum_name(:status, deal.status) %>
-    </span>
-  </td>
-
-  <%# ID e Estágio %>
-  <td class="pr-4 py-2.5 color-fg-subtle dark:text-slate-400">
-    <%= deal.id %>
-  </td>
-
-  <td class="pr-4 py-2.5 color-fg-default dark:text-slate-300">
-    <%= deal.stage.name %>
-  </td>
-
-  <%# Valor em destaque %>
-  <td class="pr-4 py-2.5 color-fg-default dark:text-slate-100 font-medium">
-    <%= render 'components/formatters/currency', value: deal.total_amount_in_cents %>
-  </td>
-
-  <%# Contato com azul harmônico %>
-  <td class="pr-4 py-2.5">
-    <p class="text-blue-600 dark:text-blue-400 font-semibold truncate max-w-[200px]">
-      <%= deal.contact&.full_name %>
-    </p>
-  </td>
-
-  <%# Coluna de Ações (A parte que estava ficando preta/branca demais) %>
-  <td class="py-2.5 pl-4 pr-4 sticky right-0 bg-white dark:bg-slate-950 z-10 shadow-[-10px_0_15px_rgba(0,0,0,0.05)] dark:shadow-[-10px_0_20px_rgba(0,0,0,0.5)]">
-    <div class="flex justify-end">
-      <button id="dropdownuserBtn_<%= deal.id %>" data-dropdown-toggle="dropdownuserOptions<%= deal.id %>" class="color-fg-subtle dark:text-slate-400 hover:dark:text-white">
-        <i data-lucide="more-vertical" class="w-5 h-5"></i>
-      </button>
+    <div class="sticky bottom-0 bg-light-palette-p5 dark:bg-slate-950 z-10 py-2 px-4 border-t-2 border-light-palette-p3 dark:border-slate-800">
+      <div class="flex justify-end">
+        <%# O Pagy precisa do @deals original para funcionar %>
+        <%== pagy_nav(@pagy) %>
+      </div>
     </div>
-  </td>
-</tr>
+  <% end %>
+</div>
