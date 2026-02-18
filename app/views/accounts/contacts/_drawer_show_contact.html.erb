@@ -1,75 +1,96 @@
-<%# 1. TRAVA DE SEGURANÇA PARA AS CORES %>
-<style>
-  /* MODO DARK: Só ativa se a lua estiver selecionada */
-  .dark .contact-drawer-content,
-  .dark .bg-white, 
-  .dark .bg-slate-50 {
-    background-color: #0f172a !important; /* Azul Slate-900 para os cards */
-    color: #f1f5f9 !important;
-    border-color: #1e293b !important;
-  }
-
-  .dark .text-gray-900, .dark .text-gray-700 { color: #f1f5f9 !important; }
-  .dark .text-gray-500 { color: #94a3b8 !important; } /* Slate-400 para rótulos */
-
-  /* MODO CLARO (CLEAN): Força o branco original e garante o clique */
-  body:not(.dark) .contact-drawer-content,
-  body:not(.dark) .bg-white {
-    background-color: #ffffff !important;
-    color: #111827 !important;
-  }
-</style>
-
-<%# 2. ESTRUTURA DA GAVETA (DRAWER) %>
-<div class="contact-drawer-content flex flex-col h-full bg-white dark:bg-slate-950 transition-colors duration-200">
-  
-  <%# Cabeçalho: Mantém o ID e as ações originais para o fechar funcionar %>
-  <header class="flex items-center justify-between p-4 border-b dark:border-slate-800">
-    <h2 class="text-lg font-bold text-gray-900 dark:text-slate-100">Detalhes do Contato</h2>
-    <button type="button" data-action="click->drawer#close" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400">
-      <i data-lucide="x" class="w-6 h-6"></i>
-    </button>
-  </header>
-
-  <%# Conteúdo com Scroll %>
-  <div class="flex-1 overflow-y-auto p-4 space-y-6">
-    
-    <%# Card de Informações (O topo da sua foto) %>
-    <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border dark:border-slate-800 shadow-sm">
-      <div class="grid grid-cols-2 gap-y-4">
-        <%# Exemplo de campo dinâmico %>
-        <div>
-          <span class="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Nome Completo</span>
-          <p class="text-sm text-gray-900 dark:text-slate-100"><%= @contact.full_name %></p>
+<% content_for :show_additional_content do %>
+  <% if Apps::Chatwoot.first.present? %>
+    <%# Card do Chatwoot: Dinâmico (Branco no Claro / Azul Marinho no Escuro) %>
+    <div class="mb-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded shadow-sm transition-colors" id="<%= "#{Apps::Chatwoot.model_name.human.downcase}-#{contact.class.name.downcase}" %>-section">
+      <header class="flex flex-wrap items-center justify-between gap-2 p-4">
+        <div class='flex items-center gap-2'>
+          <i data-lucide="message-circle" class='text-slate-400 dark:text-slate-300 stroke-1.04 w-5 h-5 -rotate-[101deg]'></i>
+          <h1 class='text-slate-800 dark:text-white font-bold typography-sub-title-900 '>
+            <%= Apps::Chatwoot.model_name.human %>
+          </h1>
         </div>
-        <div>
-          <span class="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Telefone</span>
-          <p class="text-sm text-gray-900 dark:text-slate-100"><%= @contact.phone %></p>
+        <div class='flex items-center gap-2'>
+          <button type="button" class="button-default-blank-secondary-icon-only-sm text-slate-400" data-accordion-target="#accordion-collapse-<%= "#{Apps::Chatwoot.model_name.human}-#{contact.class.name.downcase}-#{contact.object_id}"%>">
+            <i data-accordion-icon data-lucide="chevron-down" class="shrink-0" height="16"></i>
+          </button>
+        </div>
+      </header>
+      
+      <div class="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 border-t border-slate-200 dark:border-slate-700" id="accordion-collapse-<%= "#{Apps::Chatwoot.model_name.human}-#{contact.class.name.downcase}-#{contact.object_id}"%>">
+        <div class='flex flex-col gap-1'>
+          <p class='text-xs text-slate-500 dark:text-slate-400 font-semibold'><%= t("activerecord.attributes.contact.id") %></p>
+          <p class='text-sm text-slate-800 dark:text-white break-all'><%= contact.additional_attributes['chatwoot_id'] %></p>
+        </div>
+        <div class='flex flex-col gap-1'>
+          <p class='text-xs text-slate-500 dark:text-slate-400 font-semibold'><%= Contact.human_attribute_name(:chatwoot_identifier) %></p>
+          <p class='text-sm text-slate-800 dark:text-white break-all'><%= contact.additional_attributes['chatwoot_identifier'] %></p>
+        </div>
+        <div class='flex flex-col gap-1'>
+          <p class='text-xs text-slate-500 dark:text-slate-400 font-semibold'><%= Contact.human_attribute_name(:chatwoot_last_conversation) %></p>
+          <div class='text-sm text-blue-600 dark:text-blue-400'><%= render '/components/links/chatwoot_conversation_link', contact: contact, display_format: 'text' %></div>
+        </div>
+        <div class='flex flex-col gap-1 col-span-full'>
+          <p class='text-xs text-slate-500 dark:text-slate-400 font-semibold'><%= Contact.human_attribute_name(:chatwoot_conversations_label_list) %></p>
+          <%= render 'components/list_labels', labels: contact.chatwoot_conversations_label_list, max_width: '100%', justify_content: 'start' %>
         </div>
       </div>
     </div>
+  <% end %>
 
-    <%# Bloco Chatwoot (Onde está o azul na sua foto) %>
-    <div class="bg-white dark:bg-slate-900 rounded-xl border dark:border-slate-800 overflow-hidden shadow-sm">
-      <div class="p-3 bg-slate-50 dark:bg-slate-800/50 border-b dark:border-slate-800 flex items-center gap-2">
-        <i data-lucide="message-square" class="w-4 h-4 text-blue-500"></i>
-        <span class="font-bold text-sm dark:text-slate-200">Chatwoot</span>
+  <%# Card de Negócios: Com a Ordenação v1.0.2 (Abertos > Ganhos > Perdidos) %>
+  <div class="mb-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded shadow-sm transition-colors" id="<%= "#{Deal.model_name.human(count: 2).downcase}-#{contact.class.name.downcase}" %>-section">
+    <header class="flex flex-wrap items-center justify-between gap-2 p-4">
+      <div class='flex items-center gap-2'>
+        <i data-lucide="clipboard-list" class='text-slate-400 dark:text-slate-300 stroke-1.04 w-5 h-5'></i>
+        <h1 class='text-slate-800 dark:text-white font-bold typography-sub-title-900 '>
+          <%= Deal.model_name.human(count: 2) %>
+        </h1>
       </div>
-      <div class="p-4">
-        <%# Conteúdo do Chatwoot %>
+      <div class='flex items-center gap-2'>
+        <button type="button" class="button-default-blank-secondary-icon-only-sm text-slate-400" data-accordion-target="#accordion-collapse-<%= "#{Deal.model_name.human(count: 2)}-#{contact.class.name.downcase}-#{contact.object_id}"%>">
+          <i data-accordion-icon data-lucide="chevron-down" class="shrink-0" height="16"></i>
+        </button>
       </div>
-    </div>
+    </header>
 
-    <%# Bloco Negócios %>
-    <div class="bg-white dark:bg-slate-900 rounded-xl border dark:border-slate-800 overflow-hidden shadow-sm">
-      <div class="p-3 bg-slate-50 dark:bg-slate-800/50 border-b dark:border-slate-800 flex items-center gap-2">
-        <i data-lucide="briefcase" class="w-4 h-4 text-blue-500"></i>
-        <span class="font-bold text-sm dark:text-slate-200">Negócios</span>
-      </div>
-      <div class="p-2">
-        <%# Aqui o sistema renderiza as linhas de negócios do contato %>
-      </div>
-    </div>
-
+    <ul class="p-4 flex flex-col gap-2 border-t border-slate-200 dark:border-slate-700" id="accordion-collapse-<%= "#{Deal.model_name.human(count: 2)}-#{contact.class.name.downcase}-#{contact.object_id}"%>">
+      <%# Lógica de Ordenação que definimos: Verde primeiro %>
+      <% ordered_deals = contact.deals.sort_by { |d| { 'open' => 1, 'won' => 2, 'lost' => 3 }[d.status] || 4 } %>
+      
+      <% ordered_deals.each do |deal| %>
+        <%= content_tag :li, id: dom_id(deal), class: "grid gap-5 border-b border-slate-100 dark:border-slate-800 last:border-none py-5 first:pt-0 last:pb-0", data: {controller: 'load-lucid-icons'} do %>
+          <div class= "flex items-center gap-4">
+            <div class="h-10 w-10 flex items-center justify-center rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-300">
+              <i data-lucide="clipboard-list" class='w-5 h-5'></i>
+            </div>
+            <div class="mr-auto">
+              <div class="flex flex-col">
+                <h2 class="text-sm font-medium text-slate-800 dark:text-white">
+                  <%= deal.name %>
+                </h2>
+                <span class="text-[10px] uppercase font-bold <%= deal.status == 'open' ? 'text-green-600 dark:text-green-400' : (deal.status == 'won' ? 'text-blue-600 dark:text-blue-400' : 'text-red-500 dark:text-red-400') %>">
+                  ● <%= Deal.human_enum_name(:status, deal.status) %>
+                </span>
+              </div>
+            </div>
+            <%= link_to account_deal_path(Current.account, deal), data: {turbo_frame: :_top} , class: 'flex items-center justify-center rounded text-slate-400 w-8 h-8 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors' do %>
+              <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            <% end %>
+          </div>
+        <% end %>
+      <% end %>
+    </ul>
   </div>
-</div>
+<% end %>
+
+<%# Sidebar Lateral %>
+<% content_for :sidebar do %>
+  <%= render 'components/show_model/sidebar', model: contact,
+      links: [
+        { label: t('activerecord.models.show'), icon: "info" },
+        (Apps::Chatwoot.first.present? ? { label: Apps::Chatwoot.model_name.human, icon: "message-circle" } : nil),
+        { label: t('activerecord.models.deal.other'), icon: "clipboard-list" }
+      ].compact %>
+<% end %>
+
+<%= render 'components/show_model/show_model', model: contact, edit_path: edit_account_contact_path(Current.account, contact) %>
