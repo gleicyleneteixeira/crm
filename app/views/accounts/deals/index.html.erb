@@ -1,78 +1,45 @@
-<%# FORÇAR O FUNDO DO SISTEMA A FICAR ESCURO PARA SUMIR O BRANCO DAS BORDAS EXTERNAS %>
+<%# 1. FORÇA O FUNDO ESCURO EM TODA A PÁGINA PARA MATAR O BRANCO %>
 <style>
   .dark body, .dark .app-wrapper, .dark #main-content { 
     background-color: #020617 !important; 
   }
 </style>
 
-<%# Container com dark:bg-slate-950 para eliminar o fundo branco %>
 <div class="bg-light-palette-p5 dark:bg-slate-950 border-2 border-light-palette-p3 dark:border-slate-800 rounded m-8 transition-colors duration-200">
-  
-  <%# Header com suporte a Dark Mode %>
   <header class="border-b-2 border-light-palette-p3 dark:border-slate-800 flex items-center justify-end gap-2 p-4 sticky top-0 bg-light-palette-p5 dark:bg-slate-950 z-20">
     <%= render '/components/form/input_expandable_search',
                search_url: account_deals_path(Current.account),
                turbo_frame_search: :deals_table,
                placeholder: t('activerecord.models.search', model: @deals.model_name.human) %>
-    
-    <%= link_to new_select_contact_account_deals_path(current_user.account), 
-        class: 'button-default-blank-secondary-icon-only-sm dark:text-slate-400 dark:hover:text-white', 
-        data: { turbo_frame: :_top } do %>
+    <%= link_to new_select_contact_account_deals_path(current_user.account), class: 'button-default-blank-secondary-icon-only-sm dark:text-slate-400', data: { turbo_frame: :_top } do %>
       <i data-lucide="plus" class='h-4 w-4'></i>
     <% end %>
   </header>
 
   <%= turbo_frame_tag :deals_table do %>
     <div class="overflow-x-auto">
-      <table class="w-full text-left rtl:text-right min-w-[1950px]">
+      <%# MANTÉM A LARGURA ORIGINAL DE 11 COLUNAS %>
+      <table class="w-full text-left rtl:text-right min-w-[2100px] table-fixed">
         <thead class="border-b border-light-palette-p3 dark:border-slate-800 bg-light-palette-p4 dark:bg-slate-900">
           <tr>
-            <th scope="col" class="py-3 pl-4 pr-4 w-[52px]"></th>
-            
-            <%# Títulos das colunas com suporte a texto claro no Dark Mode %>
-            <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 dark:text-slate-300 max-w-[350px]">
-              <%= t('activerecord.attributes.deal.name') %>
-            </th>
-            <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 dark:text-slate-300 max-w-[100px]">
-              <%= t('activerecord.attributes.deal.status') %>
-            </th>
-            <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 dark:text-slate-300 max-w-[150px]">
-              <%= t('activerecord.attributes.deal.id') %>
-            </th>
-            <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 dark:text-slate-300 max-w-[250px]">
-              <%= t('activerecord.attributes.deal.stage') %>
-            </th>
-            <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 dark:text-slate-300 max-w-[200px]">
-              <%= t('activerecord.attributes.deal.total_amount_in_cents') %>
-            </th>
-            <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 dark:text-slate-300 max-w-[250px]">
-              <%= t('activerecord.attributes.deal.pipeline') %>
-            </th>
-            <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 dark:text-slate-300 max-w-[280px]">
-              <%= t('activerecord.attributes.deal.contact') %>
-            </th>
-            <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 dark:text-slate-300 max-w-[280px]">
-              <%= t('activerecord.attributes.deal.creator') %>
-            </th>
-            <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 dark:text-slate-300 max-w-[250px]">
-              <%= t('activerecord.attributes.deal.created_at') %>
-            </th>
-
-            <%# Coluna Sticky corrigida para não ficar branca no Dark Mode %>
-            <th scope="col" class="py-3 pl-4 pr-4 sticky right-0 bg-light-palette-p5 dark:bg-slate-950 z-10 w-[50px] border-l dark:border-slate-800"></th>
+            <th scope="col" class="w-[70px] py-3 pl-4"></th>
+            <th scope="col" class="w-[350px] pr-4 py-3 text-dark-gray-palette-p1 dark:text-slate-300 uppercase text-xs font-bold"><%= t('activerecord.attributes.deal.name') %></th>
+            <th scope="col" class="w-[120px] pr-4 py-3 text-dark-gray-palette-p1 dark:text-slate-300 uppercase text-xs font-bold"><%= t('activerecord.attributes.deal.status') %></th>
+            <th scope="col" class="w-[120px] pr-4 py-3 text-dark-gray-palette-p1 dark:text-slate-300 uppercase text-xs font-bold"><%= t('activerecord.attributes.deal.id') %></th>
+            <th scope="col" class="w-[200px] pr-4 py-3 text-dark-gray-palette-p1 dark:text-slate-300 uppercase text-xs font-bold"><%= t('activerecord.attributes.deal.stage') %></th>
+            <th scope="col" class="w-[180px] pr-4 py-3 text-dark-gray-palette-p1 dark:text-slate-300 uppercase text-xs font-bold"><%= t('activerecord.attributes.deal.total_amount_in_cents') %></th>
+            <th scope="col" class="w-[250px] pr-4 py-3 text-dark-gray-palette-p1 dark:text-slate-300 uppercase text-xs font-bold"><%= t('activerecord.attributes.deal.pipeline') %></th>
+            <th scope="col" class="w-[280px] pr-4 py-3 text-dark-gray-palette-p1 dark:text-slate-300 uppercase text-xs font-bold"><%= t('activerecord.attributes.deal.contact') %></th>
+            <th scope="col" class="w-[280px] pr-4 py-3 text-dark-gray-palette-p1 dark:text-slate-300 uppercase text-xs font-bold"><%= t('activerecord.attributes.deal.creator') %></th>
+            <th scope="col" class="w-[250px] pr-4 py-3 text-dark-gray-palette-p1 dark:text-slate-300 uppercase text-xs font-bold"><%= t('activerecord.attributes.deal.created_at') %></th>
+            <th scope="col" class="w-[80px] py-3 sticky right-0 bg-light-palette-p4 dark:bg-slate-900 z-10 border-l dark:border-slate-800"></th>
           </tr>
         </thead>
-        <tbody class="w-full" id='deals'>
-          <%= render partial: '/accounts/deals/deal', collection: @deals, as: :deal %>
-        </tbody>
+        <tbody class="w-full" id='deals'><%= render partial: '/accounts/deals/deal', collection: @deals, as: :deal %></tbody>
       </table>
     </div>
-
-    <%# Paginação (Footer) com suporte a Dark Mode %>
     <div class="sticky bottom-0 bg-light-palette-p5 dark:bg-slate-950 z-10 py-2 px-4 border-t-2 border-light-palette-p3 dark:border-slate-800">
-      <div class="flex justify-end">
-        <%== pagy_nav(@pagy) %>
-      </div>
+      <div class="flex justify-end"><%== pagy_nav(@pagy) %></div>
     </div>
   <% end %>
 </div>
