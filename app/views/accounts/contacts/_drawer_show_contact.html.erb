@@ -1,34 +1,32 @@
-<%# 1. ESTILO INTELIGENTE: Ajusta o fundo e as cores de texto automaticamente %>
+<%# 1. ESTILO PARA "MATAR" O BRANCO E AJUSTAR A ESCRITA NO MODO DARK %>
 <style>
-  /* Quando o modo DARK está ativo (.dark) */
+  /* Alvo: O fundo principal que está teimoso */
   .dark .show-model-container, 
-  .dark .bg-white,
   .dark .color-bg-surface-default,
-  .dark .drawer-content {
-    background-color: #0f172a !important; /* Azul Marinho GD Soluções */
+  .dark .bg-white {
+    background-color: #0f172a !important; /* Azul Marinho GD */
     border-color: #1e293b !important;
   }
 
-  /* Ajuste de Texto: Branco no Dark / Preto no Claro */
-  .dark h1, .dark h2, .dark h3, .dark .color-fg-default, .dark .text-slate-800 {
+  /* Alvo: Textos principais para ficarem compatíveis (Branco no Dark / Preto no Claro) */
+  .dark .color-fg-default, 
+  .dark .text-slate-800, 
+  .dark h1, .dark h2 {
     color: #f8fafc !important; 
   }
 
-  /* Ajuste de Rótulos (CPF, Telefone, etc) */
-  .dark p, .dark .text-slate-500, .dark .color-fg-soft {
+  /* Alvo: Rótulos (Nome, Email, etc) para ficarem cinza claro no escuro */
+  .dark .color-fg-soft, 
+  .dark .text-slate-500,
+  .dark p {
     color: #94a3b8 !important;
-  }
-
-  /* Garante que o ícone de fechar (X) apareça no escuro */
-  .dark .text-slate-400 {
-    color: #cbd5e1 !important;
   }
 </style>
 
 <% content_for :show_additional_content do %>
   <% if Apps::Chatwoot.first.present? %>
     <%# Card Chatwoot Dinâmico %>
-    <div class="mb-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded shadow-sm transition-colors">
+    <div class="mb-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded shadow-sm">
       <header class="flex flex-wrap items-center justify-between gap-2 p-4 border-b border-slate-100 dark:border-slate-800">
         <div class='flex items-center gap-2'>
           <i data-lucide="message-circle" class='text-slate-400 dark:text-slate-300 w-5 h-5'></i>
@@ -48,8 +46,8 @@
     </div>
   <% end %>
 
-  <%# Card Negócios Dinâmico (Verdes primeiro) %>
-  <div class="mb-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded shadow-sm transition-colors">
+  <%# Card Negócios Dinâmico %>
+  <div class="mb-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded shadow-sm">
     <header class="flex flex-wrap items-center justify-between gap-2 p-4 border-b border-slate-100 dark:border-slate-800">
       <div class='flex items-center gap-2'>
         <i data-lucide="clipboard-list" class='text-slate-400 dark:text-slate-300 w-5 h-5'></i>
@@ -84,5 +82,5 @@
       ].compact %>
 <% end %>
 
-<%# 2. COMANDO QUE MANTÉM A GAVETA FUNCIONANDO E ABRINDO %>
+<%# 2. O COMANDO QUE MANTÉM A GAVETA ABRINDO %>
 <%= render 'components/show_model/show_model', model: contact, edit_path: edit_account_contact_path(Current.account, contact) %>
