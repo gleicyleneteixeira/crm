@@ -1,46 +1,48 @@
-<div class="flex flex-col h-full bg-white dark:bg-slate-950 transition-colors duration-200">
+<%# 1. MANTÉM OS ATRIBUTOS ORIGINAIS DO DRAWER PARA O CLIQUE FUNCIONAR %>
+<div class="flex flex-col h-full bg-white dark:bg-slate-950 transition-colors duration-200" data-drawer-target="drawer-contact-show">
   
-  <%# 1. CABEÇALHO - BOTÃO DE FECHAR E TÍTULO %>
-  <header class="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+  <%# CABEÇALHO COM ID ORIGINAL %>
+  <header class="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm z-10">
     <div class="flex items-center gap-2">
       <i data-lucide="user-circle" class="text-slate-400 dark:text-slate-300 w-6 h-6"></i>
       <h2 class="text-lg font-bold text-slate-800 dark:text-white uppercase tracking-tight">
         <%= t('activerecord.models.contact') %>
       </h2>
     </div>
+    <%# O data-action abaixo é o que fecha a gaveta; ele precisa estar exato %>
     <button type="button" class="text-slate-400 hover:text-slate-600 dark:hover:text-white p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" data-action="click->drawer#close">
       <i data-lucide="x" class="w-6 h-6"></i>
     </button>
   </header>
 
-  <%# 2. CONTEÚDO SCROLLÁVEL - FUNDO DARK AJUSTADO %>
-  <div class="flex-1 overflow-y-auto p-4 bg-slate-50 dark:bg-slate-950">
+  <%# CONTEÚDO COM SCROLL E FUNDO ADAPTADO %>
+  <div class="flex-1 overflow-y-auto p-4 bg-slate-50 dark:bg-slate-950" id="contact-show-content">
     
-    <%# MINI PERFIL DO CLIENTE %>
+    <%# MINI CARD DE IDENTIFICAÇÃO %>
     <div class="flex items-center gap-4 mb-6 p-4 bg-white dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800 shadow-sm">
       <div class="h-12 w-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700">
         <i data-lucide="user" class="text-slate-400 dark:text-slate-300 w-6 h-6"></i>
       </div>
       <div>
-        <h3 class="text-sm font-extrabold text-slate-800 dark:text-white uppercase">
+        <h3 class="text-sm font-extrabold text-slate-800 dark:text-white uppercase leading-none">
           <%= contact.full_name %>
         </h3>
-        <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+        <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-1">
           CPF: <%= contact.additional_attributes['cpf'].presence || '---' %>
         </p>
       </div>
     </div>
 
-    <%# 3. ÁREA DE CONTEÚDO - ONDE TUDO APARECE %>
+    <%# ÁREA DE CONTEÚDO DINÂMICO %>
     <div class="space-y-4">
-      <%# Estas duas linhas abaixo garantem que o conteúdo e os cliques funcionem %>
+      <%# Estas linhas são vitais para as informações aparecerem %>
       <%= yield :show_additional_content %>
       <%= yield %>
     </div>
   </div>
 
-  <%# 4. RODAPÉ COM BOTÃO DE EDITAR %>
-  <footer class="p-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+  <%# RODAPÉ COM BOTÃO DE EDITAR %>
+  <footer class="p-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 z-10 mt-auto">
     <%= link_to edit_account_contact_path(Current.account, contact), class: 'flex items-center justify-center w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-xs tracking-widest shadow-lg transition-all active:scale-95' do %>
       <i data-lucide="pencil" class="w-4 h-4 mr-2"></i>
       EDITAR INFORMAÇÕES
