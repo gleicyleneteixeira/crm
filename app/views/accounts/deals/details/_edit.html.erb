@@ -29,7 +29,7 @@
             <% unless f.in?([:chatwoot_conversations_label_list, :creator, :total_amount_in_cents]) %>
               <div class="flex flex-col col-span-full gap-2">
                 <%= form.label f, class: 'typography-text-s-lh150 text-gray-pallete-p3' %>
-                <%= form.text_field f, f == :label_list ? { value: model.labels.join(', '), placeholder: t('views.accounts.deals.details.edit.tag_placeholder'), class: ' form-input !border-light-palette-p3', data: {controller: 'tag-input'} } : { class: "form-input", data: {controller: "input-mask--input-#{f}"} } %>
+                <%= form.text_field f, f == :label_list ? { value: model.labels.join(', '), placeholder: t('views.accounts.deals.details.edit.tag_placeholder'), class: ' form-input !border-light-palette-p3', data: {controller: 'tag-input'} } : (f == :manual_amount_in_cents ? { class: "form-input", data: {controller: "input-mask--input-amount-in-cents"} } : { class: "form-input", data: {controller: "input-mask--input-#{f}"} }) %>
               </div>
               <% if model.class.name == 'Deal' %>
                 <div class="flex flex-col col-span-full gap-2">

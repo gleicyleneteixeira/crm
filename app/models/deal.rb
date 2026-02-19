@@ -52,7 +52,7 @@ class Deal < ApplicationRecord
 
   enum status: { 'open': 'open', 'won': 'won', 'lost': 'lost' }
 
-  FORM_FIELDS = %i[name creator total_amount_in_cents]
+  FORM_FIELDS = %i[name manual_amount_in_cents creator total_amount_in_cents]
 
   SHOW_FIELDS = { deal_page_overview_details: [:name,
                                                { relations: { stage: :name, creator: :full_name } }, :total_amount_in_cents] }.freeze
@@ -102,6 +102,8 @@ class Deal < ApplicationRecord
   end
 
   def total_amount_in_cents
+    return manual_amount_in_cents if respond_to?(:manual_amount_in_cents) && manual_amount_in_cents.positive?
+
     total_deal_products_amount_in_cents
   end
 
