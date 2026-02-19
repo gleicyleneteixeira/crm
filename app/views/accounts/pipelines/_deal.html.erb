@@ -1,7 +1,7 @@
 <%= content_tag :li, id: dom_id(deal), data: { id: deal.id, account_id: Current.account.id, position: deal.position } , class: 'hover:shadow-sm select-none cursor-pointer' do %>
   <%= turbo_stream_from deal %>
   
-  <div class="rounded-lg border-2 color-border-default dark:border-slate-800 color-bg-fill-default dark:bg-[#0f172a] transition-colors duration-200" data-controller='load-lucid-icons'>
+  <div class="rounded-lg border-2 color-border-default dark:border-white/10 color-bg-fill-default dark:bg-slate-800/60 dark:backdrop-blur-lg transition-colors duration-200" data-controller='load-lucid-icons'>
     
     <%= link_to account_deal_path(Current.account, deal.id), data: { turbo_frame: :_top }, class: 'flex flex-col gap-2 pt-3 px-4' do %>
       <% unless deal.open? %>
@@ -34,7 +34,7 @@
         <% if deal.users.present? %>
           <div class='flex -space-x-2'>
             <% deal.users.order(id: :desc).limit(2).each do |user| %>
-              <div class="w-5 h-5 rounded-full bg-slate-700 border border-slate-900 flex items-center justify-center overflow-hidden">
+              <div class="w-5 h-5 rounded-full bg-slate-700 border border-slate-900 flex items-center justify-center overflow-hidden dark:bg-slate-900/60 dark:border-white/10">
                 <i data-lucide="user" class="w-3 text-white"></i>
               </div>
             <% end %>
