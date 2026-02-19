@@ -1,14 +1,27 @@
-<%= turbo_frame_tag  dom_id(@deal, :form_custom_attributes) do %>
-  <%= form_with(
-    model: @deal,
-    url: account_deal_path(current_user.account, @deal)
-    ) do |form| %>
-    <div class="h-full w-full" data-controller="custom-attributes-add">
-      <%= form.select :att_key, @custom_attribute_definitions.collect { |att| [att.attribute_display_name, att.attribute_key] }, { prompt: t('views.accounts.deals.edit_custom_attributes.search'), selected: '', disabled: ''}, { class: 'w-full first:my-0 my-3 form-input select2',  data: { 'custom-attributes-add-target': "select", action: 'change->custom-attributes-add#changed'} } %>
-      <div data-custom-attributes-add-target="formFields" hidden="">
-        <%= form.text_field :att_value, class: 'w-full mt-3 form-input', placeholder: t('views.accounts.deals.edit_custom_attributes.field_content') %>
-        <div class="flex-auto rounded-md my-3 border-t border-light-palette-p3"></div>
-        <%= form.submit t('views.accounts.deals.edit_custom_attributes.confirm'), class: ' w-full btn-primary cursor-pointer' %>
+<%= turbo_frame_tag dom_id(@deal, :form_custom_attributes) do %>
+  <%= form_with(model: @deal, url: account_deal_path(current_user.account, @deal)) do |form| %>
+    <div class="h-full w-full space-y-4 bg-transparent">
+      
+      <%# LOOP QUE BUSCA TODOS OS CAMPOS DE NEGÓCIO DA CONTA %>
+      <% current_user.account.custom_attribute_definitions.where(attribute_model: 'deal').each do |definition| %>
+        <div class="flex flex-col gap-1">
+          <%# Rótulo: Cinza no claro / Branco suave no Dark %>
+          <label class="text-[11px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+            <%= definition.attribute_display_name %>
+          </label>
+          
+          <%# Campo de Entrada: Branco no claro / Slate-900 no Dark %>
+          <input type="text" 
+                 name="deal[custom_attributes][<%= definition.attribute_key %>]" 
+                 value="<%= @deal.custom_attributes[definition.attribute_key] %>" 
+                 class="w-full form-input bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                 placeholder="Preencher...">
+        </div>
+      <% end %>
+
+      <div class="pt-4">
+        <%= form.submit "SALVAR ALTERAÇÕES", 
+            class: 'w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-black text-xs uppercase tracking-widest shadow-md transition-all active:scale-95' %>
       </div>
     </div>
   <% end %>
