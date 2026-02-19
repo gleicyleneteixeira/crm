@@ -1,25 +1,25 @@
 <%= turbo_frame_tag dom_id(@deal, :form_custom_attributes) do %>
   <div class="h-full w-full space-y-1 bg-transparent">
     
-    <%# BUSCA AUTOMÁTICA: Se o campo existe na conta para 'Negócios', ele aparece aqui %>
+    <%# BUSCA AUTOMÁTICA: Lista todos os campos de Negócio que você criou na conta %>
     <% current_user.account.custom_attribute_definitions.where(attribute_model: 'deal').each do |definition| %>
       
-      <%# Linha com efeito 'group' para o lápis aparecer apenas no hover %>
+      <%# LINHA COM EFEITO HOVER: O lápis só aparece quando o mouse está em cima %>
       <div class="group flex items-center justify-between p-3 rounded-lg hover:bg-slate-800/40 transition-all border border-transparent">
         
         <div class="flex flex-col flex-1">
-          <%# Nome do campo/tributo com estilo Dark %>
+          <%# Nome do Tributo %>
           <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
             <%= definition.attribute_display_name %>
           </label>
           
-          <%# Valor salvo ou o texto "Preencher..." caso esteja vazio %>
+          <%# Conteúdo: Mostra o valor real ou "Preencher..." se estiver vazio %>
           <span class="text-sm font-semibold <%= @deal.custom_attributes[definition.attribute_key].present? ? 'text-slate-800 dark:text-white' : 'text-slate-400 dark:text-slate-500 italic' %>">
             <%= @deal.custom_attributes[definition.attribute_key].presence || "Preencher..." %>
           </span>
         </div>
 
-        <%# ÍCONE DE EDITAR: Fica invisível (opacity-0) e surge no hover (group-hover:opacity-100) %>
+        <%# O LÁPIS DE EDITAR: Estilo idêntico ao que você gostou (invisível até o mouse passar) %>
         <%= link_to edit_account_deal_path(current_user.account, @deal, att_key: definition.attribute_key), 
             class: "opacity-0 group-hover:opacity-100 p-2 bg-slate-700 hover:bg-blue-600 text-white rounded-md transition-all shadow-sm" do %>
           <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
@@ -28,6 +28,6 @@
       </div>
     <% end %>
 
-    <%# O seletor e o link 'Adicionar campos' foram removidos para limpar o visual %>
+    <%# AQUI O 'ADICIONAR CAMPOS' E O '+' FORAM TOTALMENTE EXCLUÍDOS %>
   </div>
 <% end %>
