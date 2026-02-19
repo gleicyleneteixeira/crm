@@ -433,6 +433,7 @@
   .dark .bg-light-palette-p4 { background-color: theme('colors.slate.900') !important; }
   .dark .bg-gray-50 { background-color: theme('colors.slate.900') !important; }
   .dark .bg-slate-100 { background-color: theme('colors.slate.900') !important; }
+  .dark .bg-brand-palette-08 { background-color: theme('colors.slate.950') !important; }
 
   .dark .text-black { color: theme('colors.light-palette-p5') !important; }
   .dark .text-dark-gray-palette-p1 { color: theme('colors.dark-gray-palette-p4') !important; }
