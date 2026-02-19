@@ -1,60 +1,73 @@
 <%= turbo_stream_from [current_user.account.id, :deal] %>
+
 <%= turbo_stream_from [@deal.id, :deal_product] %>
 
+
+
 <div class="relative dark:bg-slate-950 transition-colors duration-200">
-  <%# Navegação Mobile (Celular) %>
+
+  <%# Navegação Mobile (Celular) - Adicionado dark:bg-slate-900 %>
+
   <div class="stage-bar mb-8 rounded-none md:hidden p-3 bg-light-palette-p5 dark:bg-slate-900 border-b-2 border-light-palette-p3 dark:border-slate-800 rounded">
+
     <%= render "/components/deals/stages_nav", deal: @deal %>
+
   </div>
 
-  <%# Seção Principal %>
-  <section class="px-8 md:p-8 bg-brand-palette-08 dark:bg-slate-950">
-    <%= render "/accounts/deals/stages_nav_desktop", deal: @deal %>
-    
-    <div class="grid grid-cols-1 min-[1400px]:grid-cols-[minmax(500px,_1fr)_3fr] gap-8 w-full ">
-      
-      <div data-controller="element-expanded">
-        
-        <%# --- CAMPO DE VALOR DA VENDA (SOMA NO FUNIL) --- %>
-        <div class="mb-6 bg-white dark:bg-slate-900 rounded-lg p-5 border-2 border-blue-400 shadow-lg">
-          <%= form_with(model: @deal, url: account_deal_path(current_user.account, @deal), local: true, method: :patch) do |f| %>
-            <label class="text-[11px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-2 block text-center">
-              Valor da Venda
-            </label>
-            
-            <div class="flex items-center justify-center gap-2">
-              <span class="text-2xl font-bold text-slate-400">R$</span>
-              <%= f.text_field :amount, 
-                  value: number_with_precision(@deal.amount.to_f, precision: 2, separator: ',', delimiter: '.'),
-                  class: "w-full bg-transparent border-none p-0 font-black text-4xl text-slate-800 dark:text-white focus:ring-0 text-center",
-                  placeholder: "0,00",
-                  onblur: "this.form.submit()" %>
-            </div>
-            <p class="text-[9px] text-blue-500 mt-2 text-center font-medium italic">
-              ℹ️ Digite o valor e clique fora para atualizar o total do funil.
-            </p>
-          <% end %>
-        </div>
 
-        <%# Os detalhes do cliente e Tributos %>
+
+  <%# Seção Principal - Adicionado dark:bg-slate-950 %>
+
+  <section class="px-8 md:p-8 bg-brand-palette-08 dark:bg-slate-950">
+
+    <%= render "/accounts/deals/stages_nav_desktop", deal: @deal %>
+
+    
+
+    <div class="grid grid-cols-1 min-[1400px]:grid-cols-[minmax(500px,_1fr)_3fr] gap-8 w-full ">
+
+      <div data-controller="element-expanded">
+
+        <%# Os detalhes do cliente (Sandra Mara) agora ficam protegidos aqui %>
+
         <%= render "/accounts/deals/details" %>
+
       </div>
+
+
 
       <div class="">
+
         <div class="gap-8">
-          <%# Card de Nova Mensagem/Evento %>
+
+          <%# Card de Nova Mensagem/Evento - Adicionado dark:bg-slate-900 %>
+
           <div class="bg-light-palette-p5 dark:bg-slate-900 border-2 border-neutral-150 border-light-palette-p3 dark:border-slate-800 rounded ">
+
             <%= turbo_frame_tag dom_id(Event.new), src: new_account_contact_event_path(account_id: current_user.account, contact_id: @deal.contact.id, deal_id: @deal.id), loading: :lazy do %>
+
               <%= render '/components/skeleton/event_form' %>
+
             <% end %>
+
           </div>
+
         </div>
 
+
+
         <%# Linha do tempo de eventos %>
+
         <div class="mt-8">
+
           <%= render '/accounts/deals/events', deal: @deal %>
+
         </div>
+
       </div>
+
     </div>
+
   </section>
+
 </div>
