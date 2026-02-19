@@ -1,31 +1,46 @@
+<style>
+  /* Esconde o link 'Adicionar campos' e o botão '+' que vêm de outros arquivos */
+  [id*="form_custom_attributes"] a.text-blue-600, 
+  [id*="form_custom_attributes"] .btn-primary,
+  [id*="form_custom_attributes"] .select2-container,
+  [id*="form_custom_attributes"] .flex.items-center.justify-center.rounded-md.border-2 {
+    display: none !important;
+  }
+
+  /* Garante que o lápis seja visível no modo escuro da GD Soluções */
+  .edit-pencil-icon {
+    opacity: 1 !important;
+    display: flex !important;
+  }
+</style>
+
 <%= turbo_frame_tag dom_id(@deal, :form_custom_attributes) do %>
   <div class="h-full w-full space-y-1 bg-transparent">
     
-    <%# 1. LISTAGEM AUTOMÁTICA DE TODOS OS ATRIBUTOS %>
+    <%# LISTAGEM AUTOMÁTICA DE TODOS OS TRIBUTOS %>
     <% current_user.account.custom_attribute_definitions.where(attribute_model: 'deal').each do |definition| %>
       
-      <%# Linha com efeito 'group' para o lápis aparecer no hover %>
       <div class="group flex items-center justify-between p-3 rounded-lg hover:bg-slate-800/40 transition-all border border-transparent">
         
         <div class="flex flex-col flex-1">
+          <%# Nome do campo %>
           <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
             <%= definition.attribute_display_name %>
           </label>
           
-          <%# Mostra o valor ou "Preencher..." em itálico se estiver vazio %>
+          <%# Valor ou Texto Fantasma %>
           <span class="text-sm font-semibold <%= @deal.custom_attributes[definition.attribute_key].present? ? 'text-slate-800 dark:text-white' : 'text-slate-400 dark:text-slate-500 italic' %>">
             <%= @deal.custom_attributes[definition.attribute_key].presence || "Preencher..." %>
           </span>
         </div>
 
-        <%# 2. O LÁPIS DE EDIÇÃO (Igual ao modelo que você gostou) %>
+        <%# O LÁPIS DE EDIÇÃO - Ajustado para sempre aparecer e funcionar no clique %>
         <%= link_to edit_account_deal_path(current_user.account, @deal, att_key: definition.attribute_key), 
-            class: "opacity-0 group-hover:opacity-100 p-2 bg-slate-700 hover:bg-blue-600 text-white rounded-md transition-all shadow-sm" do %>
+            class: "edit-pencil-icon p-2 bg-slate-200 dark:bg-slate-700 hover:bg-blue-600 text-slate-600 dark:text-white rounded-md transition-all shadow-sm" do %>
           <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
         <% end %>
       </div>
     <% end %>
 
-    <%# 3. O BLOCO DE 'ADICIONAR' FOI TOTALMENTE REMOVIDO DAQUI %>
   </div>
 <% end %>
