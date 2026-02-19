@@ -4,7 +4,7 @@
 
 @layer components {
   .woo-input {
-    @apply rounded-md border-light-palette-p2 bg-light-palette-p4 dark:border-dark-gray-palette-p2 dark:bg-dark-palette-p3 dark:text-light-palette-p5 dark:placeholder-dark-gray-palette-p4;
+    @apply rounded-md border-light-palette-p2 bg-light-palette-p4 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-400;
   }
   .navbar-container {
     @apply flex flex-wrap items-center w-full ease-in duration-300 justify-between h-[60px] bg-light-palette-p5 sm:h-[72px] px-6 sm:px-8 border-b-[1.5px] color-border-default dark:bg-slate-900/60 dark:backdrop-blur-md;
@@ -82,10 +82,10 @@
     @apply hover:stroke-brand-palette-04;
   }
   .form-input {
-    @apply py-2 px-4 bg-light-palette-p4 border-2 border-light-palette-p3 rounded-md text-dark-gray-palette-p1 typography-text-m-lh150 focus:outline-none focus:ring focus:ring-light-palette-p3 outline-none	focus:border-transparent placeholder-light-palette-p1 dark:bg-dark-palette-p3 dark:border-dark-gray-palette-p2 dark:text-light-palette-p5 dark:placeholder-dark-gray-palette-p4 dark:focus:ring-dark-palette-p4;
+    @apply py-2 px-4 bg-light-palette-p4 border-2 border-light-palette-p3 rounded-md text-dark-gray-palette-p1 typography-text-m-lh150 focus:outline-none focus:ring focus:ring-light-palette-p3 outline-none	focus:border-transparent placeholder-light-palette-p1 dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-slate-400 dark:focus:ring-slate-600;
   }
   .form-input-expandable-search {
-    @apply py-2 px-0 rounded-md text-dark-gray-palette-p1 typography-text-m-lh150 outline-none placeholder-light-palette-p1 w-80 h-8 border-transparent focus:outline  focus:ring-0 focus:border-transparent group-aria-expanded:w-80 group-aria-[expanded=false]:w-0 ease-in duration-200 dark:text-light-palette-p5 dark:placeholder-dark-gray-palette-p4;
+    @apply py-2 px-0 rounded-md text-dark-gray-palette-p1 typography-text-m-lh150 outline-none placeholder-light-palette-p1 w-80 h-8 border-transparent focus:outline  focus:ring-0 focus:border-transparent group-aria-expanded:w-80 group-aria-[expanded=false]:w-0 ease-in duration-200 dark:bg-slate-800 dark:text-white dark:placeholder-slate-400;
   }
   .form-input-error {
     @apply border border-red-500 text-red-900 placeholder-red-700 focus:ring-red-500 focus:border-red-500;

@@ -1,6 +1,6 @@
 <%= render 'components/overlays/drawer_show_model', model: model do %>
   <% model.class::SHOW_FIELDS.slice(:details).each do | show_field_category |  %>
-    <div class="mb-5 color-bg-surface-default border color-border-default rounded " aria-expanded="false" data-accordion="open" id="<%= "#{t('activerecord.models.show').downcase}-#{model.class.name.downcase}" %>-section">
+    <div class="mb-5 color-bg-surface-default border color-border-default rounded dark:bg-slate-900/60 dark:border-white/10 dark:backdrop-blur-md dark:shadow-none " aria-expanded="false" data-accordion="open" id="<%= "#{t('activerecord.models.show').downcase}-#{model.class.name.downcase}" %>-section">
       <header class="flex flex-wrap items-center justify-between gap-2 p-4">
         <div class='flex items-center gap-2'>
           <i data-lucide="info" class='color-fg-default stroke-1.04 w-5 h-5'></i>

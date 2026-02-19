@@ -1,7 +1,7 @@
 <% content_for :show_additional_content do %>
   <% if Apps::Chatwoot.first.present? %>
     <%# Card do Chatwoot: Dinâmico (Branco no Claro / Azul Marinho no Escuro) %>
-    <div class="mb-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded shadow-sm transition-colors" id="<%= "#{Apps::Chatwoot.model_name.human.downcase}-#{contact.class.name.downcase}" %>-section">
+    <div class="mb-5 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-white/10 rounded shadow-sm dark:shadow-none dark:backdrop-blur-md transition-colors" id="<%= "#{Apps::Chatwoot.model_name.human.downcase}-#{contact.class.name.downcase}" %>-section">
       <header class="flex flex-wrap items-center justify-between gap-2 p-4">
         <div class='flex items-center gap-2'>
           <i data-lucide="message-circle" class='text-slate-400 dark:text-slate-300 stroke-1.04 w-5 h-5 -rotate-[101deg]'></i>
@@ -38,7 +38,7 @@
   <% end %>
 
   <%# Card de Negócios: Com a Ordenação v1.0.2 (Abertos > Ganhos > Perdidos) %>
-  <div class="mb-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded shadow-sm transition-colors" id="<%= "#{Deal.model_name.human(count: 2).downcase}-#{contact.class.name.downcase}" %>-section">
+  <div class="mb-5 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-white/10 rounded shadow-sm dark:shadow-none dark:backdrop-blur-md transition-colors" id="<%= "#{Deal.model_name.human(count: 2).downcase}-#{contact.class.name.downcase}" %>-section">
     <header class="flex flex-wrap items-center justify-between gap-2 p-4">
       <div class='flex items-center gap-2'>
         <i data-lucide="clipboard-list" class='text-slate-400 dark:text-slate-300 stroke-1.04 w-5 h-5'></i>
@@ -60,7 +60,7 @@
       <% ordered_deals.each do |deal| %>
         <%= content_tag :li, id: dom_id(deal), class: "grid gap-5 border-b border-slate-100 dark:border-slate-800 last:border-none py-5 first:pt-0 last:pb-0", data: {controller: 'load-lucid-icons'} do %>
           <div class= "flex items-center gap-4">
-            <div class="h-10 w-10 flex items-center justify-center rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-300">
+            <div class="h-10 w-10 flex items-center justify-center rounded-lg border-2 border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/60 dark:backdrop-blur-lg text-slate-400 dark:text-slate-300">
               <i data-lucide="clipboard-list" class='w-5 h-5'></i>
             </div>
             <div class="mr-auto">

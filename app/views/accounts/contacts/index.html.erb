@@ -1,5 +1,5 @@
-<div class="bg-light-palette-p5 border-2 border-neutral-150 border-light-palette-p3 rounded m-8">
-  <header class="border-b-2 border-neutral-100 flex items-center justify-end gap-2 p-4 sticky top-0 bg-light-palette-p5 z-20">
+<div class="bg-light-palette-p5 border-2 border-neutral-150 border-light-palette-p3 rounded m-8 dark:bg-slate-900/60 dark:border-white/10 dark:backdrop-blur-md">
+  <header class="border-b-2 border-neutral-100 flex items-center justify-end gap-2 p-4 sticky top-0 bg-light-palette-p5 z-20 dark:bg-slate-900/80 dark:backdrop-blur-sm">
     <%= render '/components/form/input_expandable_search',
                search_url: account_contacts_path(Current.account),
                turbo_frame_search: :contacts_table,
@@ -11,7 +11,7 @@
   <%= turbo_frame_tag :contacts_table do %>
     <div class="overflow-x-auto">
       <table class="w-full text-left rtl:text-right min-w-[1950px]">
-        <thead class="border-b border-light-palette-p3">
+        <thead class="border-b border-light-palette-p3 bg-light-palette-p5 dark:bg-slate-900/80 dark:backdrop-blur-sm">
           <tr>
             <th scope="col" class="py-3 pl-4 pr-4 w-[52px]"></th>
             <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 max-w-[200px]">
@@ -32,7 +32,7 @@
             <th scope="col" class="pr-4 py-3 typography-body-s-lh150 text-dark-gray-palette-p1 max-w-[250px]">
               <%= t('activerecord.attributes.contact.updated_at') %>
             </th>
-            <th scope="col" class="py-3 pl-4 pr-4 sticky right-0 bg-light-palette-p5 z-10 w-[50px]"></th>
+            <th scope="col" class="py-3 pl-4 pr-4 sticky right-0 bg-light-palette-p5 z-10 w-[50px] dark:bg-slate-900/80 dark:backdrop-blur-sm"></th>
           </tr>
         </thead>
         <tbody class="w-full" id='contacts'>
@@ -40,7 +40,7 @@
         </tbody>
       </table>
     </div>
-    <div class="sticky bottom-0 bg-light-palette-p5 z-10 py-2 px-4 border-t-2 border-light-palette-p3">
+    <div class="sticky bottom-0 bg-light-palette-p5 z-10 py-2 px-4 border-t-2 border-light-palette-p3 dark:bg-slate-900/80 dark:backdrop-blur-sm dark:border-white/10">
       <div class="flex justify-end">
         <%== pagy_nav(@pagy) %>
       </div>
