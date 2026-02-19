@@ -3,24 +3,22 @@
     
     <div class="h-full w-full space-y-5 bg-transparent p-1">
       
-      <%# SEÇÃO DE VALOR - COM TRAVA ANTI-ERRO %>
+      <%# CAMPO DE VALOR FORÇADO PARA SOMATÓRIA %>
       <div class="p-3 bg-blue-50 dark:bg-slate-800/50 rounded-lg border border-blue-100 dark:border-blue-900/30">
         <label class="text-[11px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-1 block">
           Valor
         </label>
         
-        <% 
-          # Garante que o valor seja tratado como número para não dar erro de tela branca
-          valor_exibicao = @deal.amount.to_f
-        %>
-        
         <input type="text" 
                name="deal[amount]" 
-               value="<%= number_with_precision(valor_exibicao, precision: 2, separator: ',', delimiter: '.') %>" 
+               value="<%= number_with_precision(@deal.amount.to_f, precision: 2, separator: ',', delimiter: '.') %>" 
                class="w-full form-input bg-white dark:bg-slate-900 border-blue-200 dark:border-blue-800 font-bold text-xl text-slate-800 dark:text-white rounded-md"
                placeholder="0,00"
                onfocus="this.value = this.value.replace(/\./g, '')"
                onblur="let val = this.value.replace(/\./g, '').replace(',', '.'); if(val) { this.form.requestSubmit(); }">
+        
+        <%# Campo oculto para tentar forçar a atualização do total_amount caso o amount sozinho falhe %>
+        <input type="hidden" name="deal[total_amount_in_cents]" value="<%= (@deal.amount.to_f * 100).to_i %>">
       </div>
 
       <hr class="border-slate-200 dark:border-slate-800">
