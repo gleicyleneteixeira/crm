@@ -1,33 +1,31 @@
 <%= turbo_frame_tag dom_id(@deal, :form_custom_attributes) do %>
   <div class="h-full w-full space-y-1 bg-transparent">
     
-    <%# BUSCA AUTOMÁTICA: Lista todos os campos de Negócio que você criou na conta %>
+    <%# 1. LISTAGEM AUTOMÁTICA DE TODOS OS ATRIBUTOS %>
     <% current_user.account.custom_attribute_definitions.where(attribute_model: 'deal').each do |definition| %>
       
-      <%# LINHA COM EFEITO HOVER: O lápis só aparece quando o mouse está em cima %>
+      <%# Linha com efeito 'group' para o lápis aparecer no hover %>
       <div class="group flex items-center justify-between p-3 rounded-lg hover:bg-slate-800/40 transition-all border border-transparent">
         
         <div class="flex flex-col flex-1">
-          <%# Nome do Tributo %>
           <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
             <%= definition.attribute_display_name %>
           </label>
           
-          <%# Conteúdo: Mostra o valor real ou "Preencher..." se estiver vazio %>
+          <%# Mostra o valor ou "Preencher..." em itálico se estiver vazio %>
           <span class="text-sm font-semibold <%= @deal.custom_attributes[definition.attribute_key].present? ? 'text-slate-800 dark:text-white' : 'text-slate-400 dark:text-slate-500 italic' %>">
             <%= @deal.custom_attributes[definition.attribute_key].presence || "Preencher..." %>
           </span>
         </div>
 
-        <%# O LÁPIS DE EDITAR: Estilo idêntico ao que você gostou (invisível até o mouse passar) %>
+        <%# 2. O LÁPIS DE EDIÇÃO (Igual ao modelo que você gostou) %>
         <%= link_to edit_account_deal_path(current_user.account, @deal, att_key: definition.attribute_key), 
             class: "opacity-0 group-hover:opacity-100 p-2 bg-slate-700 hover:bg-blue-600 text-white rounded-md transition-all shadow-sm" do %>
           <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
         <% end %>
-        
       </div>
     <% end %>
 
-    <%# AQUI O 'ADICIONAR CAMPOS' E O '+' FORAM TOTALMENTE EXCLUÍDOS %>
+    <%# 3. O BLOCO DE 'ADICIONAR' FOI TOTALMENTE REMOVIDO DAQUI %>
   </div>
 <% end %>
