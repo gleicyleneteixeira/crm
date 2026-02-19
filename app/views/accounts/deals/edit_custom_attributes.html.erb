@@ -3,22 +3,24 @@
     
     <div class="h-full w-full space-y-5 bg-transparent p-1">
       
-      <%# CAMPO DE VALOR QUE SOMA NO CARD E NO FUNIL %>
+      <%# SEÇÃO DE VALOR - COM TRAVA ANTI-ERRO %>
       <div class="p-3 bg-blue-50 dark:bg-slate-800/50 rounded-lg border border-blue-100 dark:border-blue-900/30">
         <label class="text-[11px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-1 block">
-          Valor do Negócio
+          Valor
         </label>
         
-        <%# Usamos 'amount' para garantir que o sistema aceite o valor manual sem produto %>
+        <% 
+          # Garante que o valor seja tratado como número para não dar erro de tela branca
+          valor_exibicao = @deal.amount.to_f
+        %>
+        
         <input type="text" 
                name="deal[amount]" 
-               value="<%= number_with_precision(@deal.amount, precision: 2, separator: ',', delimiter: '.') %>" 
+               value="<%= number_with_precision(valor_exibicao, precision: 2, separator: ',', delimiter: '.') %>" 
                class="w-full form-input bg-white dark:bg-slate-900 border-blue-200 dark:border-blue-800 font-bold text-xl text-slate-800 dark:text-white rounded-md"
                placeholder="0,00"
                onfocus="this.value = this.value.replace(/\./g, '')"
-               onblur="let val = this.value.replace(/\./g, '').replace(',', '.'); if(val) { this.value = val; this.form.requestSubmit(); }">
-        
-        <p class="text-[9px] text-blue-500 mt-1 italic font-medium">Este valor substitui a necessidade de produtos no card.</p>
+               onblur="let val = this.value.replace(/\./g, '').replace(',', '.'); if(val) { this.form.requestSubmit(); }">
       </div>
 
       <hr class="border-slate-200 dark:border-slate-800">
