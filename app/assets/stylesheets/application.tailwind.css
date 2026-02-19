@@ -4,10 +4,10 @@
 
 @layer components {
   .woo-input {
-    @apply rounded-md border-light-palette-p2 bg-light-palette-p4;
+    @apply rounded-md border-light-palette-p2 bg-light-palette-p4 dark:border-dark-gray-palette-p2 dark:bg-dark-palette-p3 dark:text-light-palette-p5 dark:placeholder-dark-gray-palette-p4;
   }
   .navbar-container {
-    @apply flex flex-wrap items-center w-full ease-in duration-300 justify-between h-[60px] bg-light-palette-p5 sm:h-[72px] px-6 sm:px-8 border-b-[1.5px] color-border-default;
+    @apply flex flex-wrap items-center w-full ease-in duration-300 justify-between h-[60px] bg-light-palette-p5 sm:h-[72px] px-6 sm:px-8 border-b-[1.5px] color-border-default dark:bg-dark-palette-p2;
   }
   .event-item-from-me {
     @apply flex-row-reverse flex my-5;
@@ -82,10 +82,10 @@
     @apply hover:stroke-brand-palette-04;
   }
   .form-input {
-    @apply py-2 px-4 bg-light-palette-p4 border-2 border-light-palette-p3 rounded-md text-dark-gray-palette-p1 typography-text-m-lh150 focus:outline-none focus:ring focus:ring-light-palette-p3 outline-none	focus:border-transparent placeholder-light-palette-p1;
+    @apply py-2 px-4 bg-light-palette-p4 border-2 border-light-palette-p3 rounded-md text-dark-gray-palette-p1 typography-text-m-lh150 focus:outline-none focus:ring focus:ring-light-palette-p3 outline-none	focus:border-transparent placeholder-light-palette-p1 dark:bg-dark-palette-p3 dark:border-dark-gray-palette-p2 dark:text-light-palette-p5 dark:placeholder-dark-gray-palette-p4 dark:focus:ring-dark-palette-p4;
   }
   .form-input-expandable-search {
-    @apply py-2 px-0 rounded-md text-dark-gray-palette-p1 typography-text-m-lh150 outline-none placeholder-light-palette-p1 w-80 h-8 border-transparent focus:outline  focus:ring-0 focus:border-transparent group-aria-expanded:w-80 group-aria-[expanded=false]:w-0 ease-in duration-200;
+    @apply py-2 px-0 rounded-md text-dark-gray-palette-p1 typography-text-m-lh150 outline-none placeholder-light-palette-p1 w-80 h-8 border-transparent focus:outline  focus:ring-0 focus:border-transparent group-aria-expanded:w-80 group-aria-[expanded=false]:w-0 ease-in duration-200 dark:text-light-palette-p5 dark:placeholder-dark-gray-palette-p4;
   }
   .form-input-error {
     @apply border border-red-500 text-red-900 placeholder-red-700 focus:ring-red-500 focus:border-red-500;
@@ -96,24 +96,24 @@
   }
 
   .page.next a {
-    @apply border border-brand-palette-07 rounded-md relative inline-flex items-center rounded-r-md bg-white px-2 py-2 text-dark-gray-palette-p3 typography-text-m-lh150 hover:bg-gray-50 focus:z-20;
+    @apply border border-brand-palette-07 rounded-md relative inline-flex items-center rounded-r-md bg-white px-2 py-2 text-dark-gray-palette-p3 typography-text-m-lh150 hover:bg-gray-50 focus:z-20 dark:bg-dark-palette-p3 dark:text-light-palette-p5 dark:hover:bg-dark-palette-p4;
   }
 
   .page.prev a {
-    @apply border border-brand-palette-07 rounded-md relative inline-flex items-center px-2 py-2 text-dark-gray-palette-p3 typography-text-m-lh150 hover:bg-gray-50 focus:z-20;
+    @apply border border-brand-palette-07 rounded-md relative inline-flex items-center px-2 py-2 text-dark-gray-palette-p3 typography-text-m-lh150 hover:bg-gray-50 focus:z-20 dark:bg-dark-palette-p3 dark:text-light-palette-p5 dark:hover:bg-dark-palette-p4;
   }
 
   .page.next.disabled {
-    @apply border border-brand-palette-07 rounded-md relative inline-flex items-center rounded-r-md bg-slate-100 px-2 py-2 text-dark-gray-palette-p3 typography-text-m-lh150 hover:bg-gray-50 focus:z-20 pointer-events-none;
+    @apply border border-brand-palette-07 rounded-md relative inline-flex items-center rounded-r-md bg-slate-100 px-2 py-2 text-dark-gray-palette-p3 typography-text-m-lh150 hover:bg-gray-50 focus:z-20 pointer-events-none dark:bg-dark-palette-p2 dark:text-dark-gray-palette-p4 dark:hover:bg-dark-palette-p3;
   }
 
   .page.prev.disabled {
-    @apply border border-brand-palette-07 rounded-md relative inline-flex items-center rounded-l-md bg-slate-100 px-2 py-2 text-dark-gray-palette-p3 typography-text-m-lh150 hover:bg-gray-50 focus:z-20 pointer-events-none;
+    @apply border border-brand-palette-07 rounded-md relative inline-flex items-center rounded-l-md bg-slate-100 px-2 py-2 text-dark-gray-palette-p3 typography-text-m-lh150 hover:bg-gray-50 focus:z-20 pointer-events-none dark:bg-dark-palette-p2 dark:text-dark-gray-palette-p4 dark:hover:bg-dark-palette-p3;
   }
 
   .page a,
   .page.gap {
-    @apply border border-brand-palette-07 rounded-md bg-white text-dark-gray-palette-p3 typography-text-m-lh150 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 focus:z-20;
+    @apply border border-brand-palette-07 rounded-md bg-white text-dark-gray-palette-p3 typography-text-m-lh150 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 focus:z-20 dark:bg-dark-palette-p3 dark:text-light-palette-p5 dark:hover:bg-dark-palette-p4;
   }
 
   .page.active {
@@ -204,13 +204,13 @@
   }
 
   .color-bg-surface-harder {
-    @apply bg-purple-100;
+    @apply bg-purple-100 dark:bg-dark-palette-p4;
   }
   .color-bg-surface-hard {
-    @apply bg-gray-200;
+    @apply bg-gray-200 dark:bg-dark-palette-p3;
   }
   .color-bg-surface-default {
-    @apply bg-gray-100;
+    @apply bg-gray-100 dark:bg-dark-palette-p2;
   }
 
   .color-bg-fill-highlight {
@@ -220,13 +220,13 @@
     @apply bg-purple-700;
   }
   .color-bg-fill-hard {
-    @apply bg-purple-100;
+    @apply bg-purple-100 dark:bg-dark-palette-p4;
   }
   .color-bg-fill-default {
-    @apply bg-gray-200;
+    @apply bg-gray-200 dark:bg-dark-palette-p3;
   }
   .color-bg-fill-soft {
-    @apply bg-gray-100;
+    @apply bg-gray-100 dark:bg-dark-palette-p2;
   }
 
   .color-bg-feedback-success-default {
@@ -256,16 +256,16 @@
     @apply text-purple-600;
   }
   .color-fg-hard {
-    @apply text-gray-1200;
+    @apply text-gray-1200 dark:text-dark-gray-palette-p5;
   }
   .color-fg-default {
-    @apply text-gray-1000;
+    @apply text-gray-1000 dark:text-dark-gray-palette-p4;
   }
   .color-fg-soft {
-    @apply text-gray-800;
+    @apply text-gray-800 dark:text-dark-gray-palette-p3;
   }
   .color-fg-extra-soft {
-    @apply text-gray-400;
+    @apply text-gray-400 dark:text-dark-gray-palette-p2;
   }
   .color-fg-inverse {
     @apply text-gray-100;
@@ -282,19 +282,19 @@
     @apply text-blue-500;
   }
   .color-fg-feedback-neutral {
-    @apply text-gray-900;
+    @apply text-gray-900 dark:text-dark-gray-palette-p4;
   }
   .color-border-highlight {
     @apply border-purple-600;
   }
   .color-border-harder {
-    @apply border-purple-300;
+    @apply border-purple-300 dark:border-dark-gray-palette-p4;
   }
   .color-border-hard {
-    @apply border-gray-500;
+    @apply border-gray-500 dark:border-dark-gray-palette-p3;
   }
   .color-border-default {
-    @apply border-gray-300;
+    @apply border-gray-300 dark:border-dark-gray-palette-p2;
   }
   .color-border-feedback-success-default {
     @apply border-green-300;
@@ -419,4 +419,25 @@
   .advanced-search-filter-button[aria-selected="true"] {
     @apply color-bg-fill-highlight color-fg-inverse border-transparent hover:color-bg-fill-highlight-hover hover:color-fg-inverse;
   }
+}
+
+@layer base {
+  .dark body {
+    @apply bg-dark-palette-p1 text-light-palette-p5;
+  }
+}
+
+@layer utilities {
+  .dark .bg-white { background-color: theme('colors.dark-palette-p3') !important; }
+  .dark .bg-light-palette-p5 { background-color: theme('colors.dark-palette-p2') !important; }
+  .dark .bg-light-palette-p4 { background-color: theme('colors.dark-palette-p3') !important; }
+  .dark .bg-gray-50 { background-color: theme('colors.dark-palette-p3') !important; }
+  .dark .bg-slate-100 { background-color: theme('colors.dark-palette-p2') !important; }
+
+  .dark .text-black { color: theme('colors.light-palette-p5') !important; }
+  .dark .text-dark-gray-palette-p1 { color: theme('colors.dark-gray-palette-p4') !important; }
+  .dark .text-dark-gray-palette-p3 { color: theme('colors.dark-gray-palette-p5') !important; }
+
+  .dark .border-light-palette-p3 { border-color: theme('colors.dark-gray-palette-p2') !important; }
+  .dark .border-brand-palette-07 { border-color: theme('colors.dark-gray-palette-p3') !important; }
 }

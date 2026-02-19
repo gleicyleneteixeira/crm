@@ -34,7 +34,7 @@
         <%# ESCRITA VIVIDA: Nome da etapa e status Ganho/Perdido %>
         <% if stage == deal.stage %>
           <div class="flex flex-col items-center mt-1">
-            <p class="text-[9px] font-black text-center leading-none <%= deal.status == 'won' ? 'text-green-900' : (deal.status == 'lost' ? 'text-red-900' : 'text-black') %>">
+            <p class="text-[9px] font-black text-center leading-none <%= deal.status == 'won' ? 'text-green-900' : (deal.status == 'lost' ? 'text-red-900' : 'text-gray-1200 dark:text-white') %>">
               <%= stage.name %>
             </p>
             

@@ -1,15 +1,15 @@
-<header class="flex py-6 px-8 items-center  bg-light-palette-p5 border-b-2 border-light-palette-p3">
+<header class="flex py-6 px-8 items-center  bg-light-palette-p5 dark:bg-dark-palette-p2 border-b-2 border-light-palette-p3 dark:border-dark-gray-palette-p2">
   <%= image_tag "logo.svg" , class: 'w-44' %>
 </header>
-<div class="m-8 bg-light-palette-p5 border-2 border-light-palette-p3 rounded-md ">
-  <h1 class="p-4 typography-title-b-lh150 text-dark-gray-palette-p1">
+<div class="m-8 bg-light-palette-p5 dark:bg-dark-palette-p2 border-2 border-light-palette-p3 dark:border-dark-gray-palette-p2 rounded-md ">
+  <h1 class="p-4 typography-title-b-lh150 text-dark-gray-palette-p1 dark:text-dark-gray-palette-p5">
     <%= t('views.apps.chatwoots.user_not_found.user_not_found') %>
   </h1>
-  <div class="w-full h-0.5 bg-light-palette-p3 "></div>
+  <div class="w-full h-0.5 bg-light-palette-p3 dark:bg-dark-palette-p3"></div>
   <svg class="mx-auto mt-8 mb-2 text-gray-400 w-16 h-16 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
   </svg>
-  <p class="p-4 typography-body-s-lh150 text-dark-gray-palette-p4 text-center max-w-[620px] mx-auto"><%= t('views.apps.chatwoots.user_not_found.description', user_email: @user_email).html_safe %>
+  <p class="p-4 typography-body-s-lh150 text-dark-gray-palette-p4 dark:text-dark-gray-palette-p5 text-center max-w-[620px] mx-auto"><%= t('views.apps.chatwoots.user_not_found.description', user_email: @user_email).html_safe %>
   </p>
   <div class="pr-4 pt-2 pb-8 flex items-center justify-center">
     <%= link_to "#{ ENV['FRONTEND_URL']}/accounts/#{@chatwoot.account_id}/users/new" , target: :_blank,

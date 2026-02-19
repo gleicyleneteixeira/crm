@@ -1,32 +1,32 @@
-:root {
+.dark :root {
   --fc-small-font-size: 0.85em;
-  --fc-page-bg-color: #fff;
-  --fc-neutral-bg-color: #FAF9FD;
-  --fc-neutral-text-color: #808080;
-  --fc-border-color: #F2F1F7;
+  --fc-page-bg-color: #17161E;
+  --fc-neutral-bg-color: #282733;
+  --fc-neutral-text-color: #B1AEC2;
+  --fc-border-color: #3A3847;
 
   /* Button variables */
-  --fc-button-text-color: #888599;
-  --fc-button-bg-color: #FAF9FD;
+  --fc-button-text-color: #E7E6EF;
+  --fc-button-bg-color: #3A3847;
   --fc-button-border-color: transparent;
   --fc-button-border-width: 1.5px;
   --fc-button-border-radius: 0.25rem;
 
-  --fc-button-hover-text-color: #6857D9;
-  --fc-button-hover-bg-color: #F6F8FE;
-  --fc-button-hover-border-color: #D9DEFF;
+  --fc-button-hover-text-color: #B8C0F4;
+  --fc-button-hover-bg-color: #282733;
+  --fc-button-hover-border-color: #6857D9;
 
-  --fc-button-active-text-color: #6857D9;
-  --fc-button-active-bg-color: #F6F8FE;
-  --fc-button-active-border-color: #D9DEFF;
+  --fc-button-active-text-color: #EDF1FD;
+  --fc-button-active-bg-color: #31388D;
+  --fc-button-active-border-color: #6857D9;
 
   /* Event variables */
-  --fc-event-bg-color: #3788d8;
-  --fc-event-border-color: #3788d8;
+  --fc-event-bg-color: #2A52B0;
+  --fc-event-border-color: #2A52B0;
   --fc-event-text-color: #fff;
   --fc-event-selected-overlay-color: rgba(0, 0, 0, 0.25);
 
-  --fc-more-link-bg-color: #d0d0d0;
+  --fc-more-link-bg-color: #3A3847;
   --fc-more-link-text-color: inherit;
 
   --fc-event-resizer-thickness: 8px;
@@ -34,14 +34,14 @@
   --fc-event-resizer-dot-border-width: 1px;
 
   /* Misc */
-  --fc-non-business-color: rgba(215, 215, 215, 0.3);
+  --fc-non-business-color: rgba(96, 94, 112, 0.3);
   --fc-bg-event-color: rgb(143, 223, 130);
   --fc-bg-event-opacity: 0.3;
-  --fc-highlight-color: rgba(188, 232, 241, 0.3);
-  --fc-today-bg-color: #F6F8FE;
+  --fc-highlight-color: rgba(104, 87, 217, 0.25);
+  --fc-today-bg-color: #282733;
   --fc-now-indicator-color: red;
 
-  --fc-list-event-hover-bg-color: #f5f5f5;
+  --fc-list-event-hover-bg-color: #282733;
 }
 
 /* =======================
@@ -83,7 +83,7 @@
 
 .fc-toolbar-title {
   font-weight: 600;
-  color: #605E70;
+  color: #E7E6EF;
   font-size: 1.375rem !important;
 }
 
@@ -92,11 +92,11 @@
 }
 
 .fc-daygrid-day-number {
-  color: #888599;
+  color: #B1AEC2;
 }
 
 .fc .fc-list-empty-cushion {
-  color: #605E70;
+  color: #E7E6EF;
   font-weight: 600;
 }
 
@@ -106,29 +106,29 @@
 
 // /* Dot-style events */
 .fc .fc-daygrid-dot-event .fc-event-title {
-  color: #888599;
+  color: #B1AEC2;
 }
 
 .fc .fc-daygrid-dot-event .fc-event-title:hover {
-  color: #605E70;
+  color: #E7E6EF;
 }
 
 .fc .fc-daygrid-dot-event .fc-event-time {
-  color: #605E70;
+  color: #E7E6EF;
 }
 
 /* List-style events */
 .fc .fc-list-event td {
-  color: #737185 !important;
+  color: #E7E6EF !important;
 }
 
 .fc .fc-list-event:hover td {
-  color: #605E70 !important;
+  color: #FFFFFF !important;
 }
 
 // /* Hover effects */
 .fc .fc-daygrid-dot-event:hover {
-  background-color: #F2F1F7 !important;
+  background-color: #3A3847 !important;
 }
 
 .fc .fc-timegrid-event:hover,
@@ -143,18 +143,18 @@
 .fc .fc-col-header-cell-cushion,
 .fc .fc-timegrid-axis-cushion,
 .fc .fc-timegrid-slot-label-cushion {
-  color: #888599;
+  color: #B1AEC2;
   font-weight: 600;
 }
 
 .fc a[data-navlink] {
-  color: #888599;
+  color: #B1AEC2;
 }
 
 /* List view day header */
 .fc .fc-list-day-cushion {
-  background-color: #FAF9FD;
-  color: #605E70;
+  background-color: #282733;
+  color: #E7E6EF;
 }
 
 .fc-theme-standard .fc-scrollgrid {
