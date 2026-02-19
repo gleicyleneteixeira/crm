@@ -1,42 +1,18 @@
+<%# Código Original / Restauração %>
 <%= turbo_frame_tag dom_id(@deal, :form_custom_attributes) do %>
   <%= form_with(model: @deal, url: account_deal_path(current_user.account, @deal), data: { turbo_frame: dom_id(@deal, :form_custom_attributes) }) do |form| %>
-    
-    <div class="h-full w-full space-y-5 bg-transparent p-1">
-      
-      <%# --- SEÇÃO DE VALOR (FORMATO BRASIL) --- %>
-      <div class="p-3 bg-blue-50 dark:bg-slate-800/50 rounded-lg border border-blue-100 dark:border-blue-900/30">
-        <label class="text-[11px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-1 block">
-          Valor
-        </label>
-        
-        <input type="text" 
-               name="deal[amount]" 
-               value="<%= number_with_precision(@deal.amount.to_f, precision: 2, separator: ',', delimiter: '.') %>" 
-               class="w-full form-input bg-white dark:bg-slate-900 border-blue-200 dark:border-blue-800 font-bold text-xl text-slate-800 dark:text-white rounded-md"
-               placeholder="0,00"
-               onfocus="this.value = this.value.replace(/\./g, '')"
-               onblur="let val = this.value.replace(/\./g, '').replace(',', '.'); if(val) { this.form.requestSubmit(); }">
-      </div>
-
-      <hr class="border-slate-200 dark:border-slate-800">
-
-      <%# --- LISTAGEM AUTOMÁTICA DOS TRIBUTOS --- %>
-      <div class="space-y-4">
-        <% current_user.account.custom_attribute_definitions.where(attribute_model: 'deal').each do |definition| %>
-          <div class="flex flex-col gap-1">
-            <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-              <%= definition.attribute_display_name %>
-            </label>
-            <input type="text" 
-                   name="deal[custom_attributes][<%= definition.attribute_key %>]" 
-                   value="<%= @deal.custom_attributes[definition.attribute_key] %>" 
-                   class="w-full form-input bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-sm rounded-md text-slate-800 dark:text-white"
-                   placeholder="Preencher..."
-                   onblur="this.form.requestSubmit()">
-          </div>
-        <% end %>
-      </div>
-
+    <div class="space-y-4">
+      <% current_user.account.custom_attribute_definitions.where(attribute_model: 'deal').each do |definition| %>
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-medium text-slate-600 dark:text-slate-400">
+            <%= definition.attribute_display_name %>
+          </label>
+          <%= form.text_field "custom_attributes[#{definition.attribute_key}]", 
+              value: @deal.custom_attributes[definition.attribute_key], 
+              class: "w-full form-input text-sm rounded-md border-slate-200 dark:border-slate-700 dark:bg-slate-900",
+              onblur: "this.form.requestSubmit()" %>
+        </div>
+      <% end %>
     </div>
   <% end %>
 <% end %>
