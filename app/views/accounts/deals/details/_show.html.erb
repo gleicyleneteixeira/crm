@@ -110,7 +110,9 @@
           </div>
         <% end %>
       <% end %>
-      <%= render 'accounts/deals/details/show_custom_attributes', model: model %>
+      <%= render 'accounts/deals/details/show_custom_attributes',
+                 model: model,
+                 update_path: (defined?(update_path) ? update_path : nil) %>
     <% end %>
   </div>
 <% end %>

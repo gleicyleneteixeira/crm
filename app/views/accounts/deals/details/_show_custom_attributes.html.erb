@@ -1,10 +1,43 @@
-<% model.custom_attributes.each do | custom_attribute | %>
+<% definitions = current_user.account.custom_attribute_definitions.where(attribute_model: "#{model.class.name.downcase}_attribute") %>
+<% definitions.each do |definition| %>
+  <% key = definition.attribute_key %>
+  <% raw_value = model.custom_attributes[key] %>
+  <% display_value = raw_value.present? ? raw_value : '—' %>
   <div class="flex flex-col col-span-full">
     <label class="typography-text-s-lh150 text-gray-pallete-p3">
-      <%= model.custom_attribute_display_name(custom_attribute[0]) %>
+      <%= definition.attribute_display_name %>
     </label>
-    <p class="typography-sub-text-m-lh150 text-dark-gray-palette-p1">
-      <%= custom_attribute[1] %>
-    </p>
+    <% if defined?(update_path) && update_path.present? %>
+      <div
+        class="group flex items-center gap-1"
+        data-controller="inline-edit"
+        data-inline-edit-update-url-value="<%= update_path %>"
+        data-inline-edit-model-key-value="<%= model.model_name.param_key %>"
+        data-inline-edit-attribute-name-value="custom_attributes][<%= key %>">
+        <div
+          class="typography-sub-text-m-lh150 text-dark-gray-palette-p1 break-all cursor-pointer"
+          data-inline-edit-target="display"
+          data-action="click->inline-edit#activate">
+          <%= display_value %>
+        </div>
+        <button
+          type="button"
+          class="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-slate-200 flex items-center justify-center"
+          data-inline-edit-target="pencil"
+          data-action="click->inline-edit#activate">
+          <i data-lucide="pencil" class="w-3 h-3"></i>
+        </button>
+        <input
+          type="text"
+          class="hidden w-full typography-sub-text-m-lh150 text-dark-gray-palette-p1 break-all bg-white/80 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded px-2 py-1 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+          data-inline-edit-target="input"
+          data-action="blur->inline-edit#submit keydown->inline-edit#handleKeydown"
+          value="<%= raw_value %>">
+      </div>
+    <% else %>
+      <p class="typography-sub-text-m-lh150 text-dark-gray-palette-p1">
+        <%= display_value %>
+      </p>
+    <% end %>
   </div>
 <% end %>
