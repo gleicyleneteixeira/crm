@@ -22,38 +22,24 @@
           <% show_field[:relations].each do |relation_name, field| %>
             <% if relation_name == :stage && model.is_a?(Deal) && defined?(update_path) && update_path.present? %>
               <% stages_for_select = Stage.ordered_by_pipeline_and_position %>
-              <div class="flex flex-col col-span-full">
+              <div
+                class="flex flex-col col-span-full"
+                data-controller="stage-inline-edit"
+                data-stage-inline-edit-update-url-value="<%= update_path %>"
+                data-stage-inline-edit-model-key-value="<%= model.model_name.param_key %>">
                 <p class='typography-text-s-lh150 text-gray-pallete-p3'>
                   <%= t("activerecord.attributes.#{model.model_name.i18n_key}.#{relation_name}") %>
                 </p>
-                <div
-                  class="group flex items-center gap-1"
-                  data-controller="stage-inline-edit"
-                  data-stage-inline-edit-update-url-value="<%= update_path %>"
-                  data-stage-inline-edit-model-key-value="<%= model.model_name.param_key %>">
-                  <div
-                    class="typography-sub-text-m-lh150 text-dark-gray-palette-p1 break-all cursor-pointer"
-                    data-stage-inline-edit-target="display"
-                    data-action="click->stage-inline-edit#activate">
-                    <%= "#{model.stage.pipeline.name} - #{model.stage.name}" %>
-                  </div>
-                  <button
-                    type="button"
-                    class="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-slate-200 flex items-center justify-center"
-                    data-action="click->stage-inline-edit#activate">
-                    <i data-lucide="pencil" class="w-3 h-3"></i>
-                  </button>
-                  <select
-                    class="hidden w-full bg-white/80 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded px-2 py-1 typography-sub-text-m-lh150 text-dark-gray-palette-p1 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
-                    data-stage-inline-edit-target="input"
-                    data-action="change->stage-inline-edit#submit keydown->stage-inline-edit#handleKeydown">
-                    <% stages_for_select.each do |stage| %>
-                      <option value="<%= stage.id %>" <%= 'selected' if stage.id == model.stage_id %>>
-                        <%= "#{stage.pipeline.name} - #{stage.name}" %>
-                      </option>
-                    <% end %>
-                  </select>
-                </div>
+                <select
+                  class="w-full bg-white/80 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded px-2 py-1 typography-sub-text-m-lh150 text-dark-gray-palette-p1 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                  data-stage-inline-edit-target="input"
+                  data-action="change->stage-inline-edit#submit">
+                  <% stages_for_select.each do |stage| %>
+                    <option value="<%= stage.id %>" <%= 'selected' if stage.id == model.stage_id %>>
+                      <%= "#{stage.pipeline.name} - #{stage.name}" %>
+                    </option>
+                  <% end %>
+                </select>
               </div>
             <% else %>
               <div class="flex flex-col col-span-full">
