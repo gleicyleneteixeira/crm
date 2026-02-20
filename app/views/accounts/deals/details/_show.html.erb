@@ -70,6 +70,7 @@
                       class="hidden w-full typography-sub-text-m-lh150 text-dark-gray-palette-p1 break-all bg-white/80 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded px-2 py-1 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
                       data-inline-edit-target="input"
                       data-action="blur->inline-edit#submit keydown->inline-edit#handleKeydown"
+                      name="<%= "#{model.model_name.param_key}[#{inline_attribute_name}]" %>"
                       value="<%= inline_attribute_name == :manual_amount_in_cents && model.respond_to?(:manual_amount_in_cents) ? (model.manual_amount_in_cents || 0) : model.send(inline_attribute_name) %>">
                   <% end %>
                 </div>

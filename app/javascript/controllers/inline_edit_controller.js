@@ -6,11 +6,18 @@ export default class extends Controller {
     updateUrl: String,
     modelKey: String,
     attributeName: String,
+    nestedKey: String,
   };
+
+  connect() {
+    this.submitting = false;
+    this.originalValue = null;
+  }
 
   activate(event) {
     event.preventDefault();
     if (!this.hasInputTarget || !this.hasDisplayTarget) return;
+    this.originalValue = this.inputTarget.value;
     this.displayTarget.classList.add("hidden");
     this.inputTarget.classList.remove("hidden");
     this.inputTarget.focus();
@@ -29,37 +36,71 @@ export default class extends Controller {
 
   cancel() {
     if (!this.hasInputTarget || !this.hasDisplayTarget) return;
+    if (this.originalValue !== null) {
+      this.inputTarget.value = this.originalValue;
+    }
     this.inputTarget.classList.add("hidden");
     this.displayTarget.classList.remove("hidden");
   }
 
   async submit() {
     if (!this.hasInputTarget || !this.hasDisplayTarget) return;
+    if (this.submitting) return;
+
     const value = this.inputTarget.value;
 
     const formData = new FormData();
-    formData.append(`${this.modelKeyValue}[${this.attributeNameValue}]`, value);
+    const paramName = this.buildParamName();
+    formData.append(paramName, value);
 
     const csrfTokenElement = document.querySelector('meta[name="csrf-token"]');
     const csrfToken = csrfTokenElement ? csrfTokenElement.getAttribute("content") : null;
 
+    this.submitting = true;
+    this.inputTarget.classList.add("opacity-60");
+    this.inputTarget.disabled = true;
+
     try {
-      await fetch(this.updateUrlValue, {
+      const response = await fetch(this.updateUrlValue, {
         method: "PATCH",
         headers: csrfToken
           ? {
               "X-CSRF-Token": csrfToken,
+              Accept: "text/vnd.turbo-stream.html, text/html, application/json",
             }
-          : {},
+          : {
+              Accept: "text/vnd.turbo-stream.html, text/html, application/json",
+            },
         body: formData,
       });
 
-      this.displayTarget.textContent = value;
+      if (response.ok) {
+        const displayValue = value === "" ? "—" : value;
+        this.displayTarget.textContent = displayValue;
+        this.inputTarget.classList.add("hidden");
+        this.displayTarget.classList.remove("hidden");
+      } else {
+        this.inputTarget.focus();
+        this.inputTarget.select();
+      }
     } catch (error) {
+      this.inputTarget.focus();
+      this.inputTarget.select();
+    } finally {
+      this.submitting = false;
+      this.inputTarget.classList.remove("opacity-60");
+      this.inputTarget.disabled = false;
+    }
+  }
+
+  buildParamName() {
+    const modelKey = this.modelKeyValue;
+    const attribute = this.attributeNameValue;
+
+    if (this.hasNestedKeyValue) {
+      return `${modelKey}[${attribute}][${this.nestedKeyValue}]`;
     }
 
-    this.inputTarget.classList.add("hidden");
-    this.displayTarget.classList.remove("hidden");
+    return `${modelKey}[${attribute}]`;
   }
 }
-
