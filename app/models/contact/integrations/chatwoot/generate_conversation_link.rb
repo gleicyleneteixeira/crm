@@ -18,13 +18,14 @@ class Contact::Integrations::Chatwoot::GenerateConversationLink
   private
 
   def fetch_chatwoot_for_account
-    if @contact.respond_to?(:account) && @contact.account.present?
-      @contact.account.apps_chatwoots.first
-    elsif defined?(Current) && Current.respond_to?(:account) && Current.account.present?
-      Current.account.apps_chatwoots.first
-    else
-      Apps::Chatwoot.first
-    end
+    account_chatwoot =
+      if @contact.respond_to?(:account) && @contact.account.present?
+        @contact.account.apps_chatwoots.first
+      elsif defined?(Current) && Current.respond_to?(:account) && Current.account.present?
+        Current.account.apps_chatwoots.first
+      end
+
+    account_chatwoot.presence || Apps::Chatwoot.first
   end
 
   def fetch_conversation_id(chatwoot, chatwoot_contact_id)
