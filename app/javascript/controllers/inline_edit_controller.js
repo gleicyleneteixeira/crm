@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus";
+import * as Turbo from "@hotwired/turbo";
 
 export default class extends Controller {
   static targets = ["display", "input"];
@@ -74,12 +75,11 @@ export default class extends Controller {
         body: formData,
       });
 
+      const responseText = await response.text();
       if (response.ok) {
-        const displayValue = value === "" ? "—" : value;
-        this.displayTarget.textContent = displayValue;
-        this.inputTarget.classList.add("hidden");
-        this.displayTarget.classList.remove("hidden");
+        Turbo.renderStreamMessage(responseText);
       } else {
+        Turbo.renderStreamMessage(responseText);
         this.inputTarget.focus();
         this.inputTarget.select();
       }

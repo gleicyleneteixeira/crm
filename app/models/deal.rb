@@ -65,6 +65,7 @@ class Deal < ApplicationRecord
   end
   after_destroy_commit { broadcast_remove_to :stages, target: self }
 
+  after_update_commit :broadcast_kanban_card, if: :broadcast_kanban_card?
   # after_update_commit lambda {
   #                       broadcast_updates
   #                     }
@@ -140,5 +141,17 @@ class Deal < ApplicationRecord
 
   def publish_updated
     broadcast(:deal_updated, self)
+  end
+
+  def broadcast_kanban_card?
+    saved_change_to_manual_amount_in_cents? ||
+      saved_change_to_stage_id? ||
+      saved_change_to_custom_attributes?
+  end
+
+  def broadcast_kanban_card
+    broadcast_replace_later_to self,
+                               partial: 'accounts/pipelines/deal',
+                               locals: { deal: self }
   end
 end
