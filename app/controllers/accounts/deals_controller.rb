@@ -107,7 +107,14 @@ class Accounts::DealsController < InternalController
       @deal.custom_attributes[params[:deal][:att_key]] = params[:deal][:att_value]
     end
 
-    if Deal::CreateOrUpdate.new(@deal, deal_params).call
+    attributes = deal_params.to_h
+
+    if attributes['custom_attributes'].present?
+      existing_custom_attributes = @deal.custom_attributes || {}
+      attributes['custom_attributes'] = existing_custom_attributes.deep_merge(attributes['custom_attributes'])
+    end
+
+    if Deal::CreateOrUpdate.new(@deal, attributes).call
       respond_to do |format|
         format.html { redirect_to account_deal_path(current_user.account, @deal) }
         format.turbo_stream
