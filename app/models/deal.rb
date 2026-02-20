@@ -32,6 +32,7 @@
 #  fk_rails_...  (stage_id => stages.id)
 #
 class Deal < ApplicationRecord
+  include ActionView::RecordIdentifier
   include CustomAttributes
   include Deal::EventCreator
   include Deal::HandleInCentsValues
@@ -153,5 +154,29 @@ class Deal < ApplicationRecord
     broadcast_replace_later_to self,
                                partial: 'accounts/pipelines/deal',
                                locals: { deal: self }
+
+    if saved_change_to_stage_id?
+      old_stage_id = stage_id_before_last_save
+      new_stage_id = stage_id
+
+      broadcast_remove_to :stages, target: self
+
+      broadcast_append_to :stages,
+                          target: dom_id(Stage.find(new_stage_id), :deals),
+                          partial: 'accounts/pipelines/deal',
+                          locals: { deal: self }
+
+      ['all', status].each do |filter|
+        broadcast_replace_to :stages,
+                             target: "stage-#{old_stage_id}-#{filter}-kaban-details",
+                             partial: 'accounts/stages/kanban_details',
+                             locals: { stage: Stage.find(old_stage_id), filter_status_deal: filter }
+
+        broadcast_replace_to :stages,
+                             target: "stage-#{new_stage_id}-#{filter}-kaban-details",
+                             partial: 'accounts/stages/kanban_details',
+                             locals: { stage: Stage.find(new_stage_id), filter_status_deal: filter }
+      end
+    end
   end
 end
