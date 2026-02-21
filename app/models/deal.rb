@@ -8,6 +8,7 @@
 #  lost_reason                         :string           default(""), not null
 #  name                                :string           default(""), not null
 #  position                            :integer          default(1), not null
+#  priority_level                      :integer          default(0), not null
 #  status                              :string           default("open"), not null
 #  total_deal_products_amount_in_cents :bigint           default(0), not null
 #  won_at                              :datetime
@@ -52,6 +53,7 @@ class Deal < ApplicationRecord
   accepts_nested_attributes_for :contact
 
   enum status: { 'open': 'open', 'won': 'won', 'lost': 'lost' }
+  enum priority_level: { none: 0, low: 1, medium: 2, high: 3 }, _prefix: true
 
   FORM_FIELDS = %i[name manual_amount_in_cents creator total_amount_in_cents]
 
@@ -147,7 +149,8 @@ class Deal < ApplicationRecord
   def broadcast_kanban_card?
     saved_change_to_manual_amount_in_cents? ||
       saved_change_to_stage_id? ||
-      saved_change_to_custom_attributes?
+      saved_change_to_custom_attributes? ||
+      saved_change_to_priority_level?
   end
 
   def broadcast_kanban_card

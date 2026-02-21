@@ -2,62 +2,144 @@
   <%= turbo_stream_from deal %>
   
   <div class="rounded-xl border border-slate-200/70 dark:border-slate-800 bg-white dark:bg-slate-950/70 dark:backdrop-blur-md transition-colors duration-200 px-3 pt-3 pb-2" data-controller='load-lucid-icons'>
-    
-    <%= link_to account_deal_path(Current.account, deal.id), data: { turbo_frame: :_top }, class: 'flex flex-col gap-2' do %>
-      <% unless deal.open? %>
-        <div class='w-full flex'>
-          <div class='inline-flex gap-1 items-center px-2 py-0.5 rounded text-[10px] font-black uppercase <%= deal.lost? ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700' %>'>
+    <% priority_classes =
+         case deal.priority_level
+         when 'low'
+           'border-emerald-500 text-emerald-400 bg-emerald-500/10'
+         when 'medium'
+           'border-amber-400 text-amber-300 bg-amber-400/10'
+         when 'high'
+           'border-red-500 text-red-400 bg-red-500/10'
+         else
+           'border-slate-500 text-slate-400 bg-transparent'
+         end %>
+
+    <% next_event = deal.next_event_planned if deal.next_event_planned? %>
+    <% due_at = next_event&.scheduled_at %>
+    <% due_classes =
+         if due_at.present?
+           date = due_at.to_date
+           today = Time.zone.today
+           if date < today
+             'bg-red-500/15 text-red-300 border border-red-500/40'
+           elsif date == today
+             'bg-amber-500/15 text-amber-300 border border-amber-500/40'
+           else
+             'bg-slate-500/10 text-slate-300 border border-slate-500/40'
+           end
+         else
+           'bg-slate-500/10 text-slate-300 border border-slate-500/40'
+         end %>
+
+    <% responsible_name =
+         if deal.users.loaded? ? deal.users.any? : deal.users.exists?
+           deal.users.first.full_name
+         else
+           deal.contact.full_name
+         end %>
+
+    <%# NÍVEL 1: TÍTULO + BANDEIRA DE PRIORIDADE %>
+    <div class="flex items-start justify-between gap-2">
+      <div class="flex-1 min-w-0">
+        <% unless deal.open? %>
+          <div class='mb-1 inline-flex gap-1 items-center px-2 py-0.5 rounded text-[10px] font-black uppercase <%= deal.lost? ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700' %>'>
             <%= Deal.human_enum_name(:status, deal.status) %>
           </div>
-        </div>
-      <% end %>
-      
-      <p class="text-sm font-semibold text-slate-900 dark:text-slate-100 leading-snug truncate">
-        <%= deal.name %>
-      </p>
-      <div class="w-full border-t border-slate-100/70 dark:border-slate-800 mt-1"></div>
-    <% end %>
+        <% end %>
 
-    <div class='flex items-center py-2'>
-      <%= link_to account_contact_path(Current.account, deal.contact), class: "cursor-pointer peer" , data: { turbo_frame: :drawer } do %>
-        <div class='flex items-start gap-2 text-xs'>
-          <i data-lucide="user" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500"></i>
-          <p class='text-xs font-medium text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-100 <%= dom_id(deal.contact, :stream_full_name) %>'>
-            <%= deal.contact.full_name %>
+        <%= link_to account_deal_path(Current.account, deal.id), data: { turbo_frame: :_top } do %>
+          <p class="text-sm font-semibold text-slate-900 dark:text-slate-100 leading-snug whitespace-normal break-words">
+            <%= deal.name %>
           </p>
+        <% end %>
+      </div>
+
+      <div class="flex-shrink-0">
+        <details class="relative group">
+          <summary class="list-none cursor-pointer">
+            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs <%= priority_classes %>">
+              <i data-lucide="flag" class="w-3 h-3"></i>
+            </span>
+          </summary>
+          <div class="absolute right-0 mt-1 w-32 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg z-10 py-1">
+            <%= button_to account_deal_path(Current.account, deal),
+                          method: :patch,
+                          params: { deal: { priority_level: :low } },
+                          form: { data: { turbo_stream: true } },
+                          class: "w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 text-emerald-500 hover:bg-slate-100 dark:hover:bg-slate-800" do %>
+              <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span>Baixa</span>
+            <% end %>
+            <%= button_to account_deal_path(Current.account, deal),
+                          method: :patch,
+                          params: { deal: { priority_level: :medium } },
+                          form: { data: { turbo_stream: true } },
+                          class: "w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800" do %>
+              <span class="inline-block w-2 h-2 rounded-full bg-amber-400"></span>
+              <span>Média</span>
+            <% end %>
+            <%= button_to account_deal_path(Current.account, deal),
+                          method: :patch,
+                          params: { deal: { priority_level: :high } },
+                          form: { data: { turbo_stream: true } },
+                          class: "w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 text-red-400 hover:bg-slate-100 dark:hover:bg-slate-800" do %>
+              <span class="inline-block w-2 h-2 rounded-full bg-red-500"></span>
+              <span>Alta</span>
+            <% end %>
+            <%= button_to account_deal_path(Current.account, deal),
+                          method: :patch,
+                          params: { deal: { priority_level: :none } },
+                          form: { data: { turbo_stream: true } },
+                          class: "w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800" do %>
+              <span class="inline-block w-2 h-2 rounded-full border border-slate-500 rounded-full"></span>
+              <span>Sem prioridade</span>
+            <% end %>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <%# NÍVEL 2: TRIBUTOS DINÂMICOS %>
+    <div class="mt-2 flex flex-wrap gap-1.5">
+      <% deal.account.custom_attribute_definitions.where(attribute_model: 'deal_attribute', show_in_card: true).each do |definition| %>
+        <% key = definition.attribute_key %>
+        <% value = deal.custom_attributes[key] %>
+        <% next if value.blank? %>
+        <div class="woo-pill-sky">
+          <span class="truncate">
+            <span class="font-semibold"><%= definition.attribute_display_name %>:</span>
+            <span class="font-medium"> <%= value %></span>
+          </span>
         </div>
       <% end %>
     </div>
 
-    <div class='flex items-end justify-between pt-1'>
-      <div class='flex flex-col gap-2 grow'>
-        <% deal.account.custom_attribute_definitions.where(attribute_model: 'deal_attribute', show_in_card: true).each do |definition| %>
-          <% key = definition.attribute_key %>
-          <% value = deal.custom_attributes[key] %>
-          <% next if value.blank? %>
-          <div class="inline-flex items-center max-w-full px-2 py-0.5 rounded-full bg-sky-500/10 dark:bg-sky-500/20 text-[11px] border border-sky-500/30">
-            <span class="truncate font-medium text-sky-700 dark:text-sky-300">
-              <span class="font-semibold"><%= definition.attribute_display_name %>:</span>
-              <%= value %>
-            </span>
+    <%# NÍVEL 3: GRID VALOR + PRAZO %>
+    <div class="mt-3 flex items-center justify-between">
+      <div>
+        <% unless deal.total_amount_in_cents.zero? %>
+          <div class='inline-flex items-center px-3 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 font-semibold text-[11px]'>
+            <%= render 'components/formatters/currency', value: deal.total_amount_in_cents %>
           </div>
         <% end %>
       </div>
 
-      <div class='flex flex-col items-end gap-2'>
-        <%# VALOR: Pílula Azul Pastel %>
-        <% unless deal.total_amount_in_cents.zero? %>
-          <div class='bg-emerald-500/15 text-emerald-300 px-3 py-0.5 rounded-full border border-emerald-500/40 font-semibold text-[11px]'>
-            <%= render 'components/formatters/currency', value: deal.total_amount_in_cents %>
+      <div>
+        <% if due_at.present? %>
+          <div class="inline-flex items-center px-3 py-0.5 rounded-full text-[11px] font-medium <%= due_classes %>">
+            <span><%= l(due_at, format: :short) %></span>
           </div>
         <% end %>
-        
-        <%# TAREFAS: Amarelo Pastel %>
-        <% if deal.next_event_planned? %>
-          <div class='inline-flex items-center px-3 py-0.5 rounded-full shadow-sm font-black text-[11px] bg-yellow-100 text-yellow-800 border border-yellow-200'>
-             <%= render partial: 'accounts/pipelines/deal_event', locals: {event: deal.next_event_planned} %>
-          </div>
-        <% end %>
+      </div>
+    </div>
+
+    <%# NÍVEL 4: RODAPÉ RESPONSÁVEL %>
+    <div class='mt-2 flex items-center justify-between'>
+      <div class='flex items-center gap-2'>
+        <i data-lucide="user" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500"></i>
+        <p class='text-xs text-slate-500 dark:text-slate-400'>
+          <%= responsible_name %>
+        </p>
       </div>
     </div>
   </div>

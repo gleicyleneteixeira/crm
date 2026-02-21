@@ -419,9 +419,28 @@
   .advanced-search-filter-button[aria-selected="true"] {
     @apply color-bg-fill-highlight color-fg-inverse border-transparent hover:color-bg-fill-highlight-hover hover:color-fg-inverse;
   }
+
+  .woo-pill-sky {
+    @apply inline-flex items-center max-w-full px-2 py-0.5 rounded-full text-[11px] border font-medium;
+    background-color: var(--woo-pill-sky-bg);
+    color: var(--woo-pill-sky-text);
+    border-color: var(--woo-pill-sky-border);
+  }
 }
 
 @layer base {
+  html {
+    --woo-pill-sky-bg: rgba(59, 130, 246, 0.12);
+    --woo-pill-sky-text: #1d4ed8;
+    --woo-pill-sky-border: rgba(59, 130, 246, 0.35);
+  }
+
+  html.dark {
+    --woo-pill-sky-bg: rgba(59, 130, 246, 0.25);
+    --woo-pill-sky-text: #60a5fa;
+    --woo-pill-sky-border: rgba(59, 130, 246, 0.5);
+  }
+
   .dark body {
     @apply bg-slate-950 text-light-palette-p5;
   }

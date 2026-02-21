@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
+    <script>
+      (function() {
+        try {
+          var storedTheme = localStorage.getItem('color-theme');
+          var prefersDark = !storedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var isDark = storedTheme === 'dark' || prefersDark;
+          if (isDark) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
     <%= vite_client_tag %>
     <%= vite_stylesheet_tag 'application', 'data-turbolinks-track': 'reload', media: 'all' %>
     <%= vite_javascript_tag 'application', 'data-turbolinks-track': 'reload' %>

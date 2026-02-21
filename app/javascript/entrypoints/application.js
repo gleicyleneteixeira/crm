@@ -48,33 +48,32 @@ import "trix";
 import "@rails/actiontext";
 import "flowbite/dist/flowbite.turbo.js";
 
+function applyThemeFromPreference() {
+  try {
+    const storedTheme = localStorage.getItem("color-theme");
+    const prefersDark =
+      !storedTheme &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const isDark = storedTheme === "dark" || prefersDark;
+    document.documentElement.classList.toggle("dark", !!isDark);
+  } catch (e) {}
+}
+
 $(document).on("turbo:load", () => {
-  initLibraries();
-});
-//
-
-// $(document).on("turbo:frame-load", function (e) {
-//   lucide.createIcons();
-//   initDismisses();
-//   initDropdowns();
-// })
-
-$(document).on("turbo:render", function (e) {
+  applyThemeFromPreference();
   initLibraries();
 });
 
-$(document).on("turbo:frame-render", function (e) {
+$(document).on("turbo:render", () => {
+  applyThemeFromPreference();
   initLibraries();
 });
 
-// addEventListener("turbo:before-stream-render", (event) => {
-//   const originalRender = event.detail.render;
-
-//   event.detail.render = function (streamElement) {
-//     originalRender(streamElement);
-//     initLibraries();
-//   };
-// });
+$(document).on("turbo:frame-render", () => {
+  applyThemeFromPreference();
+  initLibraries();
+});
 
 function initLibraries() {
   initFlowbite();

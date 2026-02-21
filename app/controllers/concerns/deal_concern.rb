@@ -8,6 +8,7 @@ module DealConcern
       :pipeline_id,
       :contact_id,
       :position,
+      :priority_level,
       :lost_reason,
       :lost_at,
       :won_at,
