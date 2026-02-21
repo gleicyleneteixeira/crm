@@ -14,23 +14,6 @@
            'border-slate-500 text-slate-400 bg-transparent'
          end %>
 
-    <% next_event = deal.next_event_planned if deal.next_event_planned? %>
-    <% due_at = next_event&.scheduled_at %>
-    <% due_classes =
-         if due_at.present?
-           date = due_at.to_date
-           today = Time.zone.today
-           if date < today
-             'bg-red-500/15 text-red-300 border border-red-500/40'
-           elsif date == today
-             'bg-amber-500/15 text-amber-300 border border-amber-500/40'
-           else
-             'bg-slate-500/10 text-slate-300 border border-slate-500/40'
-           end
-         else
-           'bg-slate-500/10 text-slate-300 border border-slate-500/40'
-         end %>
-
     <% responsible_name =
          if deal.users.loaded? ? deal.users.any? : deal.users.exists?
            deal.users.first.full_name
@@ -99,6 +82,18 @@
       </div>
     </div>
 
+    <%# CONTATO PRINCIPAL (SEM TIRAR DO CARD) %>
+    <div class='mt-2 flex items-center'>
+      <%= link_to account_contact_path(Current.account, deal.contact), class: "cursor-pointer peer" , data: { turbo_frame: :drawer } do %>
+        <div class='flex items-start gap-2 text-xs'>
+          <i data-lucide="user" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500"></i>
+          <p class='text-xs font-medium text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-100 <%= dom_id(deal.contact, :stream_full_name) %>'>
+            <%= deal.contact.full_name %>
+          </p>
+        </div>
+      <% end %>
+    </div>
+
     <%# NÍVEL 2: TRIBUTOS DINÂMICOS %>
     <div class="mt-2 flex flex-wrap gap-1.5">
       <% deal.account.custom_attribute_definitions.where(attribute_model: 'deal_attribute', show_in_card: true).each do |definition| %>
@@ -114,7 +109,7 @@
       <% end %>
     </div>
 
-    <%# NÍVEL 3: GRID VALOR + PRAZO %>
+    <%# NÍVEL 3: GRID VALOR + PRAZO (COM RELOGIO DA TAREFA) %>
     <div class="mt-3 flex items-center justify-between">
       <div>
         <% unless deal.total_amount_in_cents.zero? %>
@@ -125,9 +120,9 @@
       </div>
 
       <div>
-        <% if due_at.present? %>
-          <div class="inline-flex items-center px-3 py-0.5 rounded-full text-[11px] font-medium <%= due_classes %>">
-            <span><%= l(due_at, format: :short) %></span>
+        <% if deal.next_event_planned? %>
+          <div class='inline-flex items-center px-3 py-0.5 rounded-full shadow-sm font-black text-[11px] bg-yellow-100 text-yellow-800 border border-yellow-200'>
+             <%= render partial: 'accounts/pipelines/deal_event', locals: {event: deal.next_event_planned} %>
           </div>
         <% end %>
       </div>
