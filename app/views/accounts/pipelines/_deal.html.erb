@@ -30,7 +30,7 @@
     </div>
 
     <div class='flex items-end justify-between px-4 pb-4'>
-      <div class='flex grow'>
+      <div class='flex flex-col gap-2 grow'>
         <% if deal.users.present? %>
           <div class='flex -space-x-2'>
             <% deal.users.order(id: :desc).limit(2).each do |user| %>
@@ -38,6 +38,18 @@
                 <i data-lucide="user" class="w-3 text-white"></i>
               </div>
             <% end %>
+          </div>
+        <% end %>
+
+        <% deal.account.custom_attribute_definitions.where(attribute_model: 'deal_attribute', show_in_card: true).each do |definition| %>
+          <% key = definition.attribute_key %>
+          <% value = deal.custom_attributes[key] %>
+          <% next if value.blank? %>
+          <div class="inline-flex items-center max-w-full px-2 py-0.5 rounded-full bg-slate-100 text-slate-800 text-[11px] dark:bg-slate-900/70 dark:text-slate-100 border border-slate-200/70 dark:border-slate-700/70">
+            <span class="truncate">
+              <strong><%= definition.attribute_display_name %>:</strong>
+              <%= value %>
+            </span>
           </div>
         <% end %>
       </div>

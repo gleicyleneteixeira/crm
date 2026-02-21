@@ -22,6 +22,16 @@
       <%= form.text_field :attribute_key, placeholder: "cpf", class: 'form-input' %>
     </div>
   </div>
+  <div class="grid sm:grid-cols-3 gap-4">
+    <div class="flex items-center gap-2">
+      <%= form.check_box :show_in_deal, class: "form-checkbox" %>
+      <%= form.label :show_in_deal, class: "typography-text-m-lh150 text-dark-gray-palette-p1" %>
+    </div>
+    <div class="flex items-center gap-2">
+      <%= form.check_box :show_in_card, class: "form-checkbox" %>
+      <%= form.label :show_in_card, class: "typography-text-m-lh150 text-dark-gray-palette-p1" %>
+    </div>
+  </div>
   <div class="flex flex-col gap-1">
     <%= form.label :attribute_description, class: "typography-text-m-lh150 text-dark-gray-palette-p1" %>
     <%= form.text_area :attribute_description, placeholder: "#{t('activerecord.models.custom_attribute_definition.one')} ...", class: 'form-input' %>

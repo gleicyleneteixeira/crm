@@ -45,7 +45,9 @@ class Accounts::Settings::CustomAttributesDefinitionsController < InternalContro
       :attribute_model,
       :attribute_key,
       :attribute_display_name,
-      :attribute_description
+      :attribute_description,
+      :show_in_deal,
+      :show_in_card
     )
   end
 end

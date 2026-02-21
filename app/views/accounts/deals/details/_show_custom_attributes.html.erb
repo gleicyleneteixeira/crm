@@ -1,4 +1,4 @@
-<% definitions = current_user.account.custom_attribute_definitions.where(attribute_model: "#{model.class.name.downcase}_attribute") %>
+<% definitions = current_user.account.custom_attribute_definitions.where(attribute_model: "#{model.class.name.downcase}_attribute", show_in_deal: true) %>
 <% definitions.each do |definition| %>
   <% key = definition.attribute_key %>
   <% raw_value = model.custom_attributes[key] %>
