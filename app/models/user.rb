@@ -23,6 +23,7 @@
 #  index_users_on_reset_password_token  (reset_password_token) UNIQUE
 #
 class User < ApplicationRecord
+  has_one_attached :avatar
   has_one :installation
   has_many :webpush_subscriptions
   has_many :deal_assignees, dependent: :destroy
@@ -89,5 +90,14 @@ class User < ApplicationRecord
 
   def webpush_notify_on_event_expired=(value)
     self[:notifications][:webpush_notify_on_event_expired] = ActiveRecord::Type::Boolean.new.cast(value)
+  end
+
+  def initials
+    return '' if full_name.blank?
+
+    parts = full_name.split
+    first = parts.first[0]
+    last = parts.size > 1 ? parts.last[0] : nil
+    [first, last].compact.join.upcase
   end
 end
