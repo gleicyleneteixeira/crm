@@ -12,6 +12,7 @@ HTML
   <%= form.hidden_field :email %>
   <%= form.hidden_field :phone %>
   <%= hidden_field_tag 'contact[additional_attributes][chatwoot_id]', contact.additional_attributes['chatwoot_id'] %>
+  <%= hidden_field_tag :chatwoot_conversation, params['chatwoot_conversation'] %>
   <% if contact.errors.any? %>
     <div id="error_explanation">
       <ul>

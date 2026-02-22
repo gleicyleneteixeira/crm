@@ -3,7 +3,11 @@
     <h4 class="typography-body-s-lh150">
       <%= t('activerecord.models.deal.other') %>
     </h4>
-    <%= link_to new_account_deal_path(current_user.account, deal:{ contact_id: contact.id}), class: 'btn-secondary' do %>
+    <% deal_params = { contact_id: contact.id } %>
+    <% if defined?(chatwoot_conversation_url) && chatwoot_conversation_url.present? %>
+      <% deal_params[:chatwoot_conversation_url] = chatwoot_conversation_url %>
+    <% end %>
+    <%= link_to new_account_deal_path(current_user.account, deal: deal_params), class: 'btn-secondary' do %>
       <%= t('activerecord.models.deal.new') %>
     <% end %>
   </header>

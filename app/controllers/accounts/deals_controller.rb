@@ -35,6 +35,7 @@ class Accounts::DealsController < InternalController
     @deal = Deal.new
     @stages = Stage.ordered_by_pipeline_and_position
     @deal.contact_id = params.dig(:deal, :contact_id)
+    @deal.chatwoot_conversation_url = params.dig(:deal, :chatwoot_conversation_url)
 
     if @deal.contact_id.blank?
       @deal.errors.add(:contact, :blank)

@@ -44,6 +44,7 @@ pt-BR:
         other_lost_reason: "Outro motivo de perda"
         lost_at: "Perdido em"
         won_at: "Ganho em"
+        chatwoot_conversation_url: "URL da Conversa (Chatwoot)"
         statuses:
           open: Aberto
           won: Ganhou

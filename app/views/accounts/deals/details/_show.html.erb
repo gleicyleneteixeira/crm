@@ -7,7 +7,9 @@
           <%= t("activerecord.models.#{model.class.name.downcase}.one") %>
         </p>
       </div>
-      <%= render '/components/links/chatwoot_conversation_link', contact: model %>
+      <% if model.is_a?(Contact) %>
+        <%= render '/components/links/chatwoot_conversation_link', contact: model %>
+      <% end %>
     </div>
     <div class='flex gap-2'>
       <button type="button" class="button-default-blank-secondary-icon-only-sm" data-accordion-target="#accordion-collapse-<%= "#{model.class.name.downcase}_#{model.id}"%>" aria-expanded="true" aria-controls="accordion-collapse-<%= "#{model.class.name.downcase}_#{model.id}"%> ">

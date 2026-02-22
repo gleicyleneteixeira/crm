@@ -55,10 +55,12 @@ class Deal < ApplicationRecord
   enum status: { 'open': 'open', 'won': 'won', 'lost': 'lost' }
   enum priority_level: { none: 0, low: 1, medium: 2, high: 3 }, _prefix: true
 
-  FORM_FIELDS = %i[name manual_amount_in_cents creator total_amount_in_cents]
+  FORM_FIELDS = %i[name manual_amount_in_cents chatwoot_conversation_url creator total_amount_in_cents]
 
   SHOW_FIELDS = { deal_page_overview_details: [:name,
-                                               { relations: { stage: :name, creator: :full_name } }, :total_amount_in_cents] }.freeze
+                                               :chatwoot_conversation_url,
+                                               { relations: { stage: :name, creator: :full_name } },
+                                               :total_amount_in_cents] }.freeze
   before_validation do
     self.account = @current_account if account.blank? && @current_account.present?
 

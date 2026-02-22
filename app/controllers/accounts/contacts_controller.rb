@@ -103,9 +103,14 @@ class Accounts::ContactsController < InternalController
 
   def chatwoot_conversation_link
     @display_format = params[:display_format].presence || 'icon'
-    @chatwoot_conversation_link = Contact::Integrations::Chatwoot::GenerateConversationLink.new(@contact).call[:ok]
-  rescue Faraday::TimeoutError, Faraday::ConnectionFailed, JSON::ParserError
-    @connection_error = true
+    chatwoot_contact_id = @contact.additional_attributes['chatwoot_id']
+
+    return if chatwoot_contact_id.blank?
+
+    chatwoot = chatwoot_integration_for_contact
+    return unless chatwoot
+
+    @chatwoot_conversation_link = build_chatwoot_contact_url(chatwoot, chatwoot_contact_id)
   end
 
   def hovercard_preview
@@ -122,5 +127,20 @@ class Accounts::ContactsController < InternalController
   def contact_params
     params.require(:contact).permit(:full_name, :phone, :email, :label_list,
                                     custom_attributes: {})
+  end
+
+  def chatwoot_integration_for_contact
+    if @contact.respond_to?(:account) && @contact.account.present?
+      @contact.account.apps_chatwoots.first
+    elsif defined?(Current) && Current.respond_to?(:account) && Current.account.present?
+      Current.account.apps_chatwoots.first
+    else
+      Apps::Chatwoot.first
+    end
+  end
+
+  def build_chatwoot_contact_url(chatwoot, chatwoot_contact_id)
+    contact_path = "/app/accounts/#{chatwoot.chatwoot_account_id}/contacts/#{chatwoot_contact_id}"
+    chatwoot.chatwoot_endpoint_url + contact_path
   end
 end

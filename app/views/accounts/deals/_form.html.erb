@@ -21,6 +21,7 @@
     </div>
   </div>
   <%= form.hidden_field :contact_id, class: 'form-control' %>
+  <%= form.hidden_field :chatwoot_conversation_url, class: 'form-control' %>
   <%= form.button type: :submit,
       class: 'btn-primary self-end',
       data: { track: 'deal_created' } %>

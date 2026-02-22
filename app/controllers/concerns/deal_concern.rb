@@ -4,6 +4,7 @@ module DealConcern
       :name,
       :status,
       :stage_id,
+      :chatwoot_conversation_url,
       :manual_amount_in_cents,
       :pipeline_id,
       :contact_id,
