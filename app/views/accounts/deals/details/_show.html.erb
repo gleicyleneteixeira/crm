@@ -1,4 +1,51 @@
 <%= turbo_frame_tag dom_id(model, :deal_show_page_overview) do %>
+  <% if model.is_a?(Deal) %>
+    <div class="mb-4 flex flex-col gap-2" data-controller="load-lucid-icons">
+      <% if model.open? %>
+        <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] gap-2">
+          <%= link_to mark_as_won_account_deal_path(Current.account, model),
+                      data: { turbo_frame: :modal },
+                      class: "deal-outcome-button-won" do %>
+            <i data-lucide="trophy" class="w-4 h-4"></i>
+            <span>Ganhou negócio</span>
+          <% end %>
+          <%= link_to mark_as_lost_account_deal_path(Current.account, model),
+                      data: { turbo_frame: :modal },
+                      class: "deal-outcome-button-lost" do %>
+            <i data-lucide="x-circle" class="w-4 h-4"></i>
+            <span>Perdeu negócio</span>
+          <% end %>
+          <details class="relative">
+            <summary class="deal-outcome-menu-button">
+              <i data-lucide="more-vertical" class="w-4 h-4"></i>
+            </summary>
+            <div class="absolute right-0 mt-1 w-40 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg z-30 py-1">
+              <%= button_to account_deal_path(Current.account, model),
+                            method: :delete,
+                            form: { data: { turbo_confirm: t('views.layouts.shared.navbar_deal.are_you_sure?') } },
+                            class: "w-full text-left px-3 py-1.5 text-xs text-red-600 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2" do %>
+                <i data-lucide="trash-2" class="w-3 h-3"></i>
+                <span>Excluir negócio</span>
+              <% end %>
+            </div>
+          </details>
+        </div>
+      <% else %>
+        <div class="rounded-md border border-slate-200 dark:border-slate-700 px-3 py-2 flex items-center justify-between text-xs text-slate-600 dark:text-slate-300">
+          <span>
+            <%= t("views.layouts.shared.navbar_deal.deal_#{model.status}") %>
+          </span>
+          <%= link_to account_deal_path(Current.account, model, deal: { status: 'open'} ),
+                      method: :patch,
+                      data: { confirm: t('views.layouts.shared.navbar_deal.are_you_sure?') },
+                      class: "button-default-primary-xs px-2 py-1 text-[11px]" do %>
+            <span>Reabrir</span>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
   <div class="flex items-center py-4 justify-between gap-1.5 relative" data-controller="load-lucid-icons load-flowbite">
     <div class='flex items-center gap-2.5 '>
       <div class="flex items-center gap-2 text-dark-gray-palette-p1">
@@ -9,6 +56,44 @@
       </div>
       <% if model.is_a?(Contact) %>
         <%= render '/components/links/chatwoot_conversation_link', contact: model %>
+      <% elsif model.is_a?(Deal) && Apps::Chatwoot.first.present? %>
+        <% if model.chatwoot_conversation_url.present? %>
+          <%= link_to model.chatwoot_conversation_url,
+                      target: :_blank,
+                      class: "flex items-center justify-center w-5 h-5 text-[#7CC7F7] hover:text-[#369EF2]",
+                      data: { turbo: false, controller: 'iframe-redirect', action: 'iframe-redirect#redirect' } do %>
+            <i data-lucide="message-circle" class="-rotate-[101deg] w-4 h-4"></i>
+          <% end %>
+        <% else %>
+          <details class="relative group" data-controller="chatwoot-url-popup">
+            <summary class="list-none cursor-pointer flex items-center justify-center w-5 h-5 text-slate-400 hover:text-slate-200">
+              <i data-lucide="message-circle" class="-rotate-[101deg] w-4 h-4"></i>
+            </summary>
+            <div class="fixed inset-0 z-50 flex items-center justify-center">
+              <div class="w-80 max-w-sm rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg p-3">
+                <p class="mb-2 text-xs text-slate-500 dark:text-slate-400">
+                  Cole a URL da conversa do Chatwoot para este negócio.
+                </p>
+                <%= form_with model: model,
+                              url: account_deal_path(Current.account, model),
+                              method: :patch,
+                              data: { turbo_frame: dom_id(model) } do |form| %>
+                  <div class="flex flex-col gap-2">
+                    <%= form.text_field :chatwoot_conversation_url,
+                                        placeholder: "https://seu.chatwoot.com/app/accounts/...",
+                                        class: "form-input h-8 px-2 py-1 text-xs",
+                                        data: { chatwoot_url_popup_target: "input" } %>
+                    <div class="flex justify-end">
+                      <%= form.button "Salvar",
+                                      type: :submit,
+                                      class: "button-default-primary-xs px-2 py-1 text-[11px]" %>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </details>
+        <% end %>
       <% end %>
     </div>
     <div class='flex gap-2'>

@@ -7,11 +7,9 @@ class Accounts::StagesController < InternalController
                           else
                             'open'
                           end
-    if @filter_status_deal == 'all'
-      @pagy, @deals = pagy(@stage.deals.order(position: :desc), items: 8)
-    else
-      @pagy, @deals = pagy(@stage.deals.where(status: @filter_status_deal).order(position: :desc), items: 8)
-    end
+    deals_scope = @stage.deals.includes(:contact, :events, :users, :creator).order(position: :desc)
+    deals_scope = deals_scope.where(status: @filter_status_deal) unless @filter_status_deal == 'all'
+    @pagy, @deals = pagy(deals_scope, items: 8)
   end
 
   private

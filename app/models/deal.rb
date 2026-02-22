@@ -58,7 +58,6 @@ class Deal < ApplicationRecord
   FORM_FIELDS = %i[name manual_amount_in_cents chatwoot_conversation_url creator total_amount_in_cents]
 
   SHOW_FIELDS = { deal_page_overview_details: [:name,
-                                               :chatwoot_conversation_url,
                                                { relations: { stage: :name, creator: :full_name } },
                                                :total_amount_in_cents] }.freeze
   before_validation do
@@ -120,7 +119,14 @@ class Deal < ApplicationRecord
   end
 
   def next_event_planned
-    events.planned.first
+    if events.loaded?
+      planned_events = events.select do |event|
+        !event.done? && event.auto_done == false && event.scheduled_at.present?
+      end
+      planned_events.min_by(&:scheduled_at)
+    else
+      events.planned.first
+    end
   rescue StandardError
     nil
   end

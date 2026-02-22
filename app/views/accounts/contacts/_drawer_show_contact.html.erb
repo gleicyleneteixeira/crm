@@ -71,6 +71,11 @@
                 <span class="text-[10px] uppercase font-bold <%= deal.status == 'open' ? 'text-green-600 dark:text-green-400' : (deal.status == 'won' ? 'text-blue-600 dark:text-blue-400' : 'text-red-500 dark:text-red-400') %>">
                   ● <%= Deal.human_enum_name(:status, deal.status) %>
                 </span>
+                <% if deal.next_event_planned? %>
+                  <div class="mt-1">
+                    <%= render 'accounts/pipelines/deal_event', event: deal.next_event_planned %>
+                  </div>
+                <% end %>
               </div>
             </div>
             <%= link_to account_deal_path(Current.account, deal), data: {turbo_frame: :_top} , class: 'flex items-center justify-center rounded text-slate-400 w-8 h-8 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors' do %>

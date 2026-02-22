@@ -2,7 +2,6 @@
 
 <%= turbo_stream_from :stages %>
 <%= turbo_frame_tag :stages do %>
-  <%# MUDANÇA: Agora usamos slate-950 para bater 100% com a Sidebar e Navbar %>
   <div data-controller="lists" data-lists-id="<%= @pipeline.id %>" class="min-h-screen min-w-full inline-block bg-blue-50 dark:bg-slate-950 transition-colors duration-200">
     <section class="p-8 grid grid-flow-col auto-cols-[18.75rem] h-auto gap-5" data-lists-target="lists">
       <% @pipeline.stages.sort_by(&:position).each do |stage| %>
@@ -11,5 +10,20 @@
         <% end %>
       <% end %>
     </section>
+
+    <div class="kanban-drop-zones" data-controller="load-lucid-icons" aria-hidden="true">
+      <div class="kanban-drop-zone kanban-drop-zone--won" data-drop-zone="won">
+        <i data-lucide="trophy" class="w-4 h-4"></i>
+        <span>Marcar como ganho</span>
+      </div>
+      <div class="kanban-drop-zone kanban-drop-zone--lost" data-drop-zone="lost">
+        <i data-lucide="x-circle" class="w-4 h-4"></i>
+        <span>Marcar como perdido</span>
+      </div>
+      <div class="kanban-drop-zone kanban-drop-zone--delete" data-drop-zone="delete">
+        <i data-lucide="trash-2" class="w-4 h-4"></i>
+        <span>Excluir negócio</span>
+      </div>
+    </div>
   </div>
 <% end %>

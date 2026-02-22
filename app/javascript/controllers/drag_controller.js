@@ -13,20 +13,33 @@ export default class extends Controller {
       animation: 150,
       sort: true,
       group: "pipeline",
-      onEnd: this.end.bind(this),
       onStart: () => {
         document.body.classList.add("is-dragging");
       },
+      onEnd: this.end.bind(this),
       forceFallback: true,
     });
   }
 
   async end(event) {
+    document.body.classList.remove("is-dragging");
     event.from.classList.add("pointer-events-none");
     event.to.classList.add("pointer-events-none");
-    document.body.classList.remove("is-dragging");
     const dealId = event.item.dataset.id;
     const accountId = event.item.dataset.accountId;
+
+    const handled = this.handleDropZone(event, { dealId, accountId });
+
+    if (handled) {
+      const fromList = document.querySelector(`ul[data-id="${event.from.dataset.id}"]`);
+      if (fromList && event.item) {
+        fromList.insertBefore(event.item, fromList.firstChild);
+      }
+      event.from.classList.remove("pointer-events-none");
+      event.to.classList.remove("pointer-events-none");
+      return;
+    }
+
     const toStageId = event.to.dataset.id;
     const newPosition = new Position(event).getNewPosition();
     const fromStageId = event.from.dataset.id;
@@ -60,6 +73,75 @@ export default class extends Controller {
         event.to.classList.remove("pointer-events-none");
       },
     });
+  }
+
+  handleDropZone(event, { dealId, accountId }) {
+    const originalEvent = event.originalEvent || event.event;
+
+    if (!originalEvent || typeof originalEvent.clientX !== "number" || typeof originalEvent.clientY !== "number") {
+      return false;
+    }
+
+    const element = document.elementFromPoint(originalEvent.clientX, originalEvent.clientY);
+
+    if (!element) {
+      return false;
+    }
+
+    const zone = element.closest("[data-drop-zone]");
+
+    if (!zone) {
+      return false;
+    }
+
+    const type = zone.dataset.dropZone;
+
+    if (type === "won") {
+      this.openModal(`/accounts/${accountId}/deals/${dealId}/mark_as_won`);
+      return true;
+    }
+
+    if (type === "lost") {
+      this.openModal(`/accounts/${accountId}/deals/${dealId}/mark_as_lost`);
+      return true;
+    }
+
+    if (type === "delete") {
+      const confirmed = window.confirm("Tem certeza que deseja excluir este negócio?");
+
+      if (!confirmed) {
+        return true;
+      }
+
+      Rails.ajax({
+        url: `/accounts/${accountId}/deals/${dealId}`,
+        type: "DELETE",
+        beforeSend: (xhr) => {
+          xhr.setRequestHeader("Accept", "text/vnd.turbo-stream.html");
+          return true;
+        },
+        success: (response) => {
+          Turbo.renderStreamMessage(response);
+        },
+        error: (response) => {
+          Turbo.renderStreamMessage(response);
+        },
+      });
+
+      return true;
+    }
+
+    return false;
+  }
+
+  openModal(url) {
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.dataset.turboFrame = "modal";
+    anchor.style.display = "none";
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
   }
 
   disableDrag() {

@@ -205,29 +205,32 @@
               <i data-lucide="message-circle" class="-rotate-[101deg] w-4 h-4"></i>
             <% end %>
           <% else %>
-            <details class="relative group">
+            <details class="relative group" data-controller="chatwoot-url-popup">
               <summary class="list-none cursor-pointer flex items-center justify-center w-5 h-5 text-slate-400 hover:text-slate-200">
                 <i data-lucide="message-circle" class="-rotate-[101deg] w-4 h-4"></i>
               </summary>
-              <div class="absolute left-0 mt-1 w-64 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg z-10 p-3">
-                <p class="mb-2 text-xs text-slate-500 dark:text-slate-400">
-                  Cole a URL da conversa do Chatwoot para este negócio.
-                </p>
-                <%= form_with model: deal,
-                              url: account_deal_path(Current.account, deal),
-                              method: :patch,
-                              data: { turbo_frame: dom_id(deal) } do |form| %>
-                  <div class="flex flex-col gap-2">
-                    <%= form.text_field :chatwoot_conversation_url,
-                                        placeholder: "https://seu.chatwoot.com/app/accounts/...",
-                                        class: "form-input h-8 px-2 py-1 text-xs" %>
-                    <div class="flex justify-end">
-                      <%= form.button "Salvar",
-                                      type: :submit,
-                                      class: "button-default-primary-xs px-2 py-1 text-[11px]" %>
+              <div class="fixed inset-0 z-50 flex items-center justify-center">
+                <div class="w-80 max-w-sm rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg p-3">
+                  <p class="mb-2 text-xs text-slate-500 dark:text-slate-400">
+                    Cole a URL da conversa do Chatwoot para este negócio.
+                  </p>
+                  <%= form_with model: deal,
+                                url: account_deal_path(Current.account, deal),
+                                method: :patch,
+                                data: { turbo_frame: dom_id(deal) } do |form| %>
+                    <div class="flex flex-col gap-2">
+                      <%= form.text_field :chatwoot_conversation_url,
+                                          placeholder: "https://seu.chatwoot.com/app/accounts/...",
+                                          class: "form-input h-8 px-2 py-1 text-xs",
+                                          data: { chatwoot_url_popup_target: "input" } %>
+                      <div class="flex justify-end">
+                        <%= form.button "Salvar",
+                                        type: :submit,
+                                        class: "button-default-primary-xs px-2 py-1 text-[11px]" %>
+                      </div>
                     </div>
-                  </div>
-                <% end %>
+                  <% end %>
+                </div>
               </div>
             </details>
           <% end %>
