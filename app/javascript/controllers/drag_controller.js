@@ -83,13 +83,26 @@ export default class extends Controller {
       return false;
     }
 
-    const element = document.elementFromPoint(originalEvent.clientX, originalEvent.clientY);
+    let zone = null;
 
-    if (!element) {
-      return false;
+    if (document.elementsFromPoint) {
+      const elements = document.elementsFromPoint(originalEvent.clientX, originalEvent.clientY);
+
+      for (const element of elements) {
+        const candidate = element.closest("[data-drop-zone]");
+
+        if (candidate) {
+          zone = candidate;
+          break;
+        }
+      }
+    } else {
+      const element = document.elementFromPoint(originalEvent.clientX, originalEvent.clientY);
+
+      if (element) {
+        zone = element.closest("[data-drop-zone]");
+      }
     }
-
-    const zone = element.closest("[data-drop-zone]");
 
     if (!zone) {
       return false;

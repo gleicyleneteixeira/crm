@@ -30,16 +30,6 @@
     data: { confirm: t('views.layouts.shared.navbar_deal.are_you_sure?'),
     turbo: false },
     class: 'btn-secondary') %>
-      <%= link_to(
-    t('views.layouts.shared.navbar_deal.lost'),
-    mark_as_lost_account_deal_path(Current.account, @deal),
-    data: { turbo_frame: :modal },
-    class: 'deal-lost-btn') %>
-      <%= link_to(
-    t('views.layouts.shared.navbar_deal.won'),
-    mark_as_won_account_deal_path(Current.account, @deal),
-    data: { turbo_frame: :modal },
-    class: 'deal-won-btn') %>
     <% else %>
       <% if @deal.lost_reason.present? %>
         <div id="<%= dom_id(@deal, "tooltip-#{@deal.status}") %>" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-xs opacity-0 tooltip dark:bg-gray-700">

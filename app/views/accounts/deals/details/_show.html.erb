@@ -7,13 +7,13 @@
                       data: { turbo_frame: :modal },
                       class: "deal-outcome-button-won" do %>
             <i data-lucide="trophy" class="w-4 h-4"></i>
-            <span>Ganhou negócio</span>
+            <span>Ganho</span>
           <% end %>
           <%= link_to mark_as_lost_account_deal_path(Current.account, model),
                       data: { turbo_frame: :modal },
                       class: "deal-outcome-button-lost" do %>
             <i data-lucide="x-circle" class="w-4 h-4"></i>
-            <span>Perdeu negócio</span>
+            <span>Perdido</span>
           <% end %>
           <details class="relative">
             <summary class="deal-outcome-menu-button">

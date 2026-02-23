@@ -214,7 +214,7 @@
   }
 
   .sortable-fallback {
-    @apply relative z-[9999];
+    @apply relative z-[9999] scale-[1.03] shadow-2xl;
   }
 
   .deal-outcome-button-won {
