@@ -23,13 +23,13 @@ export default class extends Controller {
   }
 
   async end(event) {
-    document.body.classList.remove("is-dragging");
     event.from.classList.add("pointer-events-none");
     event.to.classList.add("pointer-events-none");
     const dealId = event.item.dataset.id;
     const accountId = event.item.dataset.accountId;
 
     const handled = this.handleDropZone(event, { dealId, accountId });
+    document.body.classList.remove("is-dragging");
 
     if (handled) {
       const fromList = document.querySelector(`ul[data-id="${event.from.dataset.id}"]`);
