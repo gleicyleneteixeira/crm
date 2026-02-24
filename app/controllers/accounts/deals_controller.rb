@@ -188,6 +188,11 @@ class Accounts::DealsController < InternalController
   end
 
   def update_custom_attributes_order
+    unless super_admin?
+      @message = "Apenas o super admin pode reordenar atributos."
+      render turbo_stream: turbo_stream.update(:flash_message, partial: "components/flash_message", locals: { message: @message, type: :error }), status: :forbidden
+      return
+    end
     sorted_ids = params[:sorted_ids]
     deal = current_user.account.deals.find(params[:id])
 

@@ -9,6 +9,7 @@ class ApplicationController < ActionController::Base
   end
   before_action :set_account
   before_action :setup_installation if Installation.installation_flow?
+  helper_method :super_admin?
 
   private
 
@@ -20,5 +21,10 @@ class ApplicationController < ActionController::Base
 
   def set_account
     @account = Current.account
+  end
+
+  def super_admin?
+    return false unless respond_to?(:current_user) && current_user
+    Installation.first&.user_id == current_user.id
   end
 end
