@@ -124,10 +124,7 @@
           <details class="relative group">
             <summary class="list-none cursor-pointer">
               <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[11px] font-medium <%= pill_classes %>">
-                <i data-lucide="alarm-clock" class="w-3 h-3"></i>
-                <span>
-                  <%= render partial: 'accounts/pipelines/deal_event', locals: { event: event } %>
-                </span>
+                <%= render partial: 'accounts/pipelines/deal_event', locals: { event: event } %>
               </div>
             </summary>
             <div class="absolute right-0 mt-1 w-40 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg z-10 py-1 text-xs">
@@ -173,7 +170,7 @@
                                                      kind: 'activity',
                                                      pipeline: deal.pipeline,
                                                      deal_id: deal.id),
-                      data: { turbo_frame: dom_id(Event.new) },
+                      data: { turbo_frame: :modal },
                       class: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-slate-500/40 text-[11px] text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800" do %>
             <i data-lucide="plus" class="w-3 h-3"></i>
             <span>Nova tarefa</span>
