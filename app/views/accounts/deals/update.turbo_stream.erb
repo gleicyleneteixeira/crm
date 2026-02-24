@@ -36,6 +36,10 @@
              update_path: account_deal_path(current_user.account, @deal) %>
 <% end %>
 
+<%= turbo_stream.replace dom_id(@deal) do %>
+  <%= render 'accounts/pipelines/deal', deal: @deal %>
+<% end %>
+
 <%= turbo_stream.replace 'navbar_deal' do %>
   <%= render "/layouts/shared/navbar_show_deal", deal: @deal %>
 <% end %>

@@ -70,6 +70,7 @@ class Deal < ApplicationRecord
   after_destroy_commit { broadcast_remove_to :stages, target: self }
 
   after_update_commit :broadcast_kanban_card, if: :broadcast_kanban_card?
+  after_create_commit :broadcast_kanban_card_on_create
   # after_update_commit lambda {
   #                       broadcast_updates
   #                     }
@@ -201,6 +202,22 @@ class Deal < ApplicationRecord
                              partial: 'accounts/stages/kanban_details',
                              locals: { stage: Stage.find(stage_id), filter_status_deal: filter }
       end
+    end
+  end
+
+  def broadcast_kanban_card_on_create
+    # Adiciona o card imediatamente no topo da coluna do estágio atual
+    broadcast_prepend_later_to :stages,
+                               target: dom_id(Stage.find(stage_id), :deals),
+                               partial: 'accounts/pipelines/deal',
+                               locals: { deal: self }
+
+    # Atualiza os detalhes do estágio (valores e quantidade) para filtros relevantes
+    ['all', status].each do |filter|
+      broadcast_replace_to :stages,
+                           target: "stage-#{stage_id}-#{filter}-kaban-details",
+                           partial: 'accounts/stages/kanban_details',
+                           locals: { stage: Stage.find(stage_id), filter_status_deal: filter }
     end
   end
 end

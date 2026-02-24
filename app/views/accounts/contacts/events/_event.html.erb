@@ -37,6 +37,11 @@
               <span class="m-0 text-dark-gray-palette-p1 typography-text-s-lh150 flex items-center gap-1.5">
                 <%= event.activity? ? event.title : Event.human_enum_name(:kind, event.kind) %>
               </span>
+              <% if defined?(deal) && event.deal_id.present? && event.deal_id != deal.id %>
+                <span class="px-2 py-0.5 rounded-full typography-micro-b-lh150 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                  Outro negócio
+                </span>
+              <% end %>
               <% if event.evolution_api_message? %>
                 <%= embedded_svg('icon-whtass.svg', {class: "w-3.5 fill-[#26D367]"})  %>
               <% else %>

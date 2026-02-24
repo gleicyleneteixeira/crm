@@ -1,6 +1,6 @@
 <%= turbo_frame_tag "events_to_do_#{deal.contact.id}" do %>
   <% events.each do |event| %>
-    <%= render partial: 'accounts/contacts/events/event', locals: {event: event} %>
+    <%= render partial: 'accounts/contacts/events/event', locals: { event: event, deal: deal } %>
   <% end %>
   <% if pagy.next.present? %>
     <%= turbo_frame_tag :pagination_events_to_do, src: events_to_do_account_deal_path(deal.account, deal, page: pagy.next, format: :turbo_stream), loading: :lazy do  %>
