@@ -187,6 +187,28 @@ class Accounts::DealsController < InternalController
     @allow_edit_won_at = Current.account.deal_allow_edit_lost_at_won_at
   end
 
+  def update_custom_attributes_order
+    sorted_ids = params[:sorted_ids]
+    deal = current_user.account.deals.find(params[:id])
+
+    begin
+      ActiveRecord::Base.transaction do
+        sorted_ids.each_with_index do |id, index|
+          custom_attribute_definition = current_user.account.custom_attribute_definitions.find(id)
+          custom_attribute_definition.update!(position: index)
+        end
+      end
+      @message = "Ordem dos atributos atualizada com sucesso!"
+      render turbo_stream: turbo_stream.update(:flash_message, partial: "components/flash_message", locals: { message: @message, type: :success })
+    rescue ActiveRecord::RecordInvalid => e
+      @message = "Erro ao atualizar a ordem dos atributos: #{e.message}"
+      render turbo_stream: turbo_stream.update(:flash_message, partial: "components/flash_message", locals: { message: @message, type: :error }), status: :unprocessable_entity
+    rescue StandardError => e
+      @message = "Ocorreu um erro inesperado: #{e.message}"
+      render turbo_stream: turbo_stream.update(:flash_message, partial: "components/flash_message", locals: { message: @message, type: :error }), status: :internal_server_error
+    end
+  end
+
   private
 
   def set_deal

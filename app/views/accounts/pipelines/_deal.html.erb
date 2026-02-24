@@ -200,7 +200,7 @@
           <% if deal.chatwoot_conversation_url.present? %>
             <%= link_to deal.chatwoot_conversation_url,
                         target: :_blank,
-                        class: "flex items-center justify-center w-5 h-5 text-[#7CC7F7] hover:text-[#369EF2]",
+                        class: "flex items-center justify-center w-5 h-5 text-[#7CC7F7] hover:text-[#369EF2] ml-2",
                         data: { turbo: false, controller: 'iframe-redirect', action: 'iframe-redirect#redirect' } do %>
               <i data-lucide="message-circle" class="-rotate-[101deg] w-4 h-4"></i>
             <% end %>
