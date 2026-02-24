@@ -10,6 +10,11 @@ export default class extends Controller {
       animation: 150,
       draggable: "[data-sortable-item]",
       dataIdAttr: "data-id",
+      handle: ".drag-handle",
+      forceFallback: true,
+      fallbackOnBody: true,
+      swapThreshold: 0.65,
+      direction: "vertical",
       onEnd: this.onEnd.bind(this)
     })
   }

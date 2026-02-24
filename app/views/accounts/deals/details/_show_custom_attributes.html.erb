@@ -18,6 +18,9 @@
         data-inline-edit-model-key-value="<%= model.model_name.param_key %>"
         data-inline-edit-attribute-name-value="custom_attributes"
         data-inline-edit-nested-key-value="<%= key %>">
+        <button type="button" class="drag-handle text-slate-400 hover:text-slate-200 flex items-center justify-center cursor-grab">
+          <i data-lucide="grip-vertical" class="w-3 h-3"></i>
+        </button>
         <div
           class="typography-sub-text-m-lh150 text-dark-gray-palette-p1 break-all cursor-pointer"
           data-inline-edit-target="display"
@@ -40,9 +43,14 @@
           value="<%= raw_value %>">
       </div>
     <% else %>
-      <p class="typography-sub-text-m-lh150 text-dark-gray-palette-p1">
-        <%= display_value %>
-      </p>
+      <div class="flex items-center gap-1">
+        <button type="button" class="drag-handle text-slate-400 hover:text-slate-200 flex items-center justify-center cursor-grab">
+          <i data-lucide="grip-vertical" class="w-3 h-3"></i>
+        </button>
+        <p class="typography-sub-text-m-lh150 text-dark-gray-palette-p1">
+          <%= display_value %>
+        </p>
+      </div>
     <% end %>
     </div>
   <% end %>
