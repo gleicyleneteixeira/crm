@@ -35,6 +35,7 @@ Rails.application.routes.draw do
     resources :products do
       get 'edit_custom_attributes', on: :member
       patch 'update_custom_attributes', on: :member
+      patch 'update_custom_attributes_order', on: :member
       get 'select_product_search', on: :collection
     end
     resources :contacts do
@@ -42,6 +43,7 @@ Rails.application.routes.draw do
       get 'edit_custom_attributes'
       get 'chatwoot_conversation_link', on: :member
       patch 'update_custom_attributes'
+      patch 'update_custom_attributes_order', on: :member
       get 'select_contact_search', on: :collection
       resources :events, module: :contacts do
       end

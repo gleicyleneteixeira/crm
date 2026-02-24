@@ -40,16 +40,7 @@
             <% end %>
           <% else %>
             <% if model[show_field].is_a?(Hash) %>
-              <% model[show_field].each do | custom_attribute | %>
-                <div class='flex flex-col gap-1'>
-                  <p class="typography-body-900 color-fg-soft">
-                    <%= model.custom_attribute_display_name(custom_attribute[0]) %>
-                  </p>
-                  <p class="typography-body-900 color-fg-default break-all">
-                    <%= custom_attribute[1] %>
-                  </p>
-                </div>
-              <% end %>
+              <%= render 'accounts/deals/details/show_custom_attributes', model: model %>
             <% else %>
               <div class='flex flex-col gap-1'>
                 <p class='typography-body-900 color-fg-soft'>

@@ -1,16 +1,118 @@
-<% definitions = current_user.account.custom_attribute_definitions.where(attribute_model: "#{model.class.name.downcase}_attribute", show_in_deal: true).order(:position) %>
+<%
+  if model.class.name == 'Deal'
+    built_ins = [
+      { key: '__deal_creator__', name: 'Criado por' },
+      { key: '__deal_amount__', name: 'Quantia' }
+    ]
+
+    built_ins.each do |bi|
+      current_user.account.custom_attribute_definitions.find_or_create_by(
+        attribute_model: "#{model.class.name.downcase}_attribute",
+        attribute_key: bi[:key]
+      ) do |definition|
+        definition.attribute_display_name = bi[:name]
+        definition.show_in_deal = true
+        definition.show_in_card = false
+      end
+    end
+  elsif model.class.name == 'Contact'
+    built_ins = [
+      { key: '__contact_full_name__', name: 'Nome' },
+      { key: '__contact_email__', name: 'Email' },
+      { key: '__contact_phone__', name: 'Telefone' }
+    ]
+
+    built_ins.each do |bi|
+      current_user.account.custom_attribute_definitions.find_or_create_by(
+        attribute_model: "#{model.class.name.downcase}_attribute",
+        attribute_key: bi[:key]
+      ) do |definition|
+        definition.attribute_display_name = bi[:name]
+        definition.show_in_deal = true
+        definition.show_in_card = false
+      end
+    end
+  elsif model.class.name == 'Product'
+    built_ins = [
+      { key: '__product_name__', name: 'Nome' },
+      { key: '__product_identifier__', name: 'Identificador' },
+      { key: '__product_amount__', name: 'Valor' },
+      { key: '__product_quantity__', name: 'Quantidade' },
+      { key: '__product_description__', name: 'Descrição' }
+    ]
+
+    built_ins.each do |bi|
+      current_user.account.custom_attribute_definitions.find_or_create_by(
+        attribute_model: "#{model.class.name.downcase}_attribute",
+        attribute_key: bi[:key]
+      ) do |definition|
+        definition.attribute_display_name = bi[:name]
+        definition.show_in_deal = true
+        definition.show_in_card = false
+      end
+    end
+  end
+
+  definitions = current_user.account.custom_attribute_definitions.where(
+    attribute_model: "#{model.class.name.downcase}_attribute",
+    show_in_deal: true
+  ).order(:position)
+%>
+<%
+  update_url =
+    if model.class.name == 'Deal'
+      update_custom_attributes_order_account_deal_path(Current.account, model)
+    elsif model.class.name == 'Contact'
+      update_custom_attributes_order_account_contact_path(Current.account, model)
+    else
+      '#'
+    end
+%>
 <div class="grid sm:grid-cols-2 gap-4 pb-4"
   data-controller="sortable"
-  data-sortable-update-url-value="<%= update_custom_attributes_order_account_deal_path(Current.account, model) %>">
+  data-sortable-update-url-value="<%= update_url %>">
   <% definitions.each do |definition| %>
     <% key = definition.attribute_key %>
-    <% raw_value = model.custom_attributes[key] %>
-    <% display_value = raw_value.present? ? raw_value : '—' %>
+    <% builtin_keys =
+      case model.class.name
+      when 'Deal' then ['__deal_creator__', '__deal_amount__']
+      when 'Contact' then ['__contact_full_name__', '__contact_email__', '__contact_phone__']
+      when 'Product' then ['__product_name__', '__product_identifier__', '__product_amount__', '__product_quantity__', '__product_description__']
+      else []
+      end
+    %>
+    <% builtin = builtin_keys.include?(key) %>
+    <% raw_value = model.custom_attributes[key] unless builtin %>
+    <% display_value =
+      if key == '__deal_creator__'
+        model.creator&.full_name.presence || '—'
+      elsif key == '__deal_amount__'
+        nil
+      elsif key == '__contact_full_name__'
+        model.full_name.presence || '—'
+      elsif key == '__contact_email__'
+        model.email.presence || '—'
+      elsif key == '__contact_phone__'
+        model.phone.presence || '—'
+      elsif key == '__product_name__'
+        model.name.presence || '—'
+      elsif key == '__product_identifier__'
+        model.identifier.presence || '—'
+      elsif key == '__product_amount__'
+        nil
+      elsif key == '__product_quantity__'
+        model.quantity_available.presence || '—'
+      elsif key == '__product_description__'
+        model.description.presence || '—'
+      else
+        raw_value.present? ? raw_value : '—'
+      end
+    %>
     <div class="flex flex-col col-span-full" data-sortable-item data-id="<%= definition.id %>">
     <label class="typography-text-s-lh150 text-gray-pallete-p3 cursor-grab drag-handle select-none">
       <%= definition.attribute_display_name %>
     </label>
-    <% if defined?(update_path) && update_path.present? %>
+    <% if defined?(update_path) && update_path.present? && !builtin %>
       <div
         class="group flex items-center gap-1"
         data-controller="inline-edit"
@@ -40,9 +142,19 @@
           value="<%= raw_value %>">
       </div>
     <% else %>
-      <p class="typography-sub-text-m-lh150 text-dark-gray-palette-p1">
-        <%= display_value %>
-      </p>
+      <% if key == '__deal_amount__' %>
+        <div class="typography-sub-text-m-lh150 text-dark-gray-palette-p1 break-all">
+          <%= render 'components/formatters/currency', value: model.total_amount_in_cents, class_style: 'stream_deal_total_amount_in_cents' %>
+        </div>
+      <% elsif key == '__product_amount__' %>
+        <div class="typography-sub-text-m-lh150 text-dark-gray-palette-p1 break-all">
+          <%= render 'components/formatters/currency', value: model.amount_in_cents, class_style: '' %>
+        </div>
+      <% else %>
+        <p class="typography-sub-text-m-lh150 text-dark-gray-palette-p1">
+          <%= display_value %>
+        </p>
+      <% end %>
     <% end %>
     </div>
   <% end %>

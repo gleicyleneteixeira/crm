@@ -89,6 +89,28 @@ class Accounts::ContactsController < InternalController
     end
   end
 
+  def update_custom_attributes_order
+    sorted_ids = params[:sorted_ids]
+    contact = current_user.account.contacts.find(params[:id])
+
+    begin
+      ActiveRecord::Base.transaction do
+        sorted_ids.each_with_index do |id, index|
+          custom_attribute_definition = current_user.account.custom_attribute_definitions.find(id)
+          custom_attribute_definition.update!(position: index + 1)
+        end
+      end
+      @message = "Ordem dos atributos atualizada com sucesso!"
+      render turbo_stream: turbo_stream.update(:flash_message, partial: "components/flash_message", locals: { message: @message, type: :success })
+    rescue ActiveRecord::RecordInvalid => e
+      @message = "Erro ao atualizar a ordem dos atributos: #{e.message}"
+      render turbo_stream: turbo_stream.update(:flash_message, partial: "components/flash_message", locals: { message: @message, type: :error }), status: :unprocessable_entity
+    rescue StandardError => e
+      @message = "Ocorreu un erro inesperado: #{e.message}"
+      render turbo_stream: turbo_stream.update(:flash_message, partial: "components/flash_message", locals: { message: @message, type: :error }), status: :internal_server_error
+    end
+  end
+
   # DELETE /contacts/1 or /contacts/1.json
   def destroy
     @contact.destroy
