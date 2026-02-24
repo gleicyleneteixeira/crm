@@ -7,6 +7,9 @@ export default class extends Controller {
 
   connect() {
     this.sortable = Sortable.create(this.element, {
+      animation: 150,
+      draggable: "[data-sortable-item]",
+      dataIdAttr: "data-id",
       onEnd: this.onEnd.bind(this)
     })
   }

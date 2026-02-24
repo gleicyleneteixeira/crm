@@ -15,7 +15,7 @@
 class CustomAttributeDefinition < ApplicationRecord
   include CustomAttributeDefinition::Broadcastable
   belongs_to :account
-  acts_as_list scope: [:account_id, :attribute_model]
+  acts_as_list scope: [:attribute_model]
   scope :with_attribute_model, lambda { |attribute_model|
                                  attribute_model.presence && where(attribute_model: attribute_model)
                                }

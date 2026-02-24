@@ -188,11 +188,6 @@ class Accounts::DealsController < InternalController
   end
 
   def update_custom_attributes_order
-    unless super_admin?
-      @message = "Apenas o super admin pode reordenar atributos."
-      render turbo_stream: turbo_stream.update(:flash_message, partial: "components/flash_message", locals: { message: @message, type: :error }), status: :forbidden
-      return
-    end
     sorted_ids = params[:sorted_ids]
     deal = current_user.account.deals.find(params[:id])
 
@@ -200,7 +195,7 @@ class Accounts::DealsController < InternalController
       ActiveRecord::Base.transaction do
         sorted_ids.each_with_index do |id, index|
           custom_attribute_definition = current_user.account.custom_attribute_definitions.find(id)
-          custom_attribute_definition.update!(position: index)
+          custom_attribute_definition.update!(position: index + 1)
         end
       end
       @message = "Ordem dos atributos atualizada com sucesso!"

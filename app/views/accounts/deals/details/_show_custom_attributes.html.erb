@@ -1,12 +1,12 @@
 <% definitions = current_user.account.custom_attribute_definitions.where(attribute_model: "#{model.class.name.downcase}_attribute", show_in_deal: true).order(:position) %>
 <div class="grid sm:grid-cols-2 gap-4 pb-4"
-  <%= super_admin? ? 'data-controller="sortable"' : '' %>
-  <%= super_admin? ? "data-sortable-update-url-value='#{update_custom_attributes_order_account_deal_path(Current.account, model)}'" : '' %>>
+  data-controller="sortable"
+  data-sortable-update-url-value="<%= update_custom_attributes_order_account_deal_path(Current.account, model) %>">
   <% definitions.each do |definition| %>
     <% key = definition.attribute_key %>
     <% raw_value = model.custom_attributes[key] %>
     <% display_value = raw_value.present? ? raw_value : '—' %>
-    <div class="flex flex-col col-span-full" data-sortable-item data-id="<%= definition.id %>">
+    <div class="flex flex-col col-span-full cursor-move" data-sortable-item data-id="<%= definition.id %>">
     <label class="typography-text-s-lh150 text-gray-pallete-p3">
       <%= definition.attribute_display_name %>
     </label>
