@@ -7,7 +7,7 @@ ENV SECRET_KEY_BASE e3a0972a1f0e0d3850d56cead8f4bccd0b41f8cfeff9f1664aea00518db9
 
 RUN apt-get update -qq \
         && apt-get install -y \
-        build-essential libpq-dev libnss3-dev nodejs \
+        build-essential libpq-dev libnss3-dev \
         postgresql postgresql-client \
         graphviz \
         netcat-traditional software-properties-common \
@@ -31,12 +31,11 @@ WORKDIR $app
 # Copy the main application.
 COPY . ./
 
-# Install and build javascript dependences
-RUN yarn build
+# Install javascript dependences
 RUN yarn install --check-files
 
 # Precompile Rails assets (Vite)
-RUN bundle exec rake assets:precompile
+RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rake assets:precompile
 
 # Install node dependences
 RUN npm i -g flat

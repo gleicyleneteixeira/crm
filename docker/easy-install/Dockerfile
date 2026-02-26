@@ -47,9 +47,8 @@ WORKDIR /app
 COPY . /app
 RUN chmod +x /app/bin/easyinstall
 RUN bundle install
-RUN yarn build
 RUN yarn install --check-files
-RUN bundle exec rake assets:precompile
+RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rake assets:precompile
 
 ## Postgres
 RUN mkdir -p /app/storage/postgresql/data
