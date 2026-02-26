@@ -160,7 +160,9 @@ class Deal < ApplicationRecord
       saved_change_to_stage_id? ||
       saved_change_to_custom_attributes? ||
       saved_change_to_priority_level? ||
-      saved_change_to_status?
+      saved_change_to_status? ||
+      saved_change_to_name? ||
+      saved_change_to_contact_id?
   end
 
   def broadcast_kanban_card
@@ -180,12 +182,12 @@ class Deal < ApplicationRecord
                           locals: { deal: self }
 
       ['all', status].each do |filter|
-        broadcast_replace_to :stages,
+        broadcast_replace_later_to :stages,
                              target: "stage-#{old_stage_id}-#{filter}-kaban-details",
                              partial: 'accounts/stages/kanban_details',
                              locals: { stage: Stage.find(old_stage_id), filter_status_deal: filter }
 
-        broadcast_replace_to :stages,
+        broadcast_replace_later_to :stages,
                              target: "stage-#{new_stage_id}-#{filter}-kaban-details",
                              partial: 'accounts/stages/kanban_details',
                              locals: { stage: Stage.find(new_stage_id), filter_status_deal: filter }
@@ -197,7 +199,14 @@ class Deal < ApplicationRecord
       # Atualiza os detalhes do estágio para filtros relevantes
       filters = ['all', status, status_before_last_save].compact.uniq
       filters.each do |filter|
-        broadcast_replace_to :stages,
+        broadcast_replace_later_to :stages,
+                             target: "stage-#{stage_id}-#{filter}-kaban-details",
+                             partial: 'accounts/stages/kanban_details',
+                             locals: { stage: Stage.find(stage_id), filter_status_deal: filter }
+      end
+    elsif saved_change_to_manual_amount_in_cents?
+      ['all', status].each do |filter|
+        broadcast_replace_later_to :stages,
                              target: "stage-#{stage_id}-#{filter}-kaban-details",
                              partial: 'accounts/stages/kanban_details',
                              locals: { stage: Stage.find(stage_id), filter_status_deal: filter }
