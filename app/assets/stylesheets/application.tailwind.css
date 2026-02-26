@@ -201,7 +201,7 @@
   }
 
   .kanban-drop-zone--won {
-    @apply bg-[rgba(34,197,94,0.2)] border-emerald-500/50 text-emerald-200;
+    @apply bg-[rgba(34, 197, 94, 0.2)] border-emerald-500/50 text-emerald-200;
   }
 
   .kanban-drop-zone--won i {
@@ -209,7 +209,7 @@
   }
 
   .kanban-drop-zone--lost {
-    @apply bg-[rgba(239,68,68,0.2)] border-red-500/50 text-red-200;
+    @apply bg-[rgba(239, 68, 68, 0.2)] border-red-500/50 text-red-200;
   }
 
   .kanban-drop-zone--lost i {
@@ -217,7 +217,7 @@
   }
 
   .kanban-drop-zone--delete {
-    @apply bg-[rgba(107,114,128,0.2)] border-slate-400/60 text-slate-200;
+    @apply bg-[rgba(107, 114, 128, 0.2)] border-slate-400/60 text-slate-200;
   }
 
   .kanban-drop-zone--delete i {
@@ -225,15 +225,15 @@
   }
 
   .is-dragging .kanban-drop-zone--won:hover {
-    @apply bg-[rgba(34,197,94,0.35)] ring-1 ring-emerald-400/80 shadow-md;
+    @apply bg-[rgba(34, 197, 94, 0.35)] ring-1 ring-emerald-400/80 shadow-md;
   }
 
   .is-dragging .kanban-drop-zone--lost:hover {
-    @apply bg-[rgba(239,68,68,0.35)] ring-1 ring-red-400/80 shadow-md;
+    @apply bg-[rgba(239, 68, 68, 0.35)] ring-1 ring-red-400/80 shadow-md;
   }
 
   .is-dragging .kanban-drop-zone--delete:hover {
-    @apply bg-[rgba(107,114,128,0.35)] ring-1 ring-slate-300/80 shadow-md;
+    @apply bg-[rgba(107, 114, 128, 0.35)] ring-1 ring-slate-300/80 shadow-md;
   }
 
   .sortable-fallback {
@@ -474,3 +474,200 @@
 
   .button-menu-default-md-icon-only svg {
     @apply stroke-1 w-5 h-5;
+  }
+
+  .button-menu-default-selected-md {
+    @apply inline-flex items-center justify-start typography-body-900 gap-3 px-3 h-[45px] border rounded-md color-bg-fill-hard color-border-harder color-fg-highlight;
+  }
+
+  .button-menu-default-selected-md svg {
+    @apply stroke-1 w-5 h-5 shrink-0;
+  }
+
+  .button-menu-default-selected-md-icon-only {
+    @apply flex items-center justify-center gap-3 h-10 w-10 border rounded-md color-bg-fill-hard color-border-harder color-fg-highlight;
+  }
+
+  .button-menu-default-selected-md-icon-only svg {
+    @apply stroke-1 w-5 h-5;
+  }
+
+  .button-default-blank-secondary-icon-only-md {
+    @apply flex items-center justify-center rounded color-fg-soft w-10 h-10 hover:color-fg-default hover:color-bg-fill-default shrink-0 cursor-pointer;
+  }
+
+  .button-default-blank-secondary-icon-only-md svg {
+    @apply stroke-1.25 w-5 h-5;
+  }
+
+  .button-default-blank-secondary-icon-only-sm {
+    @apply flex items-center justify-center rounded color-fg-soft w-8 h-8 hover:color-fg-default hover:color-bg-fill-default shrink-0 cursor-pointer;
+  }
+
+  .button-default-blank-secondary-icon-only-sm svg {
+    @apply stroke-1.25 w-5 h-5;
+  }
+
+  .button-default-blank-secondary-md {
+    @apply inline-flex gap-2 items-center typography-body-1000 rounded color-fg-soft h-10 px-3 hover:color-fg-default hover:color-bg-fill-default shrink-0 cursor-pointer;
+  }
+
+  .button-default-blank-secondary-md svg {
+    @apply stroke-1.25 w-5 h-5;
+  }
+
+  .button-default-blank-secondary-sm {
+    @apply inline-flex gap-2 items-center typography-body-900 rounded color-fg-soft h-8 px-3 hover:color-fg-default hover:color-bg-fill-default shrink-0 cursor-pointer;
+  }
+
+  .button-default-blank-secondary-sm svg {
+    @apply stroke-1.25 w-4 h-4;
+  }
+
+  .button-default-outline-secondary-md-icon-only-md {
+    @apply flex items-center justify-center border color-border-default rounded color-fg-soft w-10 h-10 hover:color-bg-fill-default shrink-0 cursor-pointer;
+  }
+
+  .button-default-outline-secondary-md-icon-only-md svg {
+    @apply stroke-1.25 w-5 h-5;
+  }
+
+  .button-default-outline-secondary-sm {
+    @apply inline-flex gap-2 items-center border color-border-default typography-body-900 rounded color-fg-soft h-8 px-3 hover:color-bg-fill-default shrink-0 cursor-pointer;
+  }
+
+  .button-default-outline-secondary-sm svg {
+    @apply stroke-1.25 w-4 h-4;
+  }
+
+  .button-default-fill-primary-icon-only-md {
+    @apply flex items-center justify-center rounded color-fg-inverse color-bg-fill-highlight w-10 h-10 hover:color-bg-fill-highlight-hover shrink-0 cursor-pointer;
+  }
+
+  .button-default-fill-primary-icon-only-md svg {
+    @apply stroke-1.25 w-5 h-5;
+  }
+
+  .button-default-fill-primary-md {
+    @apply inline-flex gap-2 items-center typography-body-1000 rounded color-fg-inverse color-bg-fill-highlight h-10 px-3 hover:color-bg-fill-highlight-hover shrink-0 cursor-pointer;
+  }
+
+  .button-default-fill-primary-md svg {
+    @apply stroke-1.25 w-5 h-5;
+  }
+
+  .button-default-fill-primary-icon-only-sm {
+    @apply flex items-center justify-center rounded color-fg-inverse color-bg-fill-highlight w-8 h-8 hover:color-bg-fill-highlight-hover shrink-0 cursor-pointer;
+  }
+
+  .button-default-fill-primary-icon-only-sm svg {
+    @apply stroke-1.25 w-5 h-5;
+  }
+
+  .button-default-fill-primary-sm {
+    @apply inline-flex gap-2 items-center typography-body-900 rounded color-fg-inverse color-bg-fill-highlight h-8 px-3 hover:color-bg-fill-highlight-hover shrink-0 cursor-pointer;
+  }
+
+  .button-default-fill-primary-sm svg {
+    @apply stroke-1.25 w-4 h-4;
+  }
+
+  .button-default-fill-secondary-icon-only-sm {
+    @apply flex items-center justify-center rounded color-fg-soft color-bg-fill-default border-[1.5px] border-transparent w-8 h-8 hover:color-bg-fill-hard hover:color-border-harder hover:color-fg-highlight shrink-0 cursor-pointer;
+  }
+
+  .button-default-fill-secondary-icon-only-sm svg {
+    @apply stroke-1.25 w-5 h-5;
+  }
+
+  .button-default-fill-secondary-sm {
+    @apply inline-flex gap-2 items-center typography-body-900 rounded color-fg-soft color-bg-fill-default border-[1.5px] border-transparent h-8 px-3 hover:color-bg-fill-hard hover:color-border-harder hover:color-fg-highlight shrink-0 cursor-pointer;
+  }
+
+  .button-default-fill-secondary-sm svg {
+    @apply stroke-1.25 w-4 h-4;
+  }
+
+  .advanced-search-filter-button {
+    @apply inline-flex gap-1.5 items-center typography-body-900 rounded-full color-fg-soft color-bg-fill-default border border-transparent h-8 px-3 hover:color-bg-fill-hard hover:color-border-harder hover:color-fg-highlight shrink-0 cursor-pointer transition-colors;
+  }
+
+  .advanced-search-filter-button svg {
+    @apply stroke-1.25 w-4 h-4;
+  }
+
+  .advanced-search-filter-button[aria-selected="true"] {
+    @apply color-bg-fill-highlight color-fg-inverse border-transparent hover:color-bg-fill-highlight-hover hover:color-fg-inverse;
+  }
+
+  .woo-pill-sky {
+    @apply inline-flex items-center max-w-full px-2 py-0.5 rounded-full text-[11px] border font-medium;
+    background-color: var(--woo-pill-sky-bg);
+    color: var(--woo-pill-sky-text);
+    border-color: var(--woo-pill-sky-border);
+  }
+}
+
+@layer base {
+  html {
+    --woo-pill-sky-bg: rgba(59, 130, 246, 0.12);
+    --woo-pill-sky-text: #1d4ed8;
+    --woo-pill-sky-border: rgba(59, 130, 246, 0.35);
+  }
+
+  html.dark {
+    --woo-pill-sky-bg: rgba(59, 130, 246, 0.25);
+    --woo-pill-sky-text: #60a5fa;
+    --woo-pill-sky-border: rgba(59, 130, 246, 0.5);
+  }
+
+  .dark body {
+    @apply bg-brand-palette-01 text-light-palette-p5;
+  }
+}
+
+@layer utilities {
+  .dark .bg-white {
+    background-color: theme('colors.brand-palette-01') !important;
+  }
+
+  .dark .bg-light-palette-p5 {
+    background-color: theme('colors.brand-palette-01') !important;
+  }
+
+  .dark .bg-light-palette-p4 {
+    background-color: theme('colors.brand-palette-01') !important;
+  }
+
+  .dark .bg-gray-50 {
+    background-color: theme('colors.brand-palette-01') !important;
+  }
+
+  .dark .bg-slate-100 {
+    background-color: theme('colors.brand-palette-01') !important;
+  }
+
+  .dark .bg-brand-palette-08 {
+    background-color: theme('colors.brand-palette-01') !important;
+  }
+
+  .dark .text-black {
+    color: theme('colors.light-palette-p5') !important;
+  }
+
+  .dark .text-dark-gray-palette-p1 {
+    color: theme('colors.dark-gray-palette-p4') !important;
+  }
+
+  .dark .text-dark-gray-palette-p3 {
+    color: theme('colors.dark-gray-palette-p5') !important;
+  }
+
+  .dark .border-light-palette-p3 {
+    border-color: theme('colors.dark-gray-palette-p2') !important;
+  }
+
+  .dark .border-brand-palette-07 {
+    border-color: theme('colors.dark-gray-palette-p3') !important;
+  }
+}
