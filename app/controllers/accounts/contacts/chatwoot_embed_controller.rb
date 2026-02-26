@@ -3,19 +3,28 @@ class Accounts::Contacts::ChatwootEmbedController < InternalController
   before_action :set_contact, only: %i[show]
 
   def search
+    # 1. Busca priorizando chatwoot_id via GetByParams otimizado
+    # O GetByParams foi atualizado para priorizar o ID e evitar Full Scan
+    chatwoot_id = chatwoot_contact['id']
     contact = contact_search
 
     url = chatwoot_conversation_url
 
     if contact.present?
+      # 2. Update Silencioso: Se achou por telefone/email mas o id do chatwoot não está salvo, salva agora.
+      if contact.additional_attributes['chatwoot_id'].to_s != chatwoot_id.to_s
+        contact.additional_attributes['chatwoot_id'] = chatwoot_id
+        contact.save
+      end
+
       redirect_to account_chatwoot_embed_path(current_user.account, contact, chatwoot_conversation_url: url)
     else
-      chatwoot_contact = parsed_chatwoot_contact
+      # 3. Se não achou, prepara para criar novo contato
       @contact = current_user.account.contacts.new({
                                                      full_name: chatwoot_contact['name'],
                                                      email: chatwoot_contact['email'],
                                                      phone: chatwoot_contact['phone_number'],
-                                                     additional_attributes: { 'chatwoot_id': chatwoot_contact['id'] }
+                                                     additional_attributes: { 'chatwoot_id': chatwoot_id }
                                                    })
       @chatwoot_conversation_url = url
       render :new

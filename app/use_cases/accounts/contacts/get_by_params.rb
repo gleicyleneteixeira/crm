@@ -4,15 +4,37 @@ class Accounts::Contacts::GetByParams
     return { error: 'Not found' } if params.blank?
 
     params.reject! { |_key, value| value.blank? }
-
-    params = params.slice('email', 'phone', 'identifier')
-
-    query_params = build_query_conditions(params)
-    if params.key?('phone')
-      query_params << "phone ILIKE '%#{sanitized_phone(params['phone'])}%'"
-      query_params << "phone ILIKE '%#{phone_with_9_digit(params['phone'])}%'"
-      query_params << "phone ILIKE '%#{phone_number_without_9_digit(params['phone'])}%'"
+    
+    # 1. Tenta busca exata por identificador (chatwoot_id) primeiro - Mais rápido (B-Tree index)
+    if params['identifier'].present?
+      contact = account.contacts.where("additional_attributes ->> 'chatwoot_id' = ?", params['identifier'].to_s).first
+      return { ok: contact } if contact.present?
     end
+
+    # 2. Tenta busca exata por telefone (B-Tree index)
+    if params['phone'].present?
+      s_phone = sanitized_phone(params['phone'])
+      contact = account.contacts.where(phone: [s_phone, phone_with_9_digit(s_phone), phone_number_without_9_digit(s_phone)]).first
+      return { ok: contact } if contact.present?
+    end
+
+    # 3. Tenta busca exata por email se presente
+    if params['email'].present?
+      contact = account.contacts.where('lower(email) = ?', params['email'].downcase).first
+      return { ok: contact } if contact.present?
+    end
+
+    # 4. Caso não encontre exato, busca parcial como fallback (Usando índices GIN/Trigram após migration)
+    query_params = []
+    if params['phone'].present?
+      s_phone = sanitized_phone(params['phone'])
+      query_params << "phone ILIKE '%#{s_phone}%'"
+    end
+    
+    if params['email'].present?
+      query_params << "email ILIKE '%#{params['email']}%'"
+    end
+
     contact = account.contacts.where(query_params.join(' OR ')).first if query_params.present?
     { ok: contact }
   end
