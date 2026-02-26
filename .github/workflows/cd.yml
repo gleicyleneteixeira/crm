@@ -6,18 +6,23 @@ on:
       - development
       - main
       - master
-  workflow_dispatch: # Permite que você rode manualmente clicando no botão azul
+  workflow_dispatch:
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write # Permissão vital para salvar a imagem no seu perfil
+      packages: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      # ESTE PASSO RESOLVE O PROBLEMA: transforma o nome do usuário em minúsculo
+      - name: Lowercase Repo
+        run: |
+          echo "REPO_LOWER=${GITHUB_REPOSITORY_OWNER,,}" >> ${GITHUB_ENV}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -36,10 +41,10 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile  # Usa o arquivo da sua raiz
+          file: ./Dockerfile
           platforms: linux/amd64
           push: true
-          # Forçamos o nome para minúsculo para evitar erros de registro
+          # Agora usamos a variável dinâmica REPO_LOWER
           tags: |
-            ghcr.io/${{ github.repository_owner }}/woofed-crm:latest
-            ghcr.io/${{ github.repository_owner }}/woofed-crm:${{ github.sha }}
+            ghcr.io/${{ env.REPO_LOWER }}/woofed-crm:latest
+            ghcr.io/${{ env.REPO_LOWER }}/woofed-crm:${{ github.sha }}
