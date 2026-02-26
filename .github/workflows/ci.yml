@@ -78,8 +78,7 @@ jobs:
         run: bin/rails db:create db:schema:load
 
       - name: Setup assets
-        run: # RAILS_ENV=production SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:clean assets:precompile
-        shell: bash
+        run: RAILS_ENV=production SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:clean assets:precompile
         
       - name: Run tests
         run: bundle exec rspec

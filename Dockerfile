@@ -35,7 +35,7 @@ COPY . ./
 RUN yarn install --check-files
 
 # Precompile Rails assets (Vite)
-# RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rake assets:precompile
+RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rake assets:precompile
 
 # Install node dependences
 RUN npm i -g flat
