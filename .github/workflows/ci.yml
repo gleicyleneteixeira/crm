@@ -43,8 +43,8 @@ jobs:
           expand: 'true'
 
       - run: |
-          apt-get update
-          apt-get install -y libnss3-dev libgdk-pixbuf2.0-dev libgtk-3-dev libxss-dev libasound2 sudo
+          apt-get update -qq
+          apt-get install -y --fix-missing libnss3-dev libgdk-pixbuf2.0-dev libgtk-3-dev libxss-dev libasound2 sudo
 
 
       - run: |
