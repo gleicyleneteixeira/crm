@@ -6,7 +6,7 @@ ENV RAILS_LOG_TO_STDOUT true
 ENV SECRET_KEY_BASE e3a0972a1f0e0d3850d56cead8f4bccd0b41f8cfeff9f1664aea00518db989ff5bace371f2a9ea7299dbbf08f0302811dbcb9141
 
 RUN apt-get update -qq \
-    && apt-get install -y \
+    && apt-get install -y --fix-missing \
     build-essential libpq-dev libnss3-dev \
     postgresql postgresql-client \
     graphviz \
