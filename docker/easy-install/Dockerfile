@@ -48,7 +48,7 @@ COPY . /app
 RUN chmod +x /app/bin/easyinstall
 RUN bundle install
 RUN yarn install --check-files
-RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rake assets:precompile
+# RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rake assets:precompile
 
 ## Postgres
 RUN mkdir -p /app/storage/postgresql/data
