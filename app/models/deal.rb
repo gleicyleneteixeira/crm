@@ -69,7 +69,7 @@ class Deal < ApplicationRecord
   end
   after_destroy_commit { broadcast_remove_to :stages, target: self }
 
-  after_update_commit :broadcast_kanban_card, if: :broadcast_kanban_card?
+  after_commit :broadcast_kanban_card, on: :update, if: :broadcast_kanban_card?
   after_create_commit :broadcast_kanban_card_on_create
   # after_update_commit lambda {
   #                       broadcast_updates

@@ -115,10 +115,16 @@ class Accounts::DealsController < InternalController
       attributes['custom_attributes'] = existing_custom_attributes.deep_merge(attributes['custom_attributes'])
     end
 
-    if Deal::CreateOrUpdate.new(@deal, attributes).call
+    @deal.assign_attributes(attributes)
+
+    if @deal.valid?
+      Deals::BusinessUpdateWorker.perform_async(@deal.id, attributes)
       respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.replace(helpers.dom_id(@deal), partial: 'accounts/pipelines/deal',
+                                                                          locals: { deal: @deal, loading: true })
+        end
         format.html { redirect_to account_deal_path(current_user.account, @deal) }
-        format.turbo_stream
       end
     else
       render :edit, status: :unprocessable_entity
