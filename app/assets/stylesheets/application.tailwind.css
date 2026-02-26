@@ -321,7 +321,7 @@
   }
 
   .color-bg-surface-harder {
-    @apply bg-purple-100 dark:bg-slate-900/40 dark:backdrop-blur-md;
+    @apply bg-blue-100 dark:bg-slate-900/40 dark:backdrop-blur-md;
   }
 
   .color-bg-surface-hard {
@@ -333,15 +333,15 @@
   }
 
   .color-bg-fill-highlight {
-    @apply bg-purple-600;
+    @apply bg-brand-palette-03;
   }
 
   .color-bg-fill-highlight-hover {
-    @apply bg-purple-700;
+    @apply bg-brand-palette-02;
   }
 
   .color-bg-fill-hard {
-    @apply bg-purple-100 dark:bg-slate-800/60 dark:backdrop-blur-lg;
+    @apply bg-blue-100 dark:bg-blue-900/40 dark:backdrop-blur-lg;
   }
 
   .color-bg-fill-default {
@@ -381,7 +381,7 @@
   }
 
   .color-fg-highlight {
-    @apply text-purple-600;
+    @apply text-brand-palette-03;
   }
 
   .color-fg-hard {
@@ -421,11 +421,11 @@
   }
 
   .color-border-highlight {
-    @apply border-purple-600;
+    @apply border-brand-palette-03;
   }
 
   .color-border-harder {
-    @apply border-purple-300 dark:border-dark-gray-palette-p4;
+    @apply border-brand-palette-07 dark:border-dark-gray-palette-p4;
   }
 
   .color-border-hard {
