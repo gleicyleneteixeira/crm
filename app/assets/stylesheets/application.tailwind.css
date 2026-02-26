@@ -201,7 +201,7 @@
   }
 
   .kanban-drop-zone--won {
-    @apply bg-[rgba(34, 197, 94, 0.2)] border-emerald-500/50 text-emerald-200;
+    @apply bg-[rgba(34,197,94,0.2)] border-emerald-500/50 text-emerald-200;
   }
 
   .kanban-drop-zone--won i {
@@ -209,7 +209,7 @@
   }
 
   .kanban-drop-zone--lost {
-    @apply bg-[rgba(239, 68, 68, 0.2)] border-red-500/50 text-red-200;
+    @apply bg-[rgba(239,68,68,0.2)] border-red-500/50 text-red-200;
   }
 
   .kanban-drop-zone--lost i {
@@ -217,7 +217,7 @@
   }
 
   .kanban-drop-zone--delete {
-    @apply bg-[rgba(107, 114, 128, 0.2)] border-slate-400/60 text-slate-200;
+    @apply bg-[rgba(107,114,128,0.2)] border-slate-400/60 text-slate-200;
   }
 
   .kanban-drop-zone--delete i {
@@ -225,15 +225,15 @@
   }
 
   .is-dragging .kanban-drop-zone--won:hover {
-    @apply bg-[rgba(34, 197, 94, 0.35)] ring-1 ring-emerald-400/80 shadow-md;
+    @apply bg-[rgba(34,197,94,0.35)] ring-1 ring-emerald-400/80 shadow-md;
   }
 
   .is-dragging .kanban-drop-zone--lost:hover {
-    @apply bg-[rgba(239, 68, 68, 0.35)] ring-1 ring-red-400/80 shadow-md;
+    @apply bg-[rgba(239,68,68,0.35)] ring-1 ring-red-400/80 shadow-md;
   }
 
   .is-dragging .kanban-drop-zone--delete:hover {
-    @apply bg-[rgba(107, 114, 128, 0.35)] ring-1 ring-slate-300/80 shadow-md;
+    @apply bg-[rgba(107,114,128,0.35)] ring-1 ring-slate-300/80 shadow-md;
   }
 
   .sortable-fallback {
@@ -610,15 +610,15 @@
 
 @layer base {
   html {
-    --woo-pill-sky-bg: rgba(59, 130, 246, 0.12);
+    --woo-pill-sky-bg: rgba(59,130,246,0.12);
     --woo-pill-sky-text: #1d4ed8;
-    --woo-pill-sky-border: rgba(59, 130, 246, 0.35);
+    --woo-pill-sky-border: rgba(59,130,246,0.35);
   }
 
   html.dark {
-    --woo-pill-sky-bg: rgba(59, 130, 246, 0.25);
+    --woo-pill-sky-bg: rgba(59,130,246,0.25);
     --woo-pill-sky-text: #60a5fa;
-    --woo-pill-sky-border: rgba(59, 130, 246, 0.5);
+    --woo-pill-sky-border: rgba(59,130,246,0.5);
   }
 
   .dark body {
