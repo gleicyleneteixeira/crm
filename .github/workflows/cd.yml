@@ -1,22 +1,23 @@
-name: Continuous Deployment (GHCR)
+name: Build and Publish Docker Image (GHCR)
 
 on:
   push:
     branches:
-      - main
-      - master  # Adicionei master caso seu fork antigo use esse nome
       - development
+      - main
+      - master
+  workflow_dispatch: # Permite que você rode manualmente clicando no botão azul
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write # Necessário para publicar no GHCR
+      packages: write # Permissão vital para salvar a imagem no seu perfil
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4 # Versão mais atualizada
+        uses: actions/checkout@v4
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -35,10 +36,10 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: Dockerfile
+          file: ./Dockerfile  # Usa o arquivo da sua raiz
           platforms: linux/amd64
           push: true
-          # Aqui ele cria a tag automática: ghcr.io/gleicilenedias/woofed-crm:latest
+          # Forçamos o nome para minúsculo para evitar erros de registro
           tags: |
-            ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/woofed-crm:latest
+            ghcr.io/${{ github.repository_owner }}/woofed-crm:${{ github.sha }}
