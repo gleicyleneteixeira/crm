@@ -1,33 +1,56 @@
-<div class="flex flex-col gap-2">
-  <div class='flex items-center justify-between gap-2'>
-    <h2 class="typography-body-s-lh150 text-dark-gray-palette-p1 truncate"><%= contact.full_name %></h2>
-    <%= link_to account_pipelines_path(Current.account), class: 'btn-secondary !px-2', data: { tooltip_target: "tooltip-kanban-link" } do %>
-      <i data-lucide="kanban"></i>
-    <% end %>
-    <div id="tooltip-kanban-link" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-700 rounded-lg shadow-xs opacity-0 tooltip dark:bg-gray-700">
-      <%= t('views.accounts.contacts.chatwoot_embeded.show.kanban_view') %>
-      <div class="tooltip-arrow" data-popper-arrow></div>
-    </div>
-  </div>
-  <h1 class="typography-title-b-lh150 text-dark-gray-palette-p1"><%= contact.account.name %></h1>
-  <div class="flex flex-wrap gap-2 sm:gap-4">
-    <div class="flex">
-      <% if contact.email.present? %>
-        <div class="p-2 bg-brand-palette-08 border-2 rounded-l-md border-brand-palette-06">
-          <i data-lucide="mail" class="w-4 h-4 m-0.5 stroke-brand-palette-03"></i>
-        </div>
-        <%= mail_to contact.email, class: "-ml-0.5 py-2 pl-3 pr-4 bg-brand-palette-08 border-2 rounded-r-md border-brand-palette-06 typography-sub-text-m-lh150 text-dark-gray-palette-p3 hover:bg-brand-palette-07 hover:text-brand-palette-03" do %>
-          <%= contact.email %>
-        <% end %>
-      </div>
-    <% end %>
-    <div class="flex">
-      <% if contact.phone.present? %>
-        <div class="p-2 bg-brand-palette-08 border-2 rounded-l-md border-brand-palette-06">
-          <i data-lucide="phone" class="w-4 h-4 m-0.5 stroke-brand-palette-03"></i>
-        </div>
-        <%= link_to contact.phone, "tel:#{contact.phone}", class:"-ml-0.5 py-2 pl-3 pr-4 bg-brand-palette-08 border-2 rounded-r-md border-brand-palette-06 typography-sub-text-m-lh150 text-dark-gray-palette-p3 hover:bg-brand-palette-07 hover:text-brand-palette-03" %>
+<div class="flex flex-col gap-6 p-4">
+  <%# 1. HEADER %>
+  <div class="flex flex-col gap-1">
+    <div class="flex items-center justify-between">
+      <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500"><%= t('activerecord.models.contact') %></p>
+      <%= link_to account_pipelines_path(Current.account), class: 'p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-brand-palette-03 transition-all', data: { tooltip_target: "tooltip-kanban-link", turbo_frame: :_top } do %>
+        <i data-lucide="kanban" class="w-4 h-4"></i>
       <% end %>
     </div>
+    <h2 class="text-xl font-bold text-white tracking-tight"><%= contact.full_name %></h2>
+    <p class="text-sm text-slate-400 font-medium flex items-center gap-1.5">
+      <i data-lucide="building-2" class="w-3.5 h-3.5"></i>
+      <%= contact.account.name %>
+    </p>
+  </div>
+
+  <%# action_cable_meta_tag - 2. ACTIONS CARD %>
+  <div class="bg-slate-900/40 border border-slate-800/60 rounded-xl p-4 flex flex-col gap-4 ring-1 ring-inset ring-slate-800/30">
+    <% if contact.phone.present? %>
+      <div class="flex items-center gap-3 group">
+        <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-800/80 border border-slate-700/50 group-hover:border-brand-palette-03/50 transition-colors">
+          <i data-lucide="phone" class="w-4 h-4 text-brand-palette-03"></i>
+        </div>
+        <div class="flex flex-col">
+          <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest"><%= t('activerecord.attributes.contact.phone') %></p>
+          <%= link_to contact.phone, "tel:#{contact.phone}", class: "text-sm font-semibold text-slate-200 hover:text-brand-palette-03 transition-colors underline-offset-4 hover:underline" %>
+        </div>
+      </div>
+    <% end %>
+
+    <% if contact.email.present? %>
+      <div class="flex items-center gap-3 group">
+        <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-900/80 border border-slate-700/50 group-hover:border-brand-palette-03/50 transition-colors">
+          <i data-lucide="mail" class="w-4 h-4 text-brand-palette-03"></i>
+        </div>
+        <div class="flex flex-col">
+          <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest"><%= t('activerecord.attributes.contact.email') %></p>
+          <%= mail_to contact.email, class: "text-sm font-semibold text-slate-200 hover:text-brand-palette-03 transition-colors underline-offset-4 hover:underline" do %>
+            <%= contact.email %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <%# 3. FOOTER / META %>
+  <div class="flex items-center justify-between border-t border-slate-800/80 pt-4">
+    <div class="flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)] animate-pulse"></span>
+      <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none">Crm Sync</p>
+    </div>
+    <%= link_to account_contact_path(Current.account, contact), class: "text-[10px] font-bold text-brand-palette-03 uppercase tracking-widest hover:text-brand-palette-04 transition-colors", data: { turbo_frame: :_top } do %>
+      <%= t('activerecord.models.show') %> →
+    <% end %>
   </div>
 </div>

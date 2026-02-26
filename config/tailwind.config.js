@@ -29,7 +29,7 @@ module.exports = {
       "light-palette-p3": "#F2F1F7",
       "light-palette-p4": "#FAF9FD",
       "light-palette-p5": "#FFFFFF",
-      "brand-palette-01": "#121D3A",
+      "brand-palette-01": "#020617",
       "brand-palette-02": "#1e3a8a",
       "brand-palette-03": "#3b82f6",
       "brand-palette-04": "#60a5fa",

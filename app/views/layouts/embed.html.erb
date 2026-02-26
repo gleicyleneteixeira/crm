@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html style="background-color: #121D3A;">
+<html class="dark">
   <head>
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no" name="viewport">
@@ -13,7 +13,7 @@
     <%= render "layouts/shared/analytics_scripts" %>
     <%= yield :stylesheets %>
   </head>
-  <body class="bg-brand-palette-01" style="background-color: #121D3A;">
+  <body class="bg-brand-palette-01 antialiased text-slate-200">
     <%= render partial: 'components/flash_message', locals: { message: flash[:notice] } %>
     <%= content_for?(:content) ? yield(:content) : yield %>
     <%= yield :javascripts %>
