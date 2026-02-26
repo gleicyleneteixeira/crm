@@ -71,6 +71,21 @@ class Deal < ApplicationRecord
 
   after_commit :broadcast_kanban_card, on: :update, if: :broadcast_kanban_card?
   after_create_commit :broadcast_kanban_card_on_create
+  after_commit :sync_deal_async
+
+  def sync_deal_async
+    action = if transaction_include_any_action?([:create])
+               'create'
+             elsif transaction_include_any_action?([:update])
+               'update'
+             elsif transaction_include_any_action?([:destroy])
+               'destroy'
+             end
+
+    return unless action
+
+    Deals::BroadcastJob.perform_async(id, action)
+  end
   # after_update_commit lambda {
   #                       broadcast_updates
   #                     }
