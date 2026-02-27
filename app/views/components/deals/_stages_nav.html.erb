@@ -4,15 +4,15 @@
     <% stages = deal.stage.pipeline.stages.order(:position) %>
     <% stages.each_with_index do | stage, index | %>
       
-      <div class="flex-1 flex flex-col items-center min-w-[25px]">
+      <div class="flex-1 flex flex-col items-center min-w-[30px] relative z-20">
         
         <% if stage == deal.stage or deal.stage.position > stage.position %>
-          <%# Cores: Um tom abaixo para suavizar, mantendo a visibilidade %>
           <% 
+            # Definição de cores de fundo e setas
             bg_color = case deal.status
-                        when 'won' then 'bg-[#4ade80]'  # Verde Vivo Pastel (Ganho)
-                        when 'lost' then 'bg-[#f87171]' # Vermelho Vivo Pastel (Perdido)
-                        else 'bg-emerald-500'           # Andamento Verde Forte
+                        when 'won' then 'bg-[#4ade80]'  # Verde Pastel
+                        when 'lost' then 'bg-[#f87171]' # Vermelho Pastel
+                        else 'bg-emerald-500'           # Verde Forte (Em andamento)
                         end 
             
             arrow_color = case deal.status
@@ -22,7 +22,6 @@
                             end
           %>
 
-          <%# Barra fina h-2 para um visual limpo com Tooltip Flowbite %>
           <%= link_to account_deal_path(deal.account, deal, deal: { status: deal.status, stage_id: stage.id } ), 
                       data: { turbo_method: :patch, confirm: t('views.accounts.deals.stages_nav_desktop.are_you_sure?'), tooltip_target: "tooltip-stage-#{deal.id}-#{stage.id}", tooltip_placement: "top" }, 
                       class: "first:rounded-l-lg last:rounded-r-lg justify-center flex w-full h-2 #{bg_color} group relative transition-all hover:scale-y-125 before:absolute #{ index == stages.length - 1 ? '' : "before:top-0 before:z-10 before:right-[-4px] before:border-solid #{arrow_color} before:border-l-[4px] before:border-y-transparent before:border-y-[4px] after:absolute after:top-0 after:border-solid after:border-y-transparent after:border-y-[4px] inline-block after:border-l-light-palette-p5 after:border-l-[4px] after:right-[-7px] " }", style:"z-index: #{30 - index} ", aria_current:"page" do %>
@@ -33,7 +32,6 @@
             </div>
           <% end %>
         <% else %>
-          <%# Fases futuras em cinza claro com Tooltip %>
           <div class="flex w-full h-2 bg-gray-200 dark:bg-slate-800 relative first:rounded-l-lg last:rounded-r-lg cursor-help transition-all hover:bg-gray-300 dark:hover:bg-slate-700" 
                data-tooltip-target="tooltip-stage-<%= deal.id %>-<%= stage.id %>" data-tooltip-placement="top">
             <div id="tooltip-stage-<%= deal.id %>-<%= stage.id %>" role="tooltip" data-turbo-permanent class="absolute z-50 invisible inline-block px-3 py-2 text-xs font-bold text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-slate-800 whitespace-nowrap">
@@ -43,18 +41,24 @@
           </div>
         <% end %>
 
-        <%# ESCRITA VIVIDA: Nome da etapa e status Ganho/Perdido %>
+        <%# TEXTO DA ETAPA COM CORES AJUSTADAS PARA LEITURA %>
         <% if stage == deal.stage %>
-          <div class="flex flex-col items-center mt-2 pb-1">
-            <p class="text-[10px] font-black text-center leading-tight <%= deal.status == 'won' ? 'text-green-400' : (deal.status == 'lost' ? 'text-red-400' : 'text-slate-100') %>">
+          <div class="flex flex-col items-center mt-2 pb-1 w-max max-w-[100px]">
+            <% 
+              text_color = case deal.status
+                           when 'won' then 'text-green-700'   # Verde Vivo para Ganho
+                           when 'lost' then 'text-red-700'    # Vermelho Vivo para Perdido
+                           else 'text-black font-extrabold'   # Preto para Em Andamento
+                           end 
+            %>
+            <p class="text-[10px] font-black text-center leading-tight whitespace-normal break-words <%= text_color %>">
               <%= stage.name.upcase %>
             </p>
             
-            <%# Etiquetas com cores mais fortes e brilho %>
             <% if deal.status == 'won' %>
-              <span class="text-[9px] font-extrabold text-[#4ade80] mt-1 tracking-tight bg-green-500/30 px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(74,222,128,0.4)] whitespace-nowrap">✓ GANHO</span>
+              <span class="text-[9px] font-extrabold text-green-700 mt-1 tracking-tight bg-green-500/30 px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(74,222,128,0.4)] whitespace-nowrap">✓ GANHO</span>
             <% elsif deal.status == 'lost' %>
-              <span class="text-[9px] font-extrabold text-[#f87171] mt-1 tracking-tight bg-red-500/30 px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(248,113,113,0.4)] whitespace-nowrap">✕ PERDIDO</span>
+              <span class="text-[9px] font-extrabold text-red-700 mt-1 tracking-tight bg-red-500/30 px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(248,113,113,0.4)] whitespace-nowrap">✕ PERDIDO</span>
             <% end %>
           </div>
         <% end %>
