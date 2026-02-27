@@ -16,6 +16,9 @@
   <% end %>
 <% end %>
 
+<%# ATUALIZAÇÃO DO DETALHE DO NEGÓCIO (EMBED E SHOW) %>
+<%= turbo_stream.replace dom_id(@deal, :chatwoot_embed), partial: 'accounts/contacts/chatwoot_embed/deal', locals: { deal: @deal } %>
+
 <%= turbo_stream.replace dom_id(@deal, :deal_show_page_overview) do %>
   <%= render '/accounts/deals/details/show',
              model: @deal,
@@ -44,6 +47,23 @@
   <%= render "/layouts/shared/navbar_show_deal", deal: @deal %>
 <% end %>
 
-<%= turbo_stream.replace :modal do %>
-  <%= turbo_frame_tag :modal %>
+<%# LÓGICA DE FINALIZAÇÃO (WIN / LOSS) %>
+<% if @deal.previous_changes.key?(:status) %>
+  <% if @deal.won? %>
+    <%= turbo_stream.append "app" do %>
+      <div data-controller="confetti"></div>
+    <% end %>
+    <%= turbo_stream.update :flash_message, partial: "components/flash_message", locals: { message: "Parabéns! 🥳 Negócio ganho!", type: :success } %>
+  <% elsif @deal.lost? %>
+    <%= turbo_stream.update :flash_message, partial: "components/flash_message", locals: { message: "Que pena! 😢 Fica para a próxima. Negócio perdido.", type: :error } %>
+  <% end %>
+
+  <% if @deal.won? || @deal.lost? %>
+    <%= turbo_stream.remove 'modal' %>
+  <% end %>
+<% else %>
+  <%# Se não houve mudança de status para finalizado, apenas limpa o modal normalmente se necessário %>
+  <%= turbo_stream.replace :modal do %>
+    <%= turbo_frame_tag :modal %>
+  <% end %>
 <% end %>
