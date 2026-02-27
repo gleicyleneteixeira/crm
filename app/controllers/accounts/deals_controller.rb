@@ -122,6 +122,7 @@ class Accounts::DealsController < InternalController
         format.turbo_stream do
           render turbo_stream: [
             turbo_stream.replace(helpers.dom_id(@deal), partial: 'accounts/pipelines/deal', locals: { deal: @deal, loading: true }),
+            turbo_stream.replace(helpers.dom_id(@deal, :chatwoot_embed), partial: 'accounts/contacts/chatwoot_embed/deal', locals: { deal: @deal }),
             turbo_stream.replace(helpers.dom_id(@deal, :deal_show_page_overview), partial: 'accounts/deals/details/show', locals: { model: @deal, update_path: account_deal_path(current_user.account, @deal) })
           ]
         end
