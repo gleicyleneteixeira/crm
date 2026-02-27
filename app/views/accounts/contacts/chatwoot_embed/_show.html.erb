@@ -2,7 +2,7 @@
   <%# 1. HEADER %>
   <div class="flex flex-col gap-1">
     <div class="flex items-center justify-between">
-      <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500"><%= t('activerecord.models.contact') %></p>
+      <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500"><%= Contact.model_name.human %></p>
       <%= link_to account_pipelines_path(Current.account), class: 'p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-brand-palette-03 transition-all', data: { tooltip_target: "tooltip-kanban-link", turbo_frame: :_top } do %>
         <i data-lucide="kanban" class="w-4 h-4"></i>
       <% end %>

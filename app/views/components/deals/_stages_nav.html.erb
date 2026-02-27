@@ -23,26 +23,30 @@
           %>
 
           <%# Barra fina h-2 para um visual limpo %>
-          <%= link_to account_deal_path(deal.account, deal, deal: { status: deal.status, stage_id: stage.id } ), method: :patch, data: { confirm: t('views.accounts.deals.stages_nav_desktop.are_you_sure?'), tooltip_target:"tooltip-default-#{stage.id}-#{stage.name}", data_tooltip_placement:"bottom" }, class: "first:rounded-l-lg last:rounded-r-lg justify-center flex w-full h-2 #{bg_color} group relative before:absolute #{ index == stages.length - 1 ? '' : "before:top-0 before:z-10 before:right-[-4px] before:border-solid #{arrow_color} before:border-l-[4px] before:border-y-transparent before:border-y-[4px] after:absolute after:top-0 after:border-solid after:border-y-transparent after:border-y-[4px] inline-block after:border-l-light-palette-p5 after:border-l-[4px] after:right-[-7px] " }", style:"z-index: #{30 - index} ", aria_current:"page" do %>
+          <%= link_to account_deal_path(deal.account, deal, deal: { status: deal.status, stage_id: stage.id } ), 
+                      method: :patch, 
+                      title: stage.name,
+                      data: { confirm: t('views.accounts.deals.stages_nav_desktop.are_you_sure?'), tooltip_target:"tooltip-default-#{stage.id}-#{stage.name}", data_tooltip_placement:"bottom" }, 
+                      class: "first:rounded-l-lg last:rounded-r-lg justify-center flex w-full h-2 #{bg_color} group relative transition-all hover:opacity-80 before:absolute #{ index == stages.length - 1 ? '' : "before:top-0 before:z-10 before:right-[-4px] before:border-solid #{arrow_color} before:border-l-[4px] before:border-y-transparent before:border-y-[4px] after:absolute after:top-0 after:border-solid after:border-y-transparent after:border-y-[4px] inline-block after:border-l-light-palette-p5 after:border-l-[4px] after:right-[-7px] " }", style:"z-index: #{30 - index} ", aria_current:"page" do %>
             &nbsp;
           <% end %>
         <% else %>
           <%# Fases futuras em cinza claro %>
-          <div class="flex w-full h-2 bg-gray-200 relative first:rounded-l-lg last:rounded-r-lg"></div>
+          <div class="flex w-full h-2 bg-gray-200 dark:bg-slate-800 relative first:rounded-l-lg last:rounded-r-lg" title="<%= stage.name %>"></div>
         <% end %>
 
         <%# ESCRITA VIVIDA: Nome da etapa e status Ganho/Perdido %>
         <% if stage == deal.stage %>
           <div class="flex flex-col items-center mt-1">
-            <p class="text-[9px] font-black text-center leading-none <%= deal.status == 'won' ? 'text-green-900' : (deal.status == 'lost' ? 'text-red-900' : 'text-gray-1200 dark:text-white') %>">
+            <p class="text-[10px] font-black text-center leading-tight <%= deal.status == 'won' ? 'text-emerald-400' : (deal.status == 'lost' ? 'text-rose-500' : 'text-slate-200') %>">
               <%= stage.name %>
             </p>
             
             <%# Etiquetas atualizadas conforme sua solicitação %>
             <% if deal.status == 'won' %>
-              <span class="text-[7px] font-bold text-green-700 mt-0.5">● GANHO</span>
+              <span class="text-[8px] font-bold text-emerald-500 mt-0.5 tracking-tighter shadow-sm bg-emerald-500/10 px-1 rounded-sm">● GANHO</span>
             <% elsif deal.status == 'lost' %>
-              <span class="text-[7px] font-bold text-red-700 mt-0.5">● PERDIDO</span>
+              <span class="text-[8px] font-bold text-rose-500 mt-0.5 tracking-tighter shadow-sm bg-rose-500/10 px-1 rounded-sm">● PERDIDO</span>
             <% end %>
           </div>
         <% end %>
