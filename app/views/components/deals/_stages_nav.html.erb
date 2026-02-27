@@ -4,7 +4,7 @@
     <% stages = deal.stage.pipeline.stages.order(:position) %>
     <% stages.each_with_index do | stage, index | %>
       
-      <div class="flex-1 flex flex-col items-center min-w-[30px] relative z-20">
+      <div class="flex-1 flex flex-col items-center min-w-[30px] relative z-30">
         
         <% 
           is_past_or_current = (stage.position <= deal.stage.position)
@@ -27,7 +27,7 @@
           end
         %>
 
-        <%= link_to account_deal_path(deal.account, deal, deal: { status: deal.status, stage_id: stage.id } ), 
+        <%= link_to account_deal_path(deal.account, deal, deal: { stage_id: stage.id } ), 
                     data: { turbo_method: :patch, confirm: t('views.accounts.deals.stages_nav_desktop.are_you_sure?'), tooltip_target: "tooltip-stage-#{deal.id}-#{stage.id}", tooltip_placement: "top" }, 
                     class: "first:rounded-l-lg last:rounded-r-lg justify-center flex w-full h-2 #{bg_color} group relative transition-all hover:scale-y-125 before:absolute #{ index == stages.length - 1 ? '' : "before:top-0 before:z-10 before:right-[-4px] before:border-solid #{arrow_color} before:border-l-[4px] before:border-y-transparent before:border-y-[4px] after:absolute after:top-0 after:border-solid after:border-y-transparent after:border-y-[4px] inline-block after:border-l-light-palette-p5 after:border-l-[4px] after:right-[-7px] " }", style:"z-index: #{30 - index} ", aria_current:"page" do %>
           &nbsp;
