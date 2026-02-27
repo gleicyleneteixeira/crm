@@ -46,16 +46,16 @@
 
         <%# ESCRITA VIVIDA: Nome da etapa e status Ganho/Perdido %>
         <% if stage == deal.stage %>
-          <div class="flex flex-col items-center mt-2 pb-1 max-w-full">
-            <p class="text-[10px] font-black text-center leading-tight truncate w-full px-1 <%= deal.status == 'won' ? 'text-green-500' : (deal.status == 'lost' ? 'text-red-500' : 'text-slate-100') %>">
+          <div class="flex flex-col items-center mt-2 pb-1">
+            <p class="text-[10px] font-black text-center leading-tight <%= deal.status == 'won' ? 'text-green-400' : (deal.status == 'lost' ? 'text-red-400' : 'text-slate-100') %>">
               <%= stage.name.upcase %>
             </p>
             
             <%# Etiquetas com cores mais fortes e brilho %>
             <% if deal.status == 'won' %>
-              <span class="text-[9px] font-extrabold text-[#4ade80] mt-1 tracking-tight bg-green-500/20 px-1.5 py-0.5 rounded shadow-[0_0_5px_rgba(74,222,128,0.3)] whitespace-nowrap">✓ GANHO</span>
+              <span class="text-[9px] font-extrabold text-[#4ade80] mt-1 tracking-tight bg-green-500/30 px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(74,222,128,0.4)] whitespace-nowrap">✓ GANHO</span>
             <% elsif deal.status == 'lost' %>
-              <span class="text-[9px] font-extrabold text-[#f87171] mt-1 tracking-tight bg-red-500/20 px-1.5 py-0.5 rounded shadow-[0_0_5px_rgba(248,113,113,0.3)] whitespace-nowrap">✕ PERDIDO</span>
+              <span class="text-[9px] font-extrabold text-[#f87171] mt-1 tracking-tight bg-red-500/30 px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(248,113,113,0.4)] whitespace-nowrap">✕ PERDIDO</span>
             <% end %>
           </div>
         <% end %>
