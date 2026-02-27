@@ -7,7 +7,8 @@ class Deals::BroadcastJob
     return unless deal
 
     # Transmite o evento JSON para o canal de negócios isolado por conta
-    ActionCable.server.broadcast("deals_channel_#{deal.contact.account_id}", {
+    account_id = deal.contact&.account_id || deal.account_id
+    ActionCable.server.broadcast("deals_channel_#{account_id}", {
       action: action,
       deal: deal.as_json(include: [:contact, :stage, :pipeline])
     })

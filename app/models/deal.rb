@@ -78,6 +78,7 @@ class Deal < ApplicationRecord
   def should_sync_deal?
     saved_change_to_stage_id? || 
     saved_change_to_manual_amount_in_cents? || 
+    saved_change_to_custom_attributes? ||
     saved_change_to_status? || 
     saved_change_to_name?
   end

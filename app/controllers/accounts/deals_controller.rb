@@ -117,12 +117,13 @@ class Accounts::DealsController < InternalController
 
     @deal.assign_attributes(attributes)
 
-    if @deal.valid?
-      Deals::BusinessUpdateWorker.perform_async(@deal.id, attributes)
+    if Deal::CreateOrUpdate.new(@deal, attributes).call
       respond_to do |format|
         format.turbo_stream do
-          render turbo_stream: turbo_stream.replace(helpers.dom_id(@deal), partial: 'accounts/pipelines/deal',
-                                                                          locals: { deal: @deal, loading: true })
+          render turbo_stream: [
+            turbo_stream.replace(helpers.dom_id(@deal), partial: 'accounts/pipelines/deal', locals: { deal: @deal, loading: true }),
+            turbo_stream.replace(helpers.dom_id(@deal, :deal_show_page_overview), partial: 'accounts/deals/details/show', locals: { model: @deal, update_path: account_deal_path(current_user.account, @deal) })
+          ]
         end
         format.html { redirect_to account_deal_path(current_user.account, @deal) }
       end
