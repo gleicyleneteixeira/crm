@@ -6,9 +6,10 @@
       
       <div class="flex-1 flex flex-col items-center min-w-[30px] relative z-20">
         
-        <% if stage == deal.stage or deal.stage.position > stage.position %>
-          <% 
-            # Definição de cores de fundo e setas
+        <% 
+          is_past_or_current = (stage.position <= deal.stage.position)
+          # Definição de cores de fundo e setas
+          if is_past_or_current
             bg_color = case deal.status
                         when 'won' then 'bg-[#4ade80]'  # Verde Pastel
                         when 'lost' then 'bg-[#f87171]' # Vermelho Pastel
@@ -20,24 +21,19 @@
                             when 'lost' then 'before:border-l-[#f87171]'
                             else 'before:border-l-emerald-500'
                             end
-          %>
+          else
+            bg_color = 'bg-gray-200 dark:bg-slate-800'
+            arrow_color = 'before:border-l-gray-200 dark:before:border-l-slate-800'
+          end
+        %>
 
-          <%= link_to account_deal_path(deal.account, deal, deal: { status: deal.status, stage_id: stage.id } ), 
-                      data: { turbo_method: :patch, confirm: t('views.accounts.deals.stages_nav_desktop.are_you_sure?'), tooltip_target: "tooltip-stage-#{deal.id}-#{stage.id}", tooltip_placement: "top" }, 
-                      class: "first:rounded-l-lg last:rounded-r-lg justify-center flex w-full h-2 #{bg_color} group relative transition-all hover:scale-y-125 before:absolute #{ index == stages.length - 1 ? '' : "before:top-0 before:z-10 before:right-[-4px] before:border-solid #{arrow_color} before:border-l-[4px] before:border-y-transparent before:border-y-[4px] after:absolute after:top-0 after:border-solid after:border-y-transparent after:border-y-[4px] inline-block after:border-l-light-palette-p5 after:border-l-[4px] after:right-[-7px] " }", style:"z-index: #{30 - index} ", aria_current:"page" do %>
-            &nbsp;
-            <div id="tooltip-stage-<%= deal.id %>-<%= stage.id %>" role="tooltip" data-turbo-permanent class="absolute z-50 invisible inline-block px-3 py-2 text-xs font-bold text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-slate-800 whitespace-nowrap">
-              <%= stage.name %>
-              <div class="tooltip-arrow" data-popper-arrow></div>
-            </div>
-          <% end %>
-        <% else %>
-          <div class="flex w-full h-2 bg-gray-200 dark:bg-slate-800 relative first:rounded-l-lg last:rounded-r-lg cursor-help transition-all hover:bg-gray-300 dark:hover:bg-slate-700" 
-               data-tooltip-target="tooltip-stage-<%= deal.id %>-<%= stage.id %>" data-tooltip-placement="top">
-            <div id="tooltip-stage-<%= deal.id %>-<%= stage.id %>" role="tooltip" data-turbo-permanent class="absolute z-50 invisible inline-block px-3 py-2 text-xs font-bold text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-slate-800 whitespace-nowrap">
-              <%= stage.name %>
-              <div class="tooltip-arrow" data-popper-arrow></div>
-            </div>
+        <%= link_to account_deal_path(deal.account, deal, deal: { status: deal.status, stage_id: stage.id } ), 
+                    data: { turbo_method: :patch, confirm: t('views.accounts.deals.stages_nav_desktop.are_you_sure?'), tooltip_target: "tooltip-stage-#{deal.id}-#{stage.id}", tooltip_placement: "top" }, 
+                    class: "first:rounded-l-lg last:rounded-r-lg justify-center flex w-full h-2 #{bg_color} group relative transition-all hover:scale-y-125 before:absolute #{ index == stages.length - 1 ? '' : "before:top-0 before:z-10 before:right-[-4px] before:border-solid #{arrow_color} before:border-l-[4px] before:border-y-transparent before:border-y-[4px] after:absolute after:top-0 after:border-solid after:border-y-transparent after:border-y-[4px] inline-block after:border-l-light-palette-p5 after:border-l-[4px] after:right-[-7px] " }", style:"z-index: #{30 - index} ", aria_current:"page" do %>
+          &nbsp;
+          <div id="tooltip-stage-<%= deal.id %>-<%= stage.id %>" role="tooltip" data-turbo-permanent class="absolute z-50 invisible inline-block px-3 py-2 text-xs font-bold text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-slate-800 whitespace-nowrap">
+            <%= stage.name %>
+            <div class="tooltip-arrow" data-popper-arrow></div>
           </div>
         <% end %>
 
