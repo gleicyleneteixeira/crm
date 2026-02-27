@@ -1,6 +1,7 @@
 class DealsChannel < ApplicationCable::Channel
   def subscribed
-    stream_from "deals_channel"
+    return reject if params[:account_id].blank?
+    stream_from "deals_channel_#{params[:account_id]}"
   end
 
   def unsubscribed

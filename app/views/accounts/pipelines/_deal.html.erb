@@ -1,7 +1,7 @@
 <%= content_tag :li, id: dom_id(deal), data: { id: deal.id, account_id: Current.account.id, position: deal.position } , class: "hover:shadow-sm select-none cursor-pointer #{'opacity-60 pointer-events-none animate-pulse' if local_assigns[:loading]}" do %>
   <%= turbo_stream_from deal %>
   
-  <div class="rounded-xl border border-slate-200/70 dark:border-slate-800 bg-white dark:bg-slate-950/70 dark:backdrop-blur-md transition-colors duration-200 px-3 pt-3 pb-2" data-controller='load-lucid-icons'>
+  <div class="h-auto min-h-fit rounded-xl border border-slate-200/70 dark:border-slate-800 bg-white dark:bg-slate-950/70 dark:backdrop-blur-md transition-colors duration-200 px-3 pt-3 pb-2" data-controller='load-lucid-icons'>
     <% priority_classes =
          case deal.priority_level
          when 'low'
@@ -184,10 +184,10 @@
     <%# ANDAR FINAL: CONTATO À ESQUERDA (COM BALÃO DO NEGÓCIO) E AVATAR DO PROPRIETÁRIO À DIREITA %>
     <div class='flex items-center justify-between'>
       <div class='flex items-center gap-2'>
-        <%= link_to account_contact_path(Current.account, deal.contact), class: "cursor-pointer peer" , data: { turbo_frame: :drawer } do %>
+        <%= link_to account_contact_path(Current.account, deal.contact), class: "flex-1 min-w-0 cursor-pointer peer" , data: { turbo_frame: :drawer } do %>
           <div class='flex items-center gap-2 text-xs'>
-            <i data-lucide="user" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500"></i>
-            <p class='text-xs font-medium text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-100 <%= dom_id(deal.contact, :stream_full_name) %>'>
+            <i data-lucide="user" class="flex-shrink-0 w-3.5 h-3.5 text-slate-400 dark:text-slate-500"></i>
+            <p class='text-xs font-medium text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-100 break-words whitespace-normal <%= dom_id(deal.contact, :stream_full_name) %>'>
               <%= deal.contact.full_name %>
             </p>
           </div>

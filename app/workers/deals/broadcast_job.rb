@@ -6,9 +6,8 @@ class Deals::BroadcastJob
     deal = Deal.find_by(id: deal_id)
     return unless deal
 
-    # Transmite o evento JSON para o canal de negócios
-    # Isso permite que qualquer frontend (Woofeed ou Chatwoot) escute e reaja
-    ActionCable.server.broadcast("deals_channel", {
+    # Transmite o evento JSON para o canal de negócios isolado por conta
+    ActionCable.server.broadcast("deals_channel_#{deal.contact.account_id}", {
       action: action,
       deal: deal.as_json(include: [:contact, :stage, :pipeline])
     })
