@@ -44,7 +44,7 @@
     </div>
     <%= render 'accounts/stages/kanban_details', stage: stage, filter_status_deal: params[:filter_status_deal] %>
   </div>
-  <ul data-controller="drag" data-drag-url="/accounts/:account_id/deals/:deal_id" data-id="<%= stage.id %>" class="space-y-4 overflow-y-auto custom-scroll-list-deal h-[calc(100vh-260px)]" id=<%= dom_id(stage, :deals) %>>
+  <ul data-controller="drag" data-drag-url="/accounts/:account_id/deals/:deal_id" data-id="<%= stage.id %>" class="space-y-4 overflow-y-auto overflow-x-hidden custom-scroll-list-deal h-[calc(100vh-260px)]" id=<%= dom_id(stage, :deals) %>>
     <%= render partial: 'accounts/pipelines/deal', collection: deals, as: :deal, cached: true %>
     <% if pagy.next.present? %>
       <%= turbo_frame_tag dom_id(stage, :pagination_deals), src: account_stage_path(Current.account, stage, filter_status_deal: filter_status_deal, page: pagy.next, format: :turbo_stream), loading: :lazy do  %>

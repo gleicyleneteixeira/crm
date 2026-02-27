@@ -33,7 +33,7 @@
         <% end %>
 
         <%= link_to account_deal_path(Current.account, deal.id), data: { turbo_frame: :_top } do %>
-          <p class="text-sm font-semibold text-slate-900 dark:text-slate-100 leading-snug whitespace-normal break-words">
+          <p class="text-sm font-semibold text-slate-900 dark:text-slate-100 leading-snug whitespace-normal break-all">
             <%= deal.name %>
           </p>
         <% end %>
@@ -187,7 +187,7 @@
         <%= link_to account_contact_path(Current.account, deal.contact), class: "flex-1 min-w-0 cursor-pointer peer" , data: { turbo_frame: :drawer } do %>
           <div class='flex items-center gap-2 text-xs'>
             <i data-lucide="user" class="flex-shrink-0 w-3.5 h-3.5 text-slate-400 dark:text-slate-500"></i>
-            <p class='text-xs font-medium text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-100 break-words whitespace-normal <%= dom_id(deal.contact, :stream_full_name) %>'>
+            <p class='text-xs font-medium text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-100 break-all whitespace-normal <%= dom_id(deal.contact, :stream_full_name) %>'>
               <%= deal.contact.full_name %>
             </p>
           </div>
