@@ -32,6 +32,7 @@ class Accounts::Contacts::ChatwootEmbedController < InternalController
   end
 
   def show
+    @contact = Contact.includes(deals: [{ stage: { pipeline: :stages } }, :events]).find(params[:id])
     @chatwoot_conversation_url = params[:chatwoot_conversation_url]
   end
 

@@ -38,7 +38,7 @@ class Deal < ApplicationRecord
   include Deal::EventCreator
   include Deal::HandleInCentsValues
 
-  belongs_to :contact
+  belongs_to :contact, touch: true
   belongs_to :stage
   belongs_to :pipeline
   belongs_to :creator, class_name: 'User', foreign_key: 'created_by_id', optional: true
