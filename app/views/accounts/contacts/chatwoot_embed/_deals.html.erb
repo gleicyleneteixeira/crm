@@ -12,7 +12,8 @@
     <% end %>
   </header>
   <ul id="chatwoot_embed_deals_list">
-    <% cache ["chatwoot_embed_deals_list", contact, Current.account.id] do %>
+    <%# Cache v2 para forçar atualização das melhorias visuais %>
+    <% cache ["chatwoot_embed_deals_list_v2", contact, Current.account.id] do %>
       <% contact.deals.each do | deal |  %>
         <li class="grid grid-cols-[1fr_40px] gap-4 p-4 border-x-2 border-b-2 border-light-palette-p3 odd:bg-light-palette-p4 even:bg-light-palette-p5">
           <div class="">

@@ -10,43 +10,52 @@
           <%# Cores: Um tom abaixo para suavizar, mantendo a visibilidade %>
           <% 
             bg_color = case deal.status
-                        when 'won' then 'bg-[#a7f3d0]'  # Verde Suave (Ganho)
-                        when 'lost' then 'bg-[#fca5a5]' # Vermelho Suave (Perdido)
-                        else 'bg-green-500'             # Andamento Verde Forte
+                        when 'won' then 'bg-[#4ade80]'  # Verde Vivo Pastel (Ganho)
+                        when 'lost' then 'bg-[#f87171]' # Vermelho Vivo Pastel (Perdido)
+                        else 'bg-emerald-500'           # Andamento Verde Forte
                         end 
             
             arrow_color = case deal.status
-                            when 'won' then 'before:border-l-[#a7f3d0]'
-                            when 'lost' then 'before:border-l-[#fca5a5]'
-                            else 'before:border-l-green-500'
+                            when 'won' then 'before:border-l-[#4ade80]'
+                            when 'lost' then 'before:border-l-[#f87171]'
+                            else 'before:border-l-emerald-500'
                             end
           %>
 
-          <%# Barra fina h-2 para um visual limpo %>
+          <%# Barra fina h-2 para um visual limpo com Tooltip Flowbite %>
           <%= link_to account_deal_path(deal.account, deal, deal: { status: deal.status, stage_id: stage.id } ), 
                       method: :patch, 
-                      title: stage.name,
-                      data: { confirm: t('views.accounts.deals.stages_nav_desktop.are_you_sure?'), tooltip_target:"tooltip-default-#{stage.id}-#{stage.name}", data_tooltip_placement:"bottom" }, 
-                      class: "first:rounded-l-lg last:rounded-r-lg justify-center flex w-full h-2 #{bg_color} group relative transition-all hover:opacity-80 before:absolute #{ index == stages.length - 1 ? '' : "before:top-0 before:z-10 before:right-[-4px] before:border-solid #{arrow_color} before:border-l-[4px] before:border-y-transparent before:border-y-[4px] after:absolute after:top-0 after:border-solid after:border-y-transparent after:border-y-[4px] inline-block after:border-l-light-palette-p5 after:border-l-[4px] after:right-[-7px] " }", style:"z-index: #{30 - index} ", aria_current:"page" do %>
+                      data: { confirm: t('views.accounts.deals.stages_nav_desktop.are_you_sure?'), tooltip_target: "tooltip-stage-#{deal.id}-#{stage.id}", tooltip_placement: "top" }, 
+                      class: "first:rounded-l-lg last:rounded-r-lg justify-center flex w-full h-2 #{bg_color} group relative transition-all hover:scale-y-125 before:absolute #{ index == stages.length - 1 ? '' : "before:top-0 before:z-10 before:right-[-4px] before:border-solid #{arrow_color} before:border-l-[4px] before:border-y-transparent before:border-y-[4px] after:absolute after:top-0 after:border-solid after:border-y-transparent after:border-y-[4px] inline-block after:border-l-light-palette-p5 after:border-l-[4px] after:right-[-7px] " }", style:"z-index: #{30 - index} ", aria_current:"page" do %>
             &nbsp;
+            <div id="tooltip-stage-<%= deal.id %>-<%= stage.id %>" role="tooltip" data-turbo-permanent class="absolute z-50 invisible inline-block px-3 py-2 text-xs font-bold text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-slate-800 whitespace-nowrap">
+              <%= stage.name %>
+              <div class="tooltip-arrow" data-popper-arrow></div>
+            </div>
           <% end %>
         <% else %>
-          <%# Fases futuras em cinza claro %>
-          <div class="flex w-full h-2 bg-gray-200 dark:bg-slate-800 relative first:rounded-l-lg last:rounded-r-lg" title="<%= stage.name %>"></div>
+          <%# Fases futuras em cinza claro com Tooltip %>
+          <div class="flex w-full h-2 bg-gray-200 dark:bg-slate-800 relative first:rounded-l-lg last:rounded-r-lg cursor-help transition-all hover:bg-gray-300 dark:hover:bg-slate-700" 
+               data-tooltip-target="tooltip-stage-<%= deal.id %>-<%= stage.id %>" data-tooltip-placement="top">
+            <div id="tooltip-stage-<%= deal.id %>-<%= stage.id %>" role="tooltip" data-turbo-permanent class="absolute z-50 invisible inline-block px-3 py-2 text-xs font-bold text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-slate-800 whitespace-nowrap">
+              <%= stage.name %>
+              <div class="tooltip-arrow" data-popper-arrow></div>
+            </div>
+          </div>
         <% end %>
 
         <%# ESCRITA VIVIDA: Nome da etapa e status Ganho/Perdido %>
         <% if stage == deal.stage %>
-          <div class="flex flex-col items-center mt-1">
-            <p class="text-[10px] font-black text-center leading-tight <%= deal.status == 'won' ? 'text-emerald-400' : (deal.status == 'lost' ? 'text-rose-500' : 'text-slate-200') %>">
-              <%= stage.name %>
+          <div class="flex flex-col items-center mt-2 pb-1 max-w-full">
+            <p class="text-[10px] font-black text-center leading-tight truncate w-full px-1 <%= deal.status == 'won' ? 'text-green-500' : (deal.status == 'lost' ? 'text-red-500' : 'text-slate-100') %>">
+              <%= stage.name.upcase %>
             </p>
             
-            <%# Etiquetas atualizadas conforme sua solicitação %>
+            <%# Etiquetas com cores mais fortes e brilho %>
             <% if deal.status == 'won' %>
-              <span class="text-[8px] font-bold text-emerald-500 mt-0.5 tracking-tighter shadow-sm bg-emerald-500/10 px-1 rounded-sm">● GANHO</span>
+              <span class="text-[9px] font-extrabold text-[#4ade80] mt-1 tracking-tight bg-green-500/20 px-1.5 py-0.5 rounded shadow-[0_0_5px_rgba(74,222,128,0.3)] whitespace-nowrap">✓ GANHO</span>
             <% elsif deal.status == 'lost' %>
-              <span class="text-[8px] font-bold text-rose-500 mt-0.5 tracking-tighter shadow-sm bg-rose-500/10 px-1 rounded-sm">● PERDIDO</span>
+              <span class="text-[9px] font-extrabold text-[#f87171] mt-1 tracking-tight bg-red-500/20 px-1.5 py-0.5 rounded shadow-[0_0_5px_rgba(248,113,113,0.3)] whitespace-nowrap">✕ PERDIDO</span>
             <% end %>
           </div>
         <% end %>

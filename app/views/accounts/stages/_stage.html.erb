@@ -1,4 +1,4 @@
-<div class="px-4 pb-4 rounded border-2 border-light-palette-p3 bg-light-palette-p5 dark:bg-slate-900/40 dark:border-white/10 dark:backdrop-blur-md relative transition-colors duration-200" data-controller="load-lucid-icons load-flowbite" id=<%= dom_id(stage, filter_status_deal) %>>
+<div class="px-4 pb-4 rounded border-2 border-light-palette-p3 bg-light-palette-p5 dark:bg-slate-900/40 dark:border-white/10 dark:backdrop-blur-md relative overflow-hidden transition-colors duration-200" data-controller="load-lucid-icons load-flowbite" id=<%= dom_id(stage, filter_status_deal) %>>
   <div class='pt-2 pb-3.5 flex flex-col gap-1'>
     <div class="flex justify-between items-center gap-1.5">
       <%# MUDANÇA: dark:text-slate-100 para o nome da coluna %>
@@ -14,8 +14,8 @@
         <i data-lucide="more-horizontal"></i>
       </button>
       
-      <%# AJUSTE DA SETINHA LATERAL: Agora combinando com o fundo Slate-800 %>
-      <div class="p-0 w-6 rounded-tr-lg absolute border-t-2 border-r-2 border-light-palette-p3 dark:border-white/10 left-[285px] bg-light-palette-p5 dark:bg-slate-900/40 dark:backdrop-blur-md rotate-45">
+      <%# AJUSTE DA SETINHA LATERAL: right-0 para evitar overflow %>
+      <div class="p-0 w-6 rounded-tr-lg absolute border-t-2 border-r-2 border-light-palette-p3 dark:border-white/10 right-0 top-4 bg-light-palette-p5 dark:bg-slate-900/40 dark:backdrop-blur-md rotate-45 z-0">
         <i data-lucide="chevron-right" class="text-light-palette-p1 dark:text-slate-400 -rotate-45 w-5"></i>
       </div>
     </div>
@@ -45,7 +45,7 @@
     <%= render 'accounts/stages/kanban_details', stage: stage, filter_status_deal: params[:filter_status_deal] %>
   </div>
   <ul data-controller="drag" data-drag-url="/accounts/:account_id/deals/:deal_id" data-id="<%= stage.id %>" class="space-y-4 overflow-y-auto custom-scroll-list-deal h-[calc(100vh-260px)]" id=<%= dom_id(stage, :deals) %>>
-    <%= render partial: 'accounts/pipelines/deal', collection: deals, as: :deal %>
+    <%= render partial: 'accounts/pipelines/deal', collection: deals, as: :deal, cached: true %>
     <% if pagy.next.present? %>
       <%= turbo_frame_tag dom_id(stage, :pagination_deals), src: account_stage_path(Current.account, stage, filter_status_deal: filter_status_deal, page: pagy.next, format: :turbo_stream), loading: :lazy do  %>
         <div class='py-5'>
