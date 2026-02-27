@@ -2,7 +2,7 @@
 
 <%= turbo_stream_from :stages %>
 <%= turbo_frame_tag :stages do %>
-  <div data-controller="lists" data-lists-id="<%= @pipeline.id %>" class="h-screen w-full bg-brand-palette-08 overflow-hidden">
+  <div data-controller="lists" data-lists-id="<%= @pipeline.id %>" class="h-full w-full bg-brand-palette-08 overflow-hidden">
     
     <section class="flex flex-row h-full w-full gap-5 p-8 overflow-x-auto overflow-y-hidden items-start" data-lists-target="lists">
       <% @pipeline.stages.sort_by(&:position).each do |stage| %>
