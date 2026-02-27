@@ -50,12 +50,9 @@
 <%# LÓGICA DE FINALIZAÇÃO (WIN / LOSS) %>
 <% if @deal.previous_changes.key?(:status) %>
   <% if @deal.won? %>
-    <%= turbo_stream.append "app" do %>
-      <div data-controller="confetti"></div>
-    <% end %>
-    <%= turbo_stream.update :flash_message, partial: "components/flash_message", locals: { message: "Parabéns! 🥳 Negócio ganho!", type: :success } %>
+    <%= turbo_stream.update :flash_message, partial: "components/flash_message", locals: { message: "Negócio ganho!", type: :success } %>
   <% elsif @deal.lost? %>
-    <%= turbo_stream.update :flash_message, partial: "components/flash_message", locals: { message: "Que pena! 😢 Fica para a próxima. Negócio perdido.", type: :error } %>
+    <%= turbo_stream.update :flash_message, partial: "components/flash_message", locals: { message: "Negócio perdido.", type: :error } %>
   <% end %>
 
   <% if @deal.won? || @deal.lost? %>
