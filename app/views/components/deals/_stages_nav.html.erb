@@ -12,13 +12,13 @@
           if is_past_or_current
             bg_color = case deal.status
                         when 'won' then 'bg-[#4ade80]'  # Verde Pastel
-                        when 'lost' then 'bg-[#f87171]' # Vermelho Pastel
+                        when 'lost', 'cancelled' then 'bg-[#f87171]' # Vermelho Pastel
                         else 'bg-emerald-500'           # Verde Forte (Em andamento)
                         end 
             
             arrow_color = case deal.status
                             when 'won' then 'before:border-l-[#4ade80]'
-                            when 'lost' then 'before:border-l-[#f87171]'
+                            when 'lost', 'cancelled' then 'before:border-l-[#f87171]'
                             else 'before:border-l-emerald-500'
                             end
           else
