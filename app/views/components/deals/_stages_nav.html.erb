@@ -38,7 +38,7 @@
             </div>
           <% end %>
         <% else %>
-          <div class="first:rounded-l-lg last:rounded-r-lg justify-center flex w-full h-2 #{bg_color} relative before:absolute #{ index == stages.length - 1 ? '' : "before:top-0 before:z-10 before:right-[-4px] before:border-solid #{arrow_color} before:border-l-[4px] before:border-y-transparent before:border-y-[4px] after:absolute after:top-0 after:border-solid after:border-y-transparent after:border-y-[4px] inline-block after:border-l-light-palette-p5 after:border-l-[4px] after:right-[-7px] " }" style="z-index: #{30 - index} ">
+          <div class="first:rounded-l-lg last:rounded-r-lg justify-center flex w-full h-2 <%= bg_color %> relative before:absolute <%= index == stages.length - 1 ? '' : "before:top-0 before:z-10 before:right-[-4px] before:border-solid #{arrow_color} before:border-l-[4px] before:border-y-transparent before:border-y-[4px] after:absolute after:top-0 after:border-solid after:border-y-transparent after:border-y-[4px] inline-block after:border-l-light-palette-p5 after:border-l-[4px] after:right-[-7px] " %>" style="z-index: <%= 30 - index %> ">
             &nbsp;
           </div>
         <% end %>
