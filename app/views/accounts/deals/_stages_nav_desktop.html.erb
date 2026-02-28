@@ -10,28 +10,28 @@
           if is_past_or_current
             # Define colors based on status
             bg_class = case deal.status
-                       when 'won' then 'bg-[#4ade80] hover:bg-[#22c55e]' 
+                       when 'won' then 'bg-[#86efac] hover:bg-[#4ade80]' 
                        when 'lost' then 'bg-[#f87171] hover:bg-[#ef4444]'
-                       else 'bg-auxiliary-palette-green hover:bg-auxiliary-palette-green-down'
+                       else 'bg-[#22c55e] hover:bg-[#16a34a]'
                        end
             
             # Hover text color to contrast with the darker hover background
             hover_text_class = case deal.status
-                               when 'won' then 'group-hover:text-[#4ade80]'
+                               when 'won' then 'group-hover:text-[#86efac]'
                                when 'lost' then 'group-hover:text-[#f87171]'
-                               else 'group-hover:text-auxiliary-palette-green'
+                               else 'group-hover:text-[#22c55e]'
                                end
 
             arrow_border_class = case deal.status
-                                 when 'won' then 'border-l-[#4ade80]'
+                                 when 'won' then 'border-l-[#86efac]'
                                  when 'lost' then 'border-l-[#f87171]'
-                                 else 'border-l-auxiliary-palette-green'
+                                 else 'border-l-[#22c55e]'
                                  end
 
             arrow_hover_class = case deal.status
-                                when 'won' then 'hover:border-l-[#22c55e]'
+                                when 'won' then 'hover:border-l-[#4ade80]'
                                 when 'lost' then 'hover:border-l-[#ef4444]'
-                                else 'hover:border-l-auxiliary-palette-green-down'
+                                else 'hover:border-l-[#16a34a]'
                                 end
           else
             bg_class = 'bg-gray-300 dark:bg-slate-700 hover:bg-gray-400 dark:hover:bg-slate-600'

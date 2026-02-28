@@ -11,15 +11,15 @@
           # Definição de cores de fundo e setas
           if is_past_or_current
             bg_color = case deal.status
-                        when 'won' then 'bg-[#4ade80]'  # Verde Pastel
+                        when 'won' then 'bg-[#86efac]'  # Verde Pastel mais suave
                         when 'lost', 'cancelled' then 'bg-[#f87171]' # Vermelho Pastel
-                        else 'bg-emerald-500'           # Verde Forte (Em andamento)
+                        else 'bg-[#22c55e]'           # Verde Forte (Em andamento)
                         end 
             
             arrow_color = case deal.status
-                            when 'won' then 'before:border-l-[#4ade80]'
+                            when 'won' then 'before:border-l-[#86efac]'
                             when 'lost', 'cancelled' then 'before:border-l-[#f87171]'
-                            else 'before:border-l-emerald-500'
+                            else 'before:border-l-[#22c55e]'
                             end
           else
             bg_color = 'bg-gray-200 dark:bg-slate-800'

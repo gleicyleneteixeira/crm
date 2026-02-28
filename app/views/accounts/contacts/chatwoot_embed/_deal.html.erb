@@ -18,9 +18,8 @@
                          else 'text-slate-400'
                          end
       %>
-      <span class="inline-flex items-center gap-1 text-[10px] font-bold uppercase <%= priority_color %>">
+      <span class="inline-flex items-center gap-1 text-[10px] font-bold uppercase <%= priority_color %>" title="<%= Deal.human_enum_name(:priority_level, deal.priority_level) %>">
         <i data-lucide="flag" class="w-3 h-3"></i>
-        <%= Deal.human_enum_name(:priority_level, deal.priority_level) %>
       </span>
 
       <span class="text-slate-300">|</span>
