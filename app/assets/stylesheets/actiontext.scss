@@ -12,8 +12,9 @@
 
 .trix-content {
   .attachment-gallery {
-    > action-text-attachment,
-    > .attachment {
+
+    >action-text-attachment,
+    >.attachment {
       flex: 1 0 33%;
       padding: 0 0.5em;
       max-width: 33%;
@@ -21,8 +22,9 @@
 
     &.attachment-gallery--2,
     &.attachment-gallery--4 {
-      > action-text-attachment,
-      > .attachment {
+
+      >action-text-attachment,
+      >.attachment {
         flex-basis: 50%;
         max-width: 50%;
       }
@@ -34,5 +36,39 @@
       padding: 0 !important;
       max-width: 100% !important;
     }
+  }
+}
+
+/* Fix Trix Editor icons visibility and text in Dark Mode */
+.dark {
+  trix-toolbar {
+    .trix-button-group {
+      border-color: #334155;
+
+      /* slate-700 */
+      button,
+      .trix-button--icon {
+        filter: invert(1) brightness(1.5) !important;
+        /* Invert black icons to white */
+        border-color: #334155;
+
+        &:hover {
+          background-color: #1e293b;
+          /* slate-800 */
+        }
+
+        &.trix-active {
+          background-color: #334155;
+        }
+      }
+    }
+  }
+
+  trix-editor {
+    color: #f1f5f9;
+    /* slate-100 */
+    background-color: #0f172a;
+    /* slate-900 */
+    border-color: #334155;
   }
 }

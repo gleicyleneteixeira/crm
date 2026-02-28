@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html style="background-color: #121D3A;">
+<html class="dark" style="background-color: #121D3A; color-scheme: dark;">
   <head>
     <title>Woofed CRM</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -10,11 +9,12 @@
         try {
           var storedTheme = localStorage.getItem('color-theme');
           var prefersDark = !storedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-          var isDark = storedTheme === 'dark' || prefersDark;
-          if (isDark) {
+          if (storedTheme === 'dark' || (storedTheme === null && prefersDark)) {
             document.documentElement.classList.add('dark');
+            document.documentElement.style.colorScheme = 'dark';
           } else {
             document.documentElement.classList.remove('dark');
+            document.documentElement.style.colorScheme = 'light';
           }
         } catch (e) {}
       })();

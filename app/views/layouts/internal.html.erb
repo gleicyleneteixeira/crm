@@ -1,6 +1,24 @@
-<!DOCTYPE html>
-<html>
+<html class="dark">
   <head>
+    <script>
+      (function() {
+        try {
+          var storedTheme = localStorage.getItem('color-theme');
+          var prefersDark = !storedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (storedTheme === 'dark' || (storedTheme === null && prefersDark)) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.style.colorScheme = 'dark';
+          } else {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.style.colorScheme = 'light';
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <style>
+      html.dark { background-color: #121D3A !important; }
+      html { background-color: #eff6ff !important; } /* brand-palette-08 */
+    </style>
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no" name="viewport">
     <title>Woofed CRM</title>
@@ -27,15 +45,15 @@
     <%= yield :stylesheets %>
   </head>
   <body data-user-locale='<%= current_user&.language || '' %>' data-account-currency="<%= Current.account&.currency_code || '' %>" data-controller="analytics--openpanel" class="">
-    <div id="app" class="h-screen">
+    <div id="app" class="min-h-screen">
       <%= render partial: 'components/flash_message', locals: { message: flash[:notice] } %>
-      <div class="flex h-full">
+      <div class="flex min-h-screen">
         <div>
           <% unless controller_path == 'accounts/deals' && ['show'].include?(action_name) %>
             <%= render "layouts/shared/sidebar" %>
           <% end %>
         </div>
-        <div class="flex flex-col h-full w-full overflow-hidden">
+        <div class="flex flex-col flex-1 w-full">
           <%= render "layouts/shared/navbar" %>
           <main class="flex-1 overflow-x-auto overflow-y-auto bg-brand-palette-08">
             <%= content_for?(:content) ? yield(:content) : yield %>

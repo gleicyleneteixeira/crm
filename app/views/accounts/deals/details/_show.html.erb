@@ -162,9 +162,19 @@
                     <% if show_field == :total_amount_in_cents %>
                       <%= render 'components/formatters/currency', value: model.send(show_field), class_style: 'stream_deal_total_amount_in_cents' %>
                     <% else %>
-                      <p>
-                        <%= model.send(show_field) %>
-                      </p>
+                      <div class="flex items-center gap-2">
+                        <p>
+                          <%= model.send(show_field) %>
+                        </p>
+                        <% if show_field == :full_name && model.is_a?(Contact) %>
+                          <%= link_to account_contact_path(Current.account, model), 
+                                      data: { turbo_frame: :drawer }, 
+                                      class: "text-brand-palette-03 hover:text-brand-palette-04 transition-colors",
+                                      title: "Ver no CRM" do %>
+                            <i data-lucide="search" class="w-4 h-4"></i>
+                          <% end %>
+                        <% end %>
+                      </div>
                     <% end %>
                   </div>
                   <% if defined?(update_path) && update_path.present? %>
