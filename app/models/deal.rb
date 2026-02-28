@@ -78,7 +78,9 @@ class Deal < ApplicationRecord
     saved_change_to_total_deal_products_amount_in_cents? ||
     saved_change_to_custom_attributes? ||
     saved_change_to_status? || 
-    saved_change_to_name?
+    saved_change_to_name? ||
+    saved_change_to_priority_level? ||
+    saved_change_to_contact_id?
   end
 
   def sync_deal_async

@@ -9,6 +9,19 @@
   <%= render "/accounts/deals/stages_nav_desktop", deal: @deal %>
 <% end %>
 
+<%# ATUALIZAÇÃO IMEDIATA (FEEDBACK INSTANTÂNEO) %>
+<%= turbo_stream.replace dom_id(@deal, :deal_show_page_overview) do %>
+  <%= render '/accounts/deals/details/show',
+             model: @deal,
+             update_path: account_deal_path(current_user.account, @deal) %>
+<% end %>
+
+<%= turbo_stream.replace dom_id(@deal) do %>
+  <%= render 'accounts/pipelines/deal', deal: @deal %>
+<% end %>
+
+<%= turbo_stream.replace dom_id(@deal, :chatwoot_embed), partial: 'accounts/contacts/chatwoot_embed/deal', locals: { deal: @deal } %>
+
 <%# Scripts de reinicialização (essencial para o DOM local) %>
 <%= turbo_stream.append_all "body" do %>
   <script data-turbo-cache="false">
