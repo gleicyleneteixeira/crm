@@ -47,6 +47,14 @@
   <%= render "/layouts/shared/navbar_show_deal", deal: @deal %>
 <% end %>
 
+<%= turbo_stream.append_all "body" do %>
+  <script data-turbo-cache="false">
+    // Força o reinício dos ícones e do acordeão após a atualização via Turbo Stream
+    if (typeof initFlowbite === 'function') { initFlowbite(); }
+    if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+  </script>
+<% end %>
+
 <%# LÓGICA DE FINALIZAÇÃO (WIN / LOSS) %>
 <% if @deal.previous_changes.key?(:status) %>
   <% if @deal.won? %>

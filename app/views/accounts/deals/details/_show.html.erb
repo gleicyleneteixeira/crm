@@ -35,10 +35,10 @@
           <span>
             <%= t("views.layouts.shared.navbar_deal.deal_#{model.status}") %>
           </span>
-          <%= link_to account_deal_path(Current.account, model, deal: { status: 'open'} ),
-                      method: :patch,
-                      data: { confirm: t('views.layouts.shared.navbar_deal.are_you_sure?') },
-                      class: "button-default-primary-xs px-2 py-1 text-[11px]" do %>
+          <%= button_to account_deal_path(Current.account, model, deal: { status: 'open'} ),
+                        method: :patch,
+                        form: { data: { turbo_confirm: t('views.layouts.shared.navbar_deal.are_you_sure?') } },
+                        class: "button-default-primary-xs px-2 py-1 text-[11px]" do %>
             <span>Reabrir</span>
           <% end %>
         </div>

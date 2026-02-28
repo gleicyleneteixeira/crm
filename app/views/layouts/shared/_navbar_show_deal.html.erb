@@ -22,15 +22,7 @@
     </div>
   </div>
   <div class="hidden sm:flex gap-2">
-    <% if @deal.open? %>
-      <%= link_to(
-    t('views.layouts.shared.navbar_deal.delete'),
-    account_deal_path(current_user.account, @deal, format: :html),
-    method: :delete,
-    data: { confirm: t('views.layouts.shared.navbar_deal.are_you_sure?'),
-    turbo: false },
-    class: 'btn-secondary') %>
-    <% else %>
+    <% unless @deal.open? %>
       <% if @deal.lost_reason.present? %>
         <div id="<%= dom_id(@deal, "tooltip-#{@deal.status}") %>" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-xs opacity-0 tooltip dark:bg-gray-700">
           <%= @deal.lost_reason %>
@@ -39,18 +31,6 @@
       <div class="deal-<%= @deal.status %>-element" data-controller="load-lucid-icons load-flowbite" data-tooltip-target="<%= dom_id(@deal, "tooltip-#{@deal.status}")  %>">
         <%= t("views.layouts.shared.navbar_deal.deal_#{@deal.status}") %>
       </div>
-      <%= link_to(
-    t('views.layouts.shared.navbar_deal.reopen'),
-    account_deal_path(current_user.account, @deal, deal: { status: 'open'} ),
-    method: :patch,
-    data: { confirm: t('views.layouts.shared.navbar_deal.are_you_sure?') },
-    class: 'btn-primary') %>
-      <%= link_to(
-    t('views.layouts.shared.navbar_deal.delete'),
-    account_deal_path(current_user.account, @deal),
-    method: :delete,
-    data: { confirm: t('views.layouts.shared.navbar_deal.are_you_sure?') },
-    class: 'btn-secondary') %>
     <% end %>
   </div>
 </nav>
