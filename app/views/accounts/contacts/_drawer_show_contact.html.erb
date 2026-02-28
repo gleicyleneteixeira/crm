@@ -95,6 +95,17 @@
                     </div>
                   <% end %>
                 </div>
+
+                <%# Custom Fields (Dynamic) %>
+                <div class="mt-2 flex flex-wrap gap-1">
+                  <% deal.account.custom_attribute_definitions.where(attribute_model: 'deal_attribute', show_in_card: true).each do |definition| %>
+                    <% value = deal.custom_attributes[definition.attribute_key] %>
+                    <% next if value.blank? %>
+                    <div class="bg-slate-50 dark:bg-slate-800/40 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded text-[9px] font-medium border border-slate-200 dark:border-slate-700/50 truncate max-w-[150px]">
+                      <span class="opacity-70"><%= definition.attribute_display_name %>:</span> <%= value %>
+                    </div>
+                  <% end %>
+                </div>
               </div>
             </div>
             <%= link_to account_deal_path(Current.account, deal), data: {turbo_frame: :_top} , class: 'flex items-center justify-center rounded text-slate-400 w-8 h-8 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors' do %>

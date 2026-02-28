@@ -9,7 +9,7 @@
       <% end %>
     </div>
 
-    <div class="flex flex-wrap gap-2 items-center mb-3">
+    <div class="flex flex-wrap gap-2 items-center mb-1">
       <% 
         priority_color = case deal.priority_level
                          when 'low' then 'text-emerald-500'
@@ -28,6 +28,18 @@
       <p class="typography-sub-text-m-lh150 text-dark-gray-palette-p3 text-[10px] uppercase font-bold">Etapa</p>
       <%= render 'accounts/pipelines/deal_event', event: deal.next_event_planned if deal.next_event_planned? %>
     </div>
+
+    <%# Custom Fields (Dynamic) %>
+    <div class="mb-3 flex flex-wrap gap-1">
+      <% deal.account.custom_attribute_definitions.where(attribute_model: 'deal_attribute', show_in_card: true).each do |definition| %>
+        <% value = deal.custom_attributes[definition.attribute_key] %>
+        <% next if value.blank? %>
+        <div class="bg-blue-50 dark:bg-slate-800/50 text-blue-600 dark:text-blue-300 px-1.5 py-0.5 rounded text-[9px] font-medium border border-blue-100 dark:border-slate-700/50 truncate max-w-[120px]">
+          <span class="opacity-70"><%= definition.attribute_display_name %>:</span> <%= value %>
+        </div>
+      <% end %>
+    </div>
+
     <%= render 'components/deals/stages_nav', deal: deal  %>
   </div>
   <%= link_to(account_deal_path(deal.account, deal.id), data: { turbo_frame: :_top }, class: "arrow-btn flex items-center p-2 border-2 rounded-md border-light-palette-p3 odd:bg-light-palette-p4 even:bg-light-palette-p5 hover:odd:bg-light-palette-p5 hover:even:bg-light-palette-p4 self-start cursor-pointer") do %>
