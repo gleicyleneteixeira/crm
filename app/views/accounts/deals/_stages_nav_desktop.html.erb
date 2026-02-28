@@ -15,6 +15,13 @@
                        else 'bg-auxiliary-palette-green hover:bg-auxiliary-palette-green-down'
                        end
             
+            # Hover text color to contrast with the darker hover background
+            hover_text_class = case deal.status
+                               when 'won' then 'group-hover:text-[#4ade80]'
+                               when 'lost' then 'group-hover:text-[#f87171]'
+                               else 'group-hover:text-auxiliary-palette-green'
+                               end
+
             arrow_border_class = case deal.status
                                  when 'won' then 'border-l-[#4ade80]'
                                  when 'lost' then 'border-l-[#f87171]'
@@ -28,6 +35,7 @@
                                 end
           else
             bg_class = 'bg-gray-300 dark:bg-slate-700 hover:bg-gray-400 dark:hover:bg-slate-600'
+            hover_text_class = 'group-hover:text-gray-300 dark:group-hover:text-slate-700'
             arrow_border_class = 'border-l-gray-300 dark:border-l-slate-700'
             arrow_hover_class = 'hover:border-l-gray-400 dark:hover:border-l-slate-600'
           end
@@ -37,7 +45,7 @@
                     method: :patch, 
                     data: { action: 'mouseover->stages-nav#mouseOver mouseout->stages-nav#mouseOut', confirm: t('views.accounts.deals.stages_nav_desktop.are_you_sure?'), tooltip_target:"tooltip-default-#{stage.id}", link_stage_id: stage.id, color: (is_past_or_current ? 'green' : 'gray') }, 
                     class: "overflow-hidden first:rounded-l-lg last:rounded-r-lg justify-center flex flex-1 #{bg_class} group before:absolute", aria_current:"page"  do %>
-          <p class="truncate py-2.5 pr-2.5 pl-6 leading-none typography-micro-b-lh150 <%= is_past_or_current ? 'text-light-palette-p5' : 'text-dark-gray-palette-p2 dark:text-slate-300' %> group-hover:opacity-80" data-name-stage-id="<%= stage.id %>" data-color="<%= is_past_or_current ? 'green' : 'gray' %>">
+          <p class="truncate py-2.5 pr-2.5 pl-6 leading-none typography-micro-b-lh150 <%= is_past_or_current ? 'text-light-palette-p5' : 'text-dark-gray-palette-p2 dark:text-slate-300' %> <%= hover_text_class %>" data-name-stage-id="<%= stage.id %>" data-color="<%= is_past_or_current ? 'green' : 'gray' %>">
             <%= stage.name %>
           </p>
         <% end %>
@@ -47,7 +55,7 @@
                       method: :patch, 
                       data: { action: 'mouseover->stages-nav#mouseOver mouseout->stages-nav#mouseOut', confirm: t('views.accounts.deals.stages_nav_desktop.are_you_sure?') }, 
                       class: "relative border-solid border-l-light-palette-p5 dark:border-l-slate-900 border-l-[16px] right-[-11px] border-y-transparent border-b-[17px] border-t-[16.4px]", aria_current:"page"  do %>
-            <div class="absolute top-0 border-solid border-y-transparent border-b-[17px] border-t-[16.4px] inline-block border-l-[17px] right-[5px] z-50 top-[-16.4px] #{arrow_border_class} #{arrow_hover_class}" data-arrow-stage-id="<%= stage.id %>" data-color="<%= is_past_or_current ? 'green' : 'gray' %>"></div>
+            <div class="absolute top-0 border-solid border-y-transparent border-b-[17px] border-t-[16.4px] inline-block border-l-[17px] right-[5px] z-50 top-[-16.4px] <%= arrow_border_class %> <%= arrow_hover_class %>" data-arrow-stage-id="<%= stage.id %>" data-color="<%= is_past_or_current ? 'green' : 'gray' %>"></div>
           <% end %>
         <% end %>
         <div id="tooltip-default-<%= stage.id %>" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 typography-text-m-lh150 text-dark-gray-palette-p3 bg-white dark:bg-slate-800 border border-gray-400 dark:border-slate-700 rounded-lg shadow-sm opacity-0 tooltip transition-opacity duration-300">

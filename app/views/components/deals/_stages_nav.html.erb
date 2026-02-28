@@ -27,21 +27,34 @@
           end
         %>
 
+        <% 
+          tooltip_id = "tooltip-stage-#{deal.id}-#{stage.id}"
+          tooltip_placement = "top"
+          
+          # Logic for classes shared between open and closed status
+          common_classes = "first:rounded-l-lg last:rounded-r-lg justify-center flex w-full h-2 #{bg_color} relative transition-all before:absolute"
+          arrow_logic = index == stages.length - 1 ? '' : "before:top-0 before:z-10 before:right-[-4px] before:border-solid #{arrow_color} before:border-l-[4px] before:border-y-transparent before:border-y-[4px] after:absolute after:top-0 after:border-solid after:border-y-transparent after:border-y-[4px] inline-block after:border-l-light-palette-p5 after:border-l-[4px] after:right-[-7px] "
+        %>
+
         <% if deal.open? %>
           <%= link_to account_deal_path(deal.account, deal, deal: { stage_id: stage.id } ), 
-                      data: { turbo_method: :patch, confirm: t('views.accounts.deals.stages_nav_desktop.are_you_sure?'), tooltip_target: "tooltip-stage-#{deal.id}-#{stage.id}", tooltip_placement: "top" }, 
-                      class: "first:rounded-l-lg last:rounded-r-lg justify-center flex w-full h-2 #{bg_color} group relative transition-all hover:scale-y-125 before:absolute #{ index == stages.length - 1 ? '' : "before:top-0 before:z-10 before:right-[-4px] before:border-solid #{arrow_color} before:border-l-[4px] before:border-y-transparent before:border-y-[4px] after:absolute after:top-0 after:border-solid after:border-y-transparent after:border-y-[4px] inline-block after:border-l-light-palette-p5 after:border-l-[4px] after:right-[-7px] " }", style:"z-index: #{30 - index} ", aria_current:"page" do %>
+                      data: { turbo_method: :patch, confirm: t('views.accounts.deals.stages_nav_desktop.are_you_sure?'), tooltip_target: tooltip_id, tooltip_placement: tooltip_placement }, 
+                      class: "#{common_classes} group hover:scale-y-125 #{arrow_logic}", style:"z-index: #{30 - index} ", aria_current:"page" do %>
             &nbsp;
-            <div id="tooltip-stage-<%= deal.id %>-<%= stage.id %>" role="tooltip" data-turbo-permanent class="absolute z-50 invisible inline-block px-3 py-2 text-xs font-bold text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-slate-800 whitespace-nowrap">
-              <%= stage.name %>
-              <div class="tooltip-arrow" data-popper-arrow></div>
-            </div>
           <% end %>
         <% else %>
-          <div class="first:rounded-l-lg last:rounded-r-lg justify-center flex w-full h-2 <%= bg_color %> relative before:absolute <%= index == stages.length - 1 ? '' : "before:top-0 before:z-10 before:right-[-4px] before:border-solid #{arrow_color} before:border-l-[4px] before:border-y-transparent before:border-y-[4px] after:absolute after:top-0 after:border-solid after:border-y-transparent after:border-y-[4px] inline-block after:border-l-light-palette-p5 after:border-l-[4px] after:right-[-7px] " %>" style="z-index: <%= 30 - index %> ">
+          <div class="<%= common_classes %> <%= arrow_logic %>" 
+               data-tooltip-target="<%= tooltip_id %>" 
+               data-tooltip-placement="<%= tooltip_placement %>"
+               style="z-index: <%= 30 - index %> ">
             &nbsp;
           </div>
         <% end %>
+
+        <div id="<%= tooltip_id %>" role="tooltip" data-turbo-permanent class="absolute z-50 invisible inline-block px-3 py-2 text-xs font-bold text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-slate-800 whitespace-nowrap">
+          <%= stage.name %>
+          <div class="tooltip-arrow" data-popper-arrow></div>
+        </div>
 
         <%# TEXTO DA ETAPA COM CORES AJUSTADAS PARA LEITURA %>
         <% if stage == deal.stage %>
