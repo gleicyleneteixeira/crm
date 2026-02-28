@@ -11,10 +11,22 @@
       <%= t('activerecord.models.deal.new') %>
     <% end %>
   </header>
-  <ul id="chatwoot_embed_deals_list">
-    <%# Cache v2 para forçar atualização das melhorias visuais %>
-    <% cache ["chatwoot_embed_deals_list_v2", contact, Current.account.id] do %>
-      <% contact.deals.each do | deal |  %>
+  <ul id="<%= dom_id(contact, :chatwoot_embed_deals) %>">
+    <%= turbo_stream_from [contact.account.id, contact.id, :deals] %>
+    <%# Cache v3 para forçar atualização da ordenação personalizada %>
+    <% cache ["chatwoot_embed_deals_list_v4", contact, Current.account.id] do %>
+      <% 
+        # Custom ordering: open (1), lost/cancelled (2), won (3)
+        ordered_deals = contact.deals.sort_by do |deal|
+          case deal.status
+          when 'open' then 1
+          when 'lost', 'cancelled' then 2
+          when 'won' then 3
+          else 4
+          end
+        end
+      %>
+      <% ordered_deals.each do | deal |  %>
         <%= render 'accounts/contacts/chatwoot_embed/deal', deal: deal %>
       <% end %>
     <% end %>

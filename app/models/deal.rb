@@ -73,7 +73,7 @@ class Deal < ApplicationRecord
   after_create_commit :broadcast_kanban_card_on_create
   after_create_commit { Deals::BroadcastJob.perform_async(id, 'create') }
   after_update_commit :sync_deal_async, if: :should_sync_deal?
-  after_destroy_commit { Deals::BroadcastJob.perform_async(id, 'destroy') }
+  after_destroy_commit { Deals::BroadcastJob.perform_async(id, 'destroy', { 'contact_id' => contact_id, 'account_id' => account_id }) }
 
   def should_sync_deal?
     saved_change_to_stage_id? || 

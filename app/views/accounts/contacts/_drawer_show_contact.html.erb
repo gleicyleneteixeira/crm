@@ -53,66 +53,13 @@
       </div>
     </header>
 
-    <ul class="p-4 flex flex-col gap-2 border-t border-slate-200 dark:border-slate-700" id="accordion-collapse-<%= "#{Deal.model_name.human(count: 2)}-#{contact.class.name.downcase}-#{contact.object_id}"%>">
+    <ul class="p-4 flex flex-col gap-2 border-t border-slate-200 dark:border-slate-700" id="<%= dom_id(contact, :deals) %>">
+      <%= turbo_stream_from [contact.account.id, contact.id, :deals] %>
       <%# Lógica de Ordenação: Aberto (1), Perdido/Cancelado (2), Ganho (3) %>
       <% ordered_deals = contact.deals.sort_by { |d| { 'open' => 1, 'lost' => 2, 'cancelled' => 2, 'won' => 3 }[d.status] || 4 } %>
       
       <% ordered_deals.each do |deal| %>
-        <%= content_tag :li, id: dom_id(deal), class: "grid gap-5 border-b border-slate-100 dark:border-slate-800 last:border-none py-5 first:pt-0 last:pb-0", data: {controller: 'load-lucid-icons'} do %>
-          <div class= "flex items-center gap-4">
-            <div class="h-10 w-10 flex items-center justify-center rounded-lg border-2 border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/60 dark:backdrop-blur-lg text-slate-400 dark:text-slate-300 relative">
-              <i data-lucide="clipboard-list" class='w-5 h-5'></i>
-              <% 
-                priority_color = case deal.priority_level
-                                 when 'low' then 'bg-emerald-500'
-                                 when 'medium' then 'bg-amber-400'
-                                 when 'high' then 'bg-red-500'
-                                 else 'bg-slate-400'
-                                 end
-              %>
-              <div class="absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white dark:border-slate-900 <%= priority_color %>" title="<%= Deal.human_enum_name(:priority_level, deal.priority_level) %>"></div>
-            </div>
-            <div class="mr-auto flex-1 min-w-0">
-              <div class="flex flex-col">
-                <div class="flex justify-between items-start gap-2">
-                  <h2 class="text-sm font-medium text-slate-800 dark:text-white truncate">
-                    <%= deal.name %>
-                  </h2>
-                  <% unless deal.total_amount_in_cents.zero? %>
-                    <div class='inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold text-[10px] whitespace-nowrap'>
-                      <%= render 'components/formatters/currency', value: deal.total_amount_in_cents %>
-                    </div>
-                  <% end %>
-                </div>
-                <div class="flex items-center gap-2 mt-0.5">
-                  <span class="text-[10px] uppercase font-bold <%= deal.status == 'open' ? 'text-green-600 dark:text-green-400' : (deal.status == 'won' ? 'text-blue-600 dark:text-blue-400' : 'text-red-500 dark:text-red-400') %>">
-                    ● <%= Deal.human_enum_name(:status, deal.status) %>
-                  </span>
-                  <% if deal.next_event_planned? %>
-                    <span class="text-slate-300">|</span>
-                    <div class="flex items-center">
-                      <%= render 'accounts/pipelines/deal_event', event: deal.next_event_planned %>
-                    </div>
-                  <% end %>
-                </div>
-
-                <%# Custom Fields (Dynamic) %>
-                <div class="mt-2 flex flex-wrap gap-1">
-                  <% deal.account.custom_attribute_definitions.where(attribute_model: 'deal_attribute', show_in_card: true).each do |definition| %>
-                    <% value = deal.custom_attributes[definition.attribute_key] %>
-                    <% next if value.blank? %>
-                    <div class="bg-slate-50 dark:bg-slate-800/40 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded text-[9px] font-medium border border-slate-200 dark:border-slate-700/50 truncate max-w-[150px]">
-                      <span class="opacity-70"><%= definition.attribute_display_name %>:</span> <%= value %>
-                    </div>
-                  <% end %>
-                </div>
-              </div>
-            </div>
-            <%= link_to account_deal_path(Current.account, deal), data: {turbo_frame: :_top} , class: 'flex items-center justify-center rounded text-slate-400 w-8 h-8 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors' do %>
-              <i data-lucide="arrow-right" class="w-5 h-5"></i>
-            <% end %>
-          </div>
-        <% end %>
+        <%= render 'accounts/deals/deal_row', deal: deal %>
       <% end %>
     </ul>
   </div>
