@@ -36,18 +36,68 @@ class Deals::BroadcastJob
 
     # 1. Kanban Broadcasts (Stages)
     if action == 'create'
+      # Adiciona o card no topo do estágio
       Turbo::StreamsChannel.broadcast_prepend_to(
         :stages,
         target: ActionView::RecordIdentifier.dom_id(deal.stage, :deals),
         partial: 'accounts/pipelines/deal',
         locals: { deal: deal }
       )
+      # Atualiza totais do estágio
+      ['all', deal.status].each do |filter|
+        Turbo::StreamsChannel.broadcast_replace_to(
+          :stages,
+          target: "stage-#{deal.stage_id}-#{filter}-kaban-details",
+          partial: 'accounts/stages/kanban_details',
+          locals: { stage: deal.stage, filter_status_deal: filter }
+        )
+      end
     elsif action == 'update'
+      # Atualiza o card em si (onde quer que esteja)
       Turbo::StreamsChannel.broadcast_replace_to(
         deal,
         partial: 'accounts/pipelines/deal',
         locals: { deal: deal }
       )
+
+      # Se mudou de estágio, move o card e atualiza ambos os estágios
+      if data['previous_stage_id'] && data['previous_stage_id'] != deal.stage_id
+        old_stage = Stage.find_by(id: data['previous_stage_id'])
+        
+        # Remove do antigo e adiciona no novo
+        Turbo::StreamsChannel.broadcast_remove_to(:stages, target: ActionView::RecordIdentifier.dom_id(deal))
+        Turbo::StreamsChannel.broadcast_append_to(
+          :stages,
+          target: ActionView::RecordIdentifier.dom_id(deal.stage, :deals),
+          partial: 'accounts/pipelines/deal',
+          locals: { deal: deal }
+        )
+
+        # Atualiza totais de ambos
+        [old_stage, deal.stage].compact.each do |stg|
+          ['all', deal.status].each do |filter|
+            Turbo::StreamsChannel.broadcast_replace_to(
+              :stages,
+              target: "stage-#{stg.id}-#{filter}-kaban-details",
+              partial: 'accounts/stages/kanban_details',
+              locals: { stage: stg, filter_status_deal: filter }
+            )
+          end
+        end
+      elsif data['status_changed']
+        # Se mudou o status, talvez precise remover do filtro atual no Kanban
+        Turbo::StreamsChannel.broadcast_remove_to(:stages, target: ActionView::RecordIdentifier.dom_id(deal))
+        
+        # E atualizar totais
+        ['all', deal.status, data['previous_status']].compact.uniq.each do |filter|
+          Turbo::StreamsChannel.broadcast_replace_to(
+            :stages,
+            target: "stage-#{deal.stage_id}-#{filter}-kaban-details",
+            partial: 'accounts/stages/kanban_details',
+            locals: { stage: deal.stage, filter_status_deal: filter }
+          )
+        end
+      end
     end
 
     # 2. Contact Sidebar & Chatwoot Embed Broadcasts

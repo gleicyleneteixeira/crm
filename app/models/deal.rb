@@ -67,10 +67,7 @@ class Deal < ApplicationRecord
 
     self.stage = pipeline.stages.first if stage.blank? && pipeline.present?
   end
-  after_destroy_commit { broadcast_remove_to :stages, target: self }
 
-  after_commit :broadcast_kanban_card, on: :update, if: :broadcast_kanban_card?
-  after_create_commit :broadcast_kanban_card_on_create
   after_create_commit { Deals::BroadcastJob.perform_async(id, 'create') }
   after_update_commit :sync_deal_async, if: :should_sync_deal?
   after_destroy_commit { Deals::BroadcastJob.perform_async(id, 'destroy', { 'contact_id' => contact_id, 'account_id' => account_id }) }
@@ -84,7 +81,12 @@ class Deal < ApplicationRecord
   end
 
   def sync_deal_async
-    Deals::BroadcastJob.perform_async(id, 'update')
+    data = {}
+    data['previous_stage_id'] = stage_id_before_last_save if saved_change_to_stage_id?
+    data['status_changed'] = true if saved_change_to_status?
+    data['previous_status'] = status_before_last_save if saved_change_to_status?
+    
+    Deals::BroadcastJob.perform_async(id, 'update', data)
   end
   # after_update_commit lambda {
   #                       broadcast_updates
@@ -168,80 +170,5 @@ class Deal < ApplicationRecord
 
   def publish_updated
     broadcast(:deal_updated, self)
-  end
-
-  def broadcast_kanban_card?
-    saved_change_to_manual_amount_in_cents? ||
-      saved_change_to_stage_id? ||
-      saved_change_to_custom_attributes? ||
-      saved_change_to_priority_level? ||
-      saved_change_to_status? ||
-      saved_change_to_name? ||
-      saved_change_to_contact_id?
-  end
-
-  def broadcast_kanban_card
-    broadcast_replace_later_to self,
-                               partial: 'accounts/pipelines/deal',
-                               locals: { deal: self }
-
-    if saved_change_to_stage_id?
-      old_stage_id = stage_id_before_last_save
-      new_stage_id = stage_id
-
-      broadcast_remove_to :stages, target: self
-
-      broadcast_append_to :stages,
-                          target: dom_id(Stage.find(new_stage_id), :deals),
-                          partial: 'accounts/pipelines/deal',
-                          locals: { deal: self }
-
-      ['all', status].each do |filter|
-        broadcast_replace_later_to :stages,
-                             target: "stage-#{old_stage_id}-#{filter}-kaban-details",
-                             partial: 'accounts/stages/kanban_details',
-                             locals: { stage: Stage.find(old_stage_id), filter_status_deal: filter }
-
-        broadcast_replace_later_to :stages,
-                             target: "stage-#{new_stage_id}-#{filter}-kaban-details",
-                             partial: 'accounts/stages/kanban_details',
-                             locals: { stage: Stage.find(new_stage_id), filter_status_deal: filter }
-      end
-    elsif saved_change_to_status?
-      # Remove o card do estágio atual quando o status muda (ex.: open -> won/lost)
-      broadcast_remove_to :stages, target: self
-
-      # Atualiza os detalhes do estágio para filtros relevantes
-      filters = ['all', status, status_before_last_save].compact.uniq
-      filters.each do |filter|
-        broadcast_replace_later_to :stages,
-                             target: "stage-#{stage_id}-#{filter}-kaban-details",
-                             partial: 'accounts/stages/kanban_details',
-                             locals: { stage: Stage.find(stage_id), filter_status_deal: filter }
-      end
-    elsif saved_change_to_manual_amount_in_cents?
-      ['all', status].each do |filter|
-        broadcast_replace_later_to :stages,
-                             target: "stage-#{stage_id}-#{filter}-kaban-details",
-                             partial: 'accounts/stages/kanban_details',
-                             locals: { stage: Stage.find(stage_id), filter_status_deal: filter }
-      end
-    end
-  end
-
-  def broadcast_kanban_card_on_create
-    # Adiciona o card imediatamente no topo da coluna do estágio atual
-    broadcast_prepend_later_to :stages,
-                               target: dom_id(Stage.find(stage_id), :deals),
-                               partial: 'accounts/pipelines/deal',
-                               locals: { deal: self }
-
-    # Atualiza os detalhes do estágio (valores e quantidade) para filtros relevantes
-    ['all', status].each do |filter|
-      broadcast_replace_to :stages,
-                           target: "stage-#{stage_id}-#{filter}-kaban-details",
-                           partial: 'accounts/stages/kanban_details',
-                           locals: { stage: Stage.find(stage_id), filter_status_deal: filter }
-    end
   end
 end
