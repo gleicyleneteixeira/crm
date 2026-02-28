@@ -1,4 +1,7 @@
 <%# Local: app/views/accounts/pipelines/show.html.erb %>
+<% content_for :stylesheets do %>
+  <meta name="turbo-cache-control" content="no-cache">
+<% end %>
 
 <%= turbo_stream_from :stages %>
 <%= turbo_frame_tag :stages do %>

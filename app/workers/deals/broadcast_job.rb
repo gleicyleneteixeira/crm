@@ -1,5 +1,6 @@
 class Deals::BroadcastJob
   include Sidekiq::Worker
+  include ActionView::RecordIdentifier
   sidekiq_options queue: 'default', retry: 3
 
   def perform(deal_id, action, data = {})
@@ -16,7 +17,7 @@ class Deals::BroadcastJob
         target: "deal_#{deal_id}"
       )
       
-      # Also remove from Kanban (legacy or additional safety)
+      # Also remove from Kanban
       Turbo::StreamsChannel.broadcast_remove_to(
         :stages,
         target: "deal_#{deal_id}"
@@ -39,7 +40,7 @@ class Deals::BroadcastJob
       # Adiciona o card no topo do estágio
       Turbo::StreamsChannel.broadcast_prepend_to(
         :stages,
-        target: ActionView::RecordIdentifier.dom_id(deal.stage, :deals),
+        target: dom_id(deal.stage, :deals),
         partial: 'accounts/pipelines/deal',
         locals: { deal: deal }
       )
@@ -53,42 +54,53 @@ class Deals::BroadcastJob
         )
       end
     elsif action == 'update'
-      # Atualiza o card em si (onde quer que esteja)
+      # Atualiza o card em si (onde quer que esteja) no canal individual do deal
       Turbo::StreamsChannel.broadcast_replace_to(
         deal,
+        target: dom_id(deal),
         partial: 'accounts/pipelines/deal',
         locals: { deal: deal }
       )
+
+      # Sempre atualiza os totais do estágio no Kanban em caso de mudança de valor ou qualquer update relevante
+      ['all', deal.status].each do |filter|
+        Turbo::StreamsChannel.broadcast_replace_to(
+          :stages,
+          target: "stage-#{deal.stage_id}-#{filter}-kaban-details",
+          partial: 'accounts/stages/kanban_details',
+          locals: { stage: deal.stage, filter_status_deal: filter }
+        )
+      end
 
       # Se mudou de estágio, move o card e atualiza ambos os estágios
       if data['previous_stage_id'] && data['previous_stage_id'] != deal.stage_id
         old_stage = Stage.find_by(id: data['previous_stage_id'])
         
-        # Remove do antigo e adiciona no novo
-        Turbo::StreamsChannel.broadcast_remove_to(:stages, target: ActionView::RecordIdentifier.dom_id(deal))
+        # Remove do antigo e adiciona no novo (canal :stages)
+        Turbo::StreamsChannel.broadcast_remove_to(:stages, target: dom_id(deal))
         Turbo::StreamsChannel.broadcast_append_to(
           :stages,
-          target: ActionView::RecordIdentifier.dom_id(deal.stage, :deals),
+          target: dom_id(deal.stage, :deals),
           partial: 'accounts/pipelines/deal',
           locals: { deal: deal }
         )
 
-        # Atualiza totais de ambos
-        [old_stage, deal.stage].compact.each do |stg|
+        # Atualiza totais do antigo (o novo já foi atualizado acima)
+        if old_stage
           ['all', deal.status].each do |filter|
             Turbo::StreamsChannel.broadcast_replace_to(
               :stages,
-              target: "stage-#{stg.id}-#{filter}-kaban-details",
+              target: "stage-#{old_stage.id}-#{filter}-kaban-details",
               partial: 'accounts/stages/kanban_details',
-              locals: { stage: stg, filter_status_deal: filter }
+              locals: { stage: old_stage, filter_status_deal: filter }
             )
           end
         end
       elsif data['status_changed']
-        # Se mudou o status, talvez precise remover do filtro atual no Kanban
-        Turbo::StreamsChannel.broadcast_remove_to(:stages, target: ActionView::RecordIdentifier.dom_id(deal))
+        # Se mudou o status, remove do Kanban (pois o Kanban geralmente filtra por status ou precisa de refresh total)
+        Turbo::StreamsChannel.broadcast_remove_to(:stages, target: dom_id(deal))
         
-        # E atualizar totais
+        # E atualizar totais do status antigo e novo
         ['all', deal.status, data['previous_status']].compact.uniq.each do |filter|
           Turbo::StreamsChannel.broadcast_replace_to(
             :stages,
@@ -102,8 +114,8 @@ class Deals::BroadcastJob
 
     # 2. Contact Sidebar & Chatwoot Embed Broadcasts
     if contact_id
-      target_sidebar = ActionView::RecordIdentifier.dom_id(deal.contact, :deals)
-      target_embed = ActionView::RecordIdentifier.dom_id(deal.contact, :chatwoot_embed_deals)
+      target_sidebar = dom_id(deal.contact, :deals)
+      target_embed = dom_id(deal.contact, :chatwoot_embed_deals)
       
       if action == 'create'
         # Sidebar
@@ -124,14 +136,14 @@ class Deals::BroadcastJob
         # Sidebar Update
         Turbo::StreamsChannel.broadcast_replace_to(
           [account_id, contact_id, :deals],
-          target: ActionView::RecordIdentifier.dom_id(deal),
+          target: dom_id(deal),
           partial: 'accounts/deals/deal_row',
           locals: { deal: deal }
         )
         # Embed Update
         Turbo::StreamsChannel.broadcast_replace_to(
           [account_id, contact_id, :deals],
-          target: ActionView::RecordIdentifier.dom_id(deal, :chatwoot_embed),
+          target: dom_id(deal, :chatwoot_embed),
           partial: 'accounts/contacts/chatwoot_embed/deal',
           locals: { deal: deal }
         )
@@ -141,7 +153,7 @@ class Deals::BroadcastJob
     # 3. Deal Details Page Broadcast
     Turbo::StreamsChannel.broadcast_replace_to(
       [account_id, :deal],
-      target: ActionView::RecordIdentifier.dom_id(deal, :deal_show_page_overview),
+      target: dom_id(deal, :deal_show_page_overview),
       partial: 'accounts/deals/details/show',
       locals: { model: deal, update_path: Rails.application.routes.url_helpers.account_deal_path(account_id, deal) }
     )

@@ -1,30 +1,6 @@
-<% if @deal.previous_changes.key?(:stage_id) %>
-  <% old_stage_id, new_stage_id = @deal.previous_changes[:stage_id] %>
+<%# Lógica de atualização local via formulário (Feedback Imediato) %>
 
-  <%= turbo_stream.remove dom_id(@deal) %>
-  <%= turbo_stream.append dom_id(Stage.find(new_stage_id), :deals) do %>
-    <%= render 'accounts/pipelines/deal', deal: @deal %>
-  <% end %>
-
-  <% ['all', @deal.status].each do |status| %>
-    <%= turbo_stream.replace "stage-#{old_stage_id}-#{status}-kaban-details" do %>
-      <%= render 'accounts/stages/kanban_details', stage: Stage.find(old_stage_id), filter_status_deal: status %>
-    <% end %>
-    <%= turbo_stream.replace "stage-#{new_stage_id}-#{status}-kaban-details" do %>
-      <%= render 'accounts/stages/kanban_details', stage: Stage.find(new_stage_id), filter_status_deal: status %>
-    <% end %>
-  <% end %>
-<% end %>
-
-<%# ATUALIZAÇÃO DO DETALHE DO NEGÓCIO (EMBED E SHOW) %>
-<%= turbo_stream.replace dom_id(@deal, :chatwoot_embed), partial: 'accounts/contacts/chatwoot_embed/deal', locals: { deal: @deal } %>
-
-<%= turbo_stream.replace dom_id(@deal, :deal_show_page_overview) do %>
-  <%= render '/accounts/deals/details/show',
-             model: @deal,
-             update_path: account_deal_path(current_user.account, @deal) %>
-<% end %>
-
+<%# Navbar e Outros elementos de navegação que podem não estar nos canais globais %>
 <%= turbo_stream.replace 'stages_nav' do %>
   <%= render "/components/deals/stages_nav", deal: @deal %>
 <% end %>
@@ -33,27 +9,16 @@
   <%= render "/accounts/deals/stages_nav_desktop", deal: @deal %>
 <% end %>
 
-<%= turbo_stream.replace dom_id(@deal, :form) do %>
-  <%= render '/accounts/deals/details/show',
-             model: @deal,
-             update_path: account_deal_path(current_user.account, @deal) %>
-<% end %>
-
-<%= turbo_stream.replace dom_id(@deal) do %>
-  <%= render 'accounts/pipelines/deal', deal: @deal %>
-<% end %>
-
-<%= turbo_stream.replace 'navbar_deal' do %>
-  <%= render "/layouts/shared/navbar_show_deal", deal: @deal %>
-<% end %>
-
+<%# Scripts de reinicialização (essencial para o DOM local) %>
 <%= turbo_stream.append_all "body" do %>
   <script data-turbo-cache="false">
-    // Força o reinício dos ícones e do acordeão após a atualização via Turbo Stream
     if (typeof initFlowbite === 'function') { initFlowbite(); }
     if (typeof lucide !== 'undefined') { lucide.createIcons(); }
   </script>
 <% end %>
+
+<%# Navbar update removed to prevent layout regression and redundant buttons %>
+
 
 <%# LÓGICA DE FINALIZAÇÃO (WIN / LOSS) %>
 <% if @deal.previous_changes.key?(:status) %>
