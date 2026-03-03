@@ -114,6 +114,7 @@ Rails.application.routes.draw do
         get :pipeline_summary
       end
     end
+    resources :workflows
   end
   if ENV.fetch('ENABLE_USER_SIGNUP', 'false') == 'true'
     devise_for :users, controllers: {

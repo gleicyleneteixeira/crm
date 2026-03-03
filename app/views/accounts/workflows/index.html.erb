@@ -1,0 +1,38 @@
+<div class="flex items-center justify-between mb-8">
+  <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Automações (Workflows)</h1>
+  <%= link_to 'Criar Workflow', new_account_workflow_path(current_user.account), class: "btn-primary" %>
+</div>
+
+<div class="bg-white dark:bg-brand-palette-04 shadow rounded-lg overflow-hidden">
+  <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+    <thead class="bg-gray-50 dark:bg-brand-palette-03">
+      <tr>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Título</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Gatilho (Trigger)</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ação (Action)</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ações</th>
+      </tr>
+    </thead>
+    <tbody class="bg-white dark:bg-brand-palette-04 divide-y divide-gray-200 dark:divide-gray-700">
+      <% @workflows.each do |workflow| %>
+        <tr>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white"><%= workflow.title %></td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"><%= Workflow.available_triggers.to_h.invert[workflow.trigger_type] || workflow.trigger_type %></td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"><%= Workflow.available_actions.to_h.invert[workflow.action_type] || workflow.action_type %></td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+            <% if workflow.active %>
+              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Ativo</span>
+            <% else %>
+              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Inativo</span>
+            <% end %>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+            <%= link_to 'Editar', edit_account_workflow_path(current_user.account, workflow), class: "text-indigo-600 hover:text-indigo-900 mr-4" %>
+            <%= link_to 'Excluir', account_workflow_path(current_user.account, workflow), data: { turbo_method: :delete, turbo_confirm: 'Tem certeza?' }, class: "text-red-600 hover:text-red-900" %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

@@ -24,6 +24,12 @@
     active_if: -> { request.path.include?('product') }
   },
   {
+    path: account_workflows_path(Current.account),
+    icon: 'zap',
+    label: 'Automações',
+    active_if: -> { request.path.include?('workflows') }
+  },
+  {
     path: account_reports_path(Current.account, type: :account, since: Date.today.beginning_of_month, until: Date.today.end_of_month, group_by: 'day'),
     icon: 'chart-no-axes-combined',
     label: t('activerecord.models.reports'),

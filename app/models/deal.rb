@@ -164,8 +164,18 @@ class Deal < ApplicationRecord
   include Wisper::Publisher
   after_commit :publish_created, on: :create
   after_commit :publish_updated, on: :update
+  after_commit :trigger_workflows, on: :create
+  after_commit :trigger_update_workflows, on: :update
 
   private
+
+  def trigger_workflows
+    Workflows::Manager.call('Triggers::DealCreated', self)
+  end
+
+  def trigger_update_workflows
+    Workflows::Manager.call('Triggers::DealUpdated', self)
+  end
 
   def publish_created
     broadcast(:deal_created, self)
