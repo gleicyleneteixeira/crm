@@ -55,7 +55,7 @@
         </div>
         <div class="flex flex-col flex-1 w-full">
           <%= render "layouts/shared/navbar" %>
-          <main class="flex-1 bg-brand-palette-08">
+          <main class="flex-1 overflow-x-hidden overflow-y-auto bg-brand-palette-08">
             <%= content_for?(:content) ? yield(:content) : yield %>
             <%= turbo_frame_tag "modal" %>
             <%= turbo_frame_tag :drawer %>

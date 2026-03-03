@@ -28,7 +28,7 @@
       </div>
 
       <%# DIREITA: BOTÕES E O MODO DARK %>
-      <div class="flex items-center flex-nowrap gap-3">
+      <div class="flex items-center flex-wrap gap-3">
         <%= link_to new_select_contact_account_deals_path(Current.account), class: 'button-default-fill-primary-md' do %>
           <i data-lucide="clipboard-plus"></i>
           <span class="ml-2 hidden lg:inline"><%= t('activerecord.models.deal.new') %></span>
