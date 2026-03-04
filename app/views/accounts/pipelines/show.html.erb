@@ -1,13 +1,23 @@
 <%# Local: app/views/accounts/pipelines/show.html.erb %>
 <% content_for :stylesheets do %>
   <meta name="turbo-cache-control" content="no-cache">
+  <style>
+    /* Hides the global vertical scrollbar just for the Kanban page */
+    main.overflow-y-auto { overflow-y: hidden !important; }
+
+    /* Utility to hide scrollbars while keeping scroll functionality */
+    .scrollbar-none::-webkit-scrollbar { display: none; }
+    .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    /* Ensure the board fills the main container height exactly */
+    .kanban-board-container { height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+  </style>
 <% end %>
 
 <%= turbo_stream_from :stages %>
 <%= turbo_frame_tag :stages do %>
-  <div data-controller="lists" data-lists-id="<%= @pipeline.id %>" class="h-full w-full bg-brand-palette-08 overflow-hidden">
-    
-    <section class="flex flex-row h-full w-full gap-5 p-8 overflow-x-auto overflow-y-hidden items-start" data-lists-target="lists">
+  <div data-controller="lists" data-lists-id="<%= @pipeline.id %>" class="kanban-board-container bg-brand-palette-08">
+    <section class="flex-1 flex flex-row w-full gap-5 p-8 overflow-x-auto overflow-y-hidden items-start" data-lists-target="lists">
       <% @pipeline.stages.sort_by(&:position).each do |stage| %>
         <div class="flex-shrink-0 w-[18.75rem] h-full max-h-full">
           <%= turbo_frame_tag stage, src: account_stage_path(current_user.account, stage, filter_status_deal: @filter_status_deal), loading: :lazy do %>
