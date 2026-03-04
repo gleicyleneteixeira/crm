@@ -4,13 +4,25 @@
   <style>
     /* User Requested SPA Kanban Styles */
     
-    /* Container do Kanban: height, flex, overflow-x */
+    /* Container do Kanban: Trava a altura exata, não rola */
     .kanban-board-container { 
       height: calc(100vh - 58px); /* Adjusting for navbar height */
-      display: flex; 
+      display: flex;
+      flex-direction: column; 
+      overflow: hidden;
+      width: 100%;
+    }
+
+    /* Área exclusiva para rolagem horizontal das colunas */
+    .kanban-scrollable-section {
+      flex: 1;
+      display: flex;
+      flex-direction: row;
       overflow-x: auto;
       overflow-y: hidden;
-      width: 100%;
+      align-items: flex-start;
+      gap: 1.25rem;
+      padding: 1.5rem;
     }
 
     /* Scroll Invisible Helpers */
@@ -25,14 +37,16 @@
 
 <%= turbo_stream_from :stages %>
 <%= turbo_frame_tag :stages do %>
-  <div data-controller="lists" data-lists-id="<%= @pipeline.id %>" class="kanban-board-container bg-brand-palette-08 p-6 gap-5 items-start">
-    <% @pipeline.stages.sort_by(&:position).each do |stage| %>
-      <div class="flex-shrink-0 w-[18.75rem] h-full">
-        <%= turbo_frame_tag stage, src: account_stage_path(current_user.account, stage, filter_status_deal: @filter_status_deal), loading: :lazy, class: "h-full w-full block" do %>
-          <%= render '/components/skeleton/stage'%>
-        <% end %>
-      </div>
-    <% end %>
+  <div data-controller="lists" data-lists-id="<%= @pipeline.id %>" class="kanban-board-container bg-brand-palette-08">
+    <section class="kanban-scrollable-section" data-lists-target="lists">
+      <% @pipeline.stages.sort_by(&:position).each do |stage| %>
+        <div class="flex-shrink-0 w-[18.75rem] h-full">
+          <%= turbo_frame_tag stage, src: account_stage_path(current_user.account, stage, filter_status_deal: @filter_status_deal), loading: :lazy, class: "h-full w-full block" do %>
+            <%= render '/components/skeleton/stage'%>
+          <% end %>
+        </div>
+      <% end %>
+    </section>
 
     <div class="kanban-drop-zones" data-controller="load-lucid-icons" aria-hidden="true">
       <div class="kanban-drop-zone kanban-drop-zone--won" data-drop-zone="won">
