@@ -1,5 +1,5 @@
 module Workflows
-  class SendWhatsAppJob < Workflows::BaseActionJob
+  class SendWhatsappJob < Workflows::BaseActionJob
     def execute
       # Placeholder for WhatsApp integration
       # You can use Evolution API or any other provider here

@@ -21,7 +21,7 @@ class Workflow < ApplicationRecord
   def self.available_actions
     [
       ['Enviar Webhook', 'Workflows::SendWebhookJob'],
-      ['Enviar WhatsApp', 'Workflows::SendWhatsAppJob']
+      ['Enviar WhatsApp', 'Workflows::SendWhatsappJob']
     ]
   end
 end
