@@ -44,18 +44,18 @@
     <%= render "layouts/shared/analytics_scripts" %>
     <%= yield :stylesheets %>
   </head>
-  <body data-user-locale='<%= current_user&.language || '' %>' data-account-currency="<%= Current.account&.currency_code || '' %>" data-controller="analytics--openpanel" class="">
-    <div id="app" class="min-h-screen">
+  <body data-user-locale='<%= current_user&.language || '' %>' data-account-currency="<%= Current.account&.currency_code || '' %>" data-controller="analytics--openpanel" class="h-[100vh] w-full overflow-hidden">
+    <div id="app" class="h-full w-full flex">
       <%= render partial: 'components/flash_message', locals: { message: flash[:notice] } %>
-      <div class="flex min-h-screen">
+      <div class="flex h-full w-full">
         <div>
           <% unless controller_path == 'accounts/deals' && ['show'].include?(action_name) %>
             <%= render "layouts/shared/sidebar" %>
           <% end %>
         </div>
-        <div class="flex flex-col flex-1 w-full">
+        <div class="flex flex-col flex-1 w-full h-full overflow-hidden">
           <%= render "layouts/shared/navbar" %>
-          <main class="flex-1 overflow-x-hidden overflow-y-auto bg-brand-palette-08">
+          <main class="flex-1 w-full overflow-hidden bg-brand-palette-08">
             <%= content_for?(:content) ? yield(:content) : yield %>
             <%= turbo_frame_tag "modal" %>
             <%= turbo_frame_tag :drawer %>
