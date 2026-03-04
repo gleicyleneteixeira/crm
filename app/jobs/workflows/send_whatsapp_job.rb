@@ -1,4 +1,4 @@
-module Actions
+module Workflows
   class SendWhatsAppJob < Workflows::BaseActionJob
     def execute
       # Placeholder for WhatsApp integration

@@ -170,11 +170,11 @@ class Deal < ApplicationRecord
   private
 
   def trigger_workflows
-    Workflows::Manager.call('Triggers::DealCreated', self)
+    Workflows::Manager.call('Workflows::Triggers::DealCreated', self)
   end
 
   def trigger_update_workflows
-    Workflows::Manager.call('Triggers::DealUpdated', self)
+    Workflows::Manager.call('Workflows::Triggers::DealUpdated', self)
   end
 
   def publish_created

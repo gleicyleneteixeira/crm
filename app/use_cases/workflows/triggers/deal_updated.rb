@@ -1,4 +1,5 @@
-module Triggers
+module Workflows
+  module Triggers
   class DealUpdated < Workflows::Triggers::Base
     def context
       super.merge({

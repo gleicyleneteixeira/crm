@@ -1,4 +1,4 @@
-module Actions
+module Workflows
   class SendWebhookJob < Workflows::BaseActionJob
     def execute
       url = @config['url']

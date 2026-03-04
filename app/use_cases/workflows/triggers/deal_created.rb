@@ -1,4 +1,5 @@
-module Triggers
+module Workflows
+  module Triggers
   class DealCreated < Workflows::Triggers::Base
     # Trigger-specific context
     def context

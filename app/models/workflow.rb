@@ -13,15 +13,15 @@ class Workflow < ApplicationRecord
 
   def self.available_triggers
     [
-      ['Negócio Criado', 'Triggers::DealCreated'],
-      ['Negócio Atualizado', 'Triggers::DealUpdated']
+      ['Negócio Criado', 'Workflows::Triggers::DealCreated'],
+      ['Negócio Atualizado', 'Workflows::Triggers::DealUpdated']
     ]
   end
 
   def self.available_actions
     [
-      ['Enviar Webhook', 'Actions::SendWebhookJob'],
-      ['Enviar WhatsApp', 'Actions::SendWhatsAppJob']
+      ['Enviar Webhook', 'Workflows::SendWebhookJob'],
+      ['Enviar WhatsApp', 'Workflows::SendWhatsAppJob']
     ]
   end
 end
