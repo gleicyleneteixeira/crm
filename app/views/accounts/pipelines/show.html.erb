@@ -9,15 +9,19 @@
     .scrollbar-none::-webkit-scrollbar { display: none; }
     .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
     
-    /* Ensure the board fills the main container height exactly */
-    .kanban-board-container { height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+    /* Ensure the board fills the main container height exactly without triggering outer scroll */
+    .kanban-board-container { 
+      height: calc(100vh - 60px); /* Strict height to avoid main window scroll */
+      display: flex; 
+      flex-direction: column; 
+    }
   </style>
 <% end %>
 
 <%= turbo_stream_from :stages %>
 <%= turbo_frame_tag :stages do %>
-  <div data-controller="lists" data-lists-id="<%= @pipeline.id %>" class="kanban-board-container bg-brand-palette-08">
-    <section class="flex-1 flex flex-row w-full gap-5 p-8 overflow-x-auto overflow-y-hidden items-start" data-lists-target="lists">
+  <div data-controller="lists" data-lists-id="<%= @pipeline.id %>" class="kanban-board-container bg-brand-palette-08 h-full w-full">
+    <section class="flex-1 flex flex-row w-full gap-5 pl-8 pt-8 pr-8 pb-4 overflow-x-auto overflow-y-hidden items-start m-0" data-lists-target="lists">
       <% @pipeline.stages.sort_by(&:position).each do |stage| %>
         <div class="flex-shrink-0 w-[18.75rem] h-full max-h-full">
           <%= turbo_frame_tag stage, src: account_stage_path(current_user.account, stage, filter_status_deal: @filter_status_deal), loading: :lazy do %>
