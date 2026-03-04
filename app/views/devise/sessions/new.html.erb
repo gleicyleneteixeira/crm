@@ -5,24 +5,6 @@
   <p class='text-dark-palette-p4 typography-body-r-lh150 mb-8'>
     <%= t('views.installation.new.step_away_from_growth') %>
   </p>
-  <% if devise_mapping.omniauthable? %>
-    <% resource_class.omniauth_providers.each do |provider| %>
-      <% if provider == :google_oauth2 %>
-        <div class="mb-5">
-          <%= button_to omniauth_authorize_path(resource_name, provider), data: { turbo: false }, class: "btn-secondary w-full justify-center flex mb-3 bg-white text-dark-gray-palette-p1 border border-light-palette-p3 py-2 rounded-md hover:bg-gray-50" do %>
-            <%= image_tag "google-icon.svg", width: 22, height: 22 %>
-            <span class="ml-2 typography-text-m-lh150"><%= t('views.devise.sessions.new.login_with_google', default: 'Faça login com Google') %></span>
-          <% end %>
-          <div class="flex items-center gap-3">
-            <div class="h-px bg-light-palette-p3 flex-1 w-full"></div>
-            <span class="typography-sub-text-s-lh150 text-dark-gray-palette-p3 uppercase">Ou</span>
-            <div class="h-px bg-light-palette-p3 flex-1 w-full"></div>
-          </div>
-        </div>
-      <% end %>
-    <% end %>
-  <% end %>
-
   <%= form_for(resource, as: resource_name, url: session_path(resource_name), data: { turbo: false }) do |f| %>
     <div class="grid gap-5 mb-2">
       <div class="grid gap-2">
