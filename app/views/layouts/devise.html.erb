@@ -1,7 +1,21 @@
-<!DOCTYPE html>
-<html>
+<html class="dark" style="background-color: #121D3A; color-scheme: dark;">
   <head>
     <meta charset="UTF-8">
+    <script>
+      (function() {
+        try {
+          var storedTheme = localStorage.getItem('color-theme');
+          var prefersDark = !storedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (storedTheme === 'dark' || (storedTheme === null && prefersDark)) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.style.colorScheme = 'dark';
+          } else {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.style.colorScheme = 'light';
+          }
+        } catch (e) {}
+      })();
+    </script>
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no" name="viewport">
     <title>Woofed CRM</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -13,7 +27,7 @@
     <%= render "layouts/shared/analytics_scripts" %>
     <%= yield :stylesheets %>
   </head>
-  <body class='max-w-[1800px] mx-auto px-10'>
+  <body class='max-w-[1800px] mx-auto px-10' style="background-color: #121D3A;">
     <section class='grid min-h-screen grid-rows-[85px_1fr_85px] gap-10 sm:gap-7 '>
       <header class='self-center justify-self-center md:justify-self-auto'>
         <div class='w-52'>
