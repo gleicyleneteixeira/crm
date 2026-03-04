@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby '3.3.4'
+ruby '>= 3.3.4'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails', branch: 'main'
 gem 'rails', '7.1.5.1'
@@ -42,7 +42,7 @@ gem 'devise'
 gem 'drb'
 gem 'faraday'
 gem 'faraday-follow_redirects'
-gem 'good_job', '3.99.1'
+gem 'good_job', '~> 3.0'
 gem 'groupdate', '6.5.1'
 gem 'html2text'
 gem 'jsonb_accessor', '1.3.2'
