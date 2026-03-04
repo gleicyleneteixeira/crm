@@ -4,9 +4,24 @@
   <style>
     /* User Requested SPA Kanban Styles */
     
-    /* Container do Kanban: Trava a altura exata, não rola */
+    /* Faz o main propagar a altura flex para o conteudo interno */
+    main {
+      display: flex !important;
+      flex-direction: column !important;
+    }
+
+    /* Permite que o turbo-frame preencha a tela sem quebrar o layout */
+    turbo-frame#stages {
+      display: flex !important;
+      flex-direction: column !important;
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
+    }
+
+    /* Container do Kanban: preenche 100% do espaco restante */
     .kanban-board-container { 
-      height: calc(100vh - 58px); /* Adjusting for navbar height */
+      flex: 1 1 auto;
+      min-height: 0;
       display: flex;
       flex-direction: column; 
       overflow: hidden;
@@ -15,7 +30,8 @@
 
     /* Área exclusiva para rolagem horizontal das colunas */
     .kanban-scrollable-section {
-      flex: 1;
+      flex: 1 1 auto;
+      min-height: 0; /* IMPEDe colunas de empurrarem a barra para fora da tela */
       display: flex;
       flex-direction: row;
       overflow-x: auto;
@@ -23,6 +39,7 @@
       align-items: flex-start;
       gap: 1.25rem;
       padding: 1.5rem;
+      padding-bottom: 1rem; /* Dá espaço para a barra de rolagem nos navegadores Windows */
     }
 
     /* Scroll Invisible Helpers */
