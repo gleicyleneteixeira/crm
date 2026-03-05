@@ -134,17 +134,20 @@ class Deal < ApplicationRecord
   end
 
   def next_event_planned?
-    next_event_planned.present?
+    next_event_planned
   rescue StandardError
     false
   end
 
   def next_event_planned
-    # Use direct query to avoid any association caching/scoping issues
-    Event.where(deal_id: id, done_at: nil, auto_done: false)
-         .where.not(scheduled_at: nil)
-         .order(:scheduled_at)
-         .first
+    if events.loaded?
+      planned_events = events.select do |event|
+        !event.done? && event.auto_done == false && event.scheduled_at.present?
+      end
+      planned_events.min_by(&:scheduled_at)
+    else
+      events.planned.first
+    end
   rescue StandardError
     nil
   end

@@ -1,7 +1,7 @@
-<%= content_tag :li, id: dom_id(deal), data: { id: deal.id, account_id: deal.account.id, position: deal.position } , class: "hover:shadow-sm select-none cursor-pointer #{'opacity-60 pointer-events-none animate-pulse' if local_assigns[:loading]}" do %>
+<%= content_tag :li, id: dom_id(deal), data: { id: deal.id, account_id: (defined?(Current) && Current.account&.id || deal.account_id), position: deal.position } , class: "hover:shadow-sm select-none cursor-pointer #{'opacity-60 pointer-events-none animate-pulse' if local_assigns[:loading]}" do %>
   <%= turbo_stream_from deal %>
   
-  <div class="h-auto min-h-fit rounded-xl border border-slate-200/70 dark:border-slate-800 bg-white dark:bg-slate-950/70 dark:backdrop-blur-md transition-colors duration-200 px-3 pt-3 pb-2" data-controller='load-lucid-icons'>
+  <div class="rounded-xl border border-slate-200/70 dark:border-slate-800 bg-white dark:bg-slate-950/70 dark:backdrop-blur-md transition-colors duration-200 px-3 pt-3 pb-2" data-controller='load-lucid-icons'>
     <% priority_classes =
          case deal.priority_level
          when 'low'
@@ -32,8 +32,8 @@
           </div>
         <% end %>
 
-        <%= link_to account_deal_path(deal.account, deal.id), data: { turbo_frame: :_top } do %>
-          <p class="text-sm font-semibold text-slate-900 dark:text-slate-100 leading-snug whitespace-normal break-all">
+        <%= link_to account_deal_path((defined?(Current) && Current.account || deal.account), deal.id), data: { turbo_frame: :_top } do %>
+          <p class="text-sm font-semibold text-slate-900 dark:text-slate-100 leading-snug whitespace-normal break-words">
             <%= deal.name %>
           </p>
         <% end %>
@@ -47,7 +47,7 @@
             </span>
           </summary>
           <div class="absolute right-0 mt-1 w-32 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg z-10 py-1">
-            <%= button_to account_deal_path(deal.account, deal),
+            <%= button_to account_deal_path((defined?(Current) && Current.account || deal.account), deal),
                           method: :patch,
                           params: { deal: { priority_level: :low } },
                           form: { data: { turbo_stream: true } },
@@ -55,7 +55,7 @@
               <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
               <span>Baixa</span>
             <% end %>
-            <%= button_to account_deal_path(deal.account, deal),
+            <%= button_to account_deal_path((defined?(Current) && Current.account || deal.account), deal),
                           method: :patch,
                           params: { deal: { priority_level: :medium } },
                           form: { data: { turbo_stream: true } },
@@ -63,7 +63,7 @@
               <span class="inline-block w-2 h-2 rounded-full bg-amber-400"></span>
               <span>Média</span>
             <% end %>
-            <%= button_to account_deal_path(deal.account, deal),
+            <%= button_to account_deal_path((defined?(Current) && Current.account || deal.account), deal),
                           method: :patch,
                           params: { deal: { priority_level: :high } },
                           form: { data: { turbo_stream: true } },
@@ -71,7 +71,7 @@
               <span class="inline-block w-2 h-2 rounded-full bg-red-500"></span>
               <span>Alta</span>
             <% end %>
-            <%= button_to account_deal_path(deal.account, deal),
+            <%= button_to account_deal_path((defined?(Current) && Current.account || deal.account), deal),
                           method: :patch,
                           params: { deal: { priority_level: :none } },
                           form: { data: { turbo_stream: true } },
@@ -165,7 +165,7 @@
             </div>
           </details>
         <% else %>
-          <%= link_to new_account_contact_event_path(deal.account,
+          <%= link_to new_account_contact_event_path((defined?(Current) && Current.account || deal.account),
                                                      deal.contact,
                                                      kind: 'activity',
                                                      pipeline: deal.pipeline,
@@ -184,10 +184,10 @@
     <%# ANDAR FINAL: CONTATO À ESQUERDA (COM BALÃO DO NEGÓCIO) E AVATAR DO PROPRIETÁRIO À DIREITA %>
     <div class='flex items-center justify-between'>
       <div class='flex items-center gap-2'>
-        <%= link_to account_contact_path(deal.account, deal.contact), class: "flex-1 min-w-0 cursor-pointer peer" , data: { turbo_frame: :drawer } do %>
+        <%= link_to account_contact_path((defined?(Current) && Current.account || deal.account), deal.contact), class: "cursor-pointer peer" , data: { turbo_frame: :drawer } do %>
           <div class='flex items-center gap-2 text-xs'>
-            <i data-lucide="user" class="flex-shrink-0 w-3.5 h-3.5 text-slate-400 dark:text-slate-500"></i>
-            <p class='text-xs font-medium text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-100 break-all whitespace-normal <%= dom_id(deal.contact, :stream_full_name) %>'>
+            <i data-lucide="user" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500"></i>
+            <p class='text-xs font-medium text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-100 <%= dom_id(deal.contact, :stream_full_name) %>'>
               <%= deal.contact.full_name %>
             </p>
           </div>
@@ -212,7 +212,7 @@
                     Cole a URL da conversa do Chatwoot para este negócio.
                   </p>
                   <%= form_with model: deal,
-                                url: account_deal_path(deal.account, deal),
+                                url: account_deal_path((defined?(Current) && Current.account || deal.account), deal),
                                 method: :patch,
                                 data: { turbo_frame: dom_id(deal) } do |form| %>
                     <div class="flex flex-col gap-2">
