@@ -140,14 +140,7 @@ class Deal < ApplicationRecord
   end
 
   def next_event_planned
-    if events.loaded?
-      planned_events = events.select do |event|
-        !event.done? && event.auto_done == false && event.scheduled_at.present?
-      end
-      planned_events.min_by(&:scheduled_at)
-    else
-      events.planned.first
-    end
+    events.planned.first
   rescue StandardError
     nil
   end
