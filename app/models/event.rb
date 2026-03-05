@@ -27,7 +27,7 @@
 #
 class Event < ApplicationRecord
   include Event::Broadcastable
-  include Deal::Broadcastable
+
   # default_scope { order('created_at DESC') }
   DEAL_UPDATE_KINDS = %w[deal_stage_change deal_opened deal_won deal_lost deal_reopened deal_product_added
                          deal_product_removed].freeze

@@ -3,7 +3,8 @@
     <%= render 'accounts/contacts/events/event_deal_updated', event: event %>
   <% else %>
     <div class="group event-<%= event.scheduled_kind %> event-item-<%= event.from %> my-5" data-controller="load-lucid-icons load-flowbite">
-      <div class="<%= event.has_media_attachment? ? 'w-[500px]' : 'w-[956px]' %> block rounded-lg bg-white border border-light-palette-p3 rounded dark:bg-neutral-700">
+      <% is_current_deal = defined?(deal) && event.deal_id.present? && event.deal_id == deal.id %>
+      <div class="<%= event.has_media_attachment? ? 'w-[500px]' : 'w-[956px]' %> block rounded-lg bg-white border <%= is_current_deal ? 'border-brand-palette-03 ring-1 ring-brand-palette-03' : 'border-light-palette-p3' %> dark:bg-neutral-700 transition-all duration-200">
         <div class="border-b-2 border-neutral-100 bg-light-palette-p4 px-3 py-2 flex items-center space-x-3">
           <% if event.from_me? %>
             <% if event.note? %>
@@ -37,10 +38,16 @@
               <span class="m-0 text-dark-gray-palette-p1 typography-text-s-lh150 flex items-center gap-1.5">
                 <%= event.activity? ? event.title : Event.human_enum_name(:kind, event.kind) %>
               </span>
-              <% if defined?(deal) && event.deal_id.present? && event.deal_id != deal.id %>
-                <span class="px-2 py-0.5 rounded-full typography-micro-b-lh150 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                  Outro negócio
-                </span>
+              <% if defined?(deal) && event.deal_id.present? %>
+                <% if event.deal_id != deal.id %>
+                  <span class="px-2 py-0.5 rounded-full typography-micro-b-lh150 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                    Outro negócio
+                  </span>
+                <% else %>
+                  <span class="px-2 py-0.5 rounded-full typography-micro-b-lh150 bg-brand-palette-08 text-brand-palette-03 dark:bg-brand-palette-03/20 dark:text-brand-palette-06 font-bold flex items-center gap-1.5 border border-brand-palette-03/30">
+                    <i data-lucide="target" class="w-3 h-3"></i> O negócio atual
+                  </span>
+                <% end %>
               <% end %>
               <% if event.evolution_api_message? %>
                 <%= embedded_svg('icon-whtass.svg', {class: "w-3.5 fill-[#26D367]"})  %>
