@@ -5,7 +5,7 @@ module Event::Broadcastable
       broadcast_prepend_later_to [contact_id, 'events'],
                                  partial: 'accounts/contacts/events/event',
                                  target: "events_to_do_#{contact.id}"
-      broadcast_replace_later_to deal, partial: 'accounts/pipelines/deal', locals: { deal: deal } if deal.present?
+      Deals::BroadcastJob.perform_async(deal_id, 'update') if deal_id.present?
     end
 
     after_update_commit do
@@ -15,12 +15,12 @@ module Event::Broadcastable
         broadcast_replace_later_to [contact_id, 'events'],
                                    partial: 'accounts/contacts/events/event'
       end
-      broadcast_replace_later_to deal, partial: 'accounts/pipelines/deal', locals: { deal: deal } if deal.present?
+      Deals::BroadcastJob.perform_async(deal_id, 'update') if deal_id.present?
     end
 
     after_destroy_commit do
       broadcast_remove_to [contact_id, 'events']
-      broadcast_replace_later_to deal, partial: 'accounts/pipelines/deal', locals: { deal: deal } if deal.present?
+      Deals::BroadcastJob.perform_async(deal_id, 'update') if deal_id.present?
     end
 
     def broadcast_events

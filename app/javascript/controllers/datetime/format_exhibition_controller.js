@@ -16,6 +16,19 @@ export default class extends Controller {
   };
 
   connect() {
+    this.refresh();
+    this.timer = setInterval(() => {
+      this.refresh();
+    }, 30000); // 30 seconds
+  }
+
+  disconnect() {
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
+  }
+
+  refresh() {
     const date = this.dateInTimezone;
     this.setMomentJsLocale();
     this.element.textContent = this.formattedDate(date);
