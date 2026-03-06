@@ -5,6 +5,8 @@ class Deals::BroadcastJob
 
   def perform(deal_id, action, data = {})
     deal = Deal.find_by(id: deal_id)
+    deal&.reload
+
     
     if action == 'destroy'
       account_id = data['account_id']

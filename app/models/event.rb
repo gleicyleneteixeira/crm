@@ -31,7 +31,7 @@ class Event < ApplicationRecord
   # default_scope { order('created_at DESC') }
   DEAL_UPDATE_KINDS = %w[deal_stage_change deal_opened deal_won deal_lost deal_reopened deal_product_added
                          deal_product_removed].freeze
-  belongs_to :deal, optional: true
+  belongs_to :deal, optional: true, touch: true
   belongs_to :contact
   # belongs_to :event_kind, default: -> { EventKind }
   # belongs_to :record, polymorphic: true
