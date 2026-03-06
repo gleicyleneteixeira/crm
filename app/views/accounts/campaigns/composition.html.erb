@@ -1,0 +1,130 @@
+<div class="max-w-4xl mx-auto py-8">
+  <div class="mb-8 flex items-center justify-between">
+    <div>
+      <h1 class="typography-title-b-lh150 text-dark-gray-palette-p1">Composição da Campanha</h1>
+      <p class="typography-body-s-lh150 text-slate-500">Defina as mensagens, as caixas de entrada e o funil de destino.</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full typography-micro-b-lh150 text-slate-600 dark:text-slate-400">Passo 3 de 3</span>
+    </div>
+  </div>
+
+  <%= form_with(model: @campaign, url: update_composition_account_campaign_path(current_user.account, @campaign), method: :patch, data: { controller: 'campaign--composition' }) do |f| %>
+    <div class="flex flex-col gap-8">
+      
+      <!-- Inboxes Selection -->
+      <section class="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+        <h2 class="typography-title-s-lh150 text-dark-gray-palette-p1 mb-4 flex items-center gap-2">
+          <i data-lucide="inbox" class="w-5 h-5 text-brand-palette-03"></i> Caixas de Entrada (Inboxes)
+        </h2>
+        <p class="typography-body-s-lh150 text-slate-500 mb-6 font-medium">Selecione uma ou mais caixas de entrada do Chatwoot. O sistema irá randomizar o envio entre elas.</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <% @inboxes.each do |inbox| %>
+            <label class="relative flex items-center p-4 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+              <div class="flex items-center h-5">
+                <%= check_box_tag "campaign[chatwoot_inbox_ids][]", inbox['id'], @campaign.chatwoot_inbox_ids&.include?(inbox['id'].to_s), class: 'h-4 w-4 text-brand-palette-03 focus:ring-brand-palette-03 border-slate-300 rounded' %>
+              </div>
+              <div class="ml-3 text-sm">
+                <span class="font-medium text-dark-gray-palette-p1"><%= inbox['name'] %></span>
+                <p class="text-slate-500 text-xs"><%= inbox['channel_type'] %></p>
+              </div>
+            </label>
+          <% end %>
+        </div>
+      </section>
+
+      <!-- Message Sequence -->
+      <section class="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+        <h2 class="typography-title-s-lh150 text-dark-gray-palette-p1 mb-4 flex items-center gap-2">
+          <i data-lucide="layers" class="w-5 h-5 text-brand-palette-03"></i> Sequência de Mensagens
+        </h2>
+        <p class="typography-body-s-lh150 text-slate-500 mb-6 font-medium">Adicione os blocos que serão enviados em sequência para cada contato.</p>
+
+        <div data-campaign--composition-target="blocksContainer" class="flex flex-col gap-4 mb-6">
+          <!-- Blocks will be inserted here -->
+          <% @campaign.message_sequence&.each_with_index do |block, index| %>
+            <div class="message-block relative p-6 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 group">
+              <button data-action="campaign--composition#removeBlock" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
+                <i data-lucide="trash-2" class="w-5 h-5"></i>
+              </button>
+              
+              <div class="grid grid-cols-1 gap-4">
+                <div>
+                  <label class="block typography-micro-b-lh150 text-slate-500 mb-2 uppercase">Tipo de Bloco</label>
+                  <%= select_tag "campaign[message_sequence][#{index}][type]", options_for_select([['Texto', 'text'], ['Imagem', 'image'], ['Áudio', 'audio']], block['type']), class: 'w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-900 focus:border-brand-palette-03 text-sm' %>
+                </div>
+                <div>
+                  <label class="block typography-micro-b-lh150 text-slate-500 mb-2 uppercase">Conteúdo</label>
+                  <%= text_area_tag "campaign[message_sequence][#{index}][content]", block['content'], class: 'w-full h-24 rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-900 focus:border-brand-palette-03 text-sm', placeholder: 'Digite sua mensagem ou URL do arquivo...' %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <button data-action="campaign--composition#addBlock" class="w-full py-4 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 hover:border-brand-palette-03 hover:text-brand-palette-03 transition-all flex items-center justify-center gap-2 font-bold uppercase typography-micro-b-lh150">
+          <i data-lucide="plus" class="w-4 h-4"></i> Adicionar Bloco
+        </button>
+      </section>
+
+      <!-- Automation & Settings -->
+      <section class="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+        <h2 class="typography-title-s-lh150 text-dark-gray-palette-p1 mb-6 flex items-center gap-2">
+          <i data-lucide="zap" class="w-5 h-5 text-brand-palette-03"></i> Automação e Configurações
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="space-y-6">
+            <div>
+              <%= f.label :pipeline_id, 'Pipeline de Destino', class: 'block typography-micro-b-lh150 text-slate-700 mb-2' %>
+              <%= f.collection_select :pipeline_id, @pipelines, :id, :name, { include_blank: 'Não criar negócio' }, { class: 'w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-800' } %>
+            </div>
+            <div>
+              <%= f.label :stage_id, 'Estágio do Funil', class: 'block typography-micro-b-lh150 text-slate-700 mb-2' %>
+              <%= f.select :stage_id, [], { include_blank: 'Selecione um pipeline primeiro' }, { class: 'w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-800' } %>
+            </div>
+          </div>
+          <div class="space-y-6">
+            <div>
+              <%= f.label :batch_delay, 'Intervalo entre Contatos (segundos)', class: 'block typography-micro-b-lh150 text-slate-700 mb-2' %>
+              <div class="flex items-center gap-4">
+                <%= f.number_field :batch_delay, min: 0, class: 'w-32 rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-800' %>
+                <span class="text-sm text-slate-500 font-medium">Segundos recomendado (ex: 30)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="flex justify-end gap-4">
+        <%= link_to 'Voltar ao Mapeamento', mapping_account_campaign_path(current_user.account, @campaign), class: 'btn-secondary' %>
+        <%= f.submit 'Finalizar e Ver Resumo', class: 'btn-primary px-8 py-3' %>
+      </div>
+    </div>
+
+    <!-- Template for dynamic blocks -->
+    <template data-campaign--composition-target="blockTemplate">
+      <div class="message-block relative p-6 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 group">
+        <button data-action="campaign--composition#removeBlock" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
+          <i data-lucide="trash-2" class="w-5 h-5"></i>
+        </button>
+        
+        <div class="grid grid-cols-1 gap-4">
+          <div>
+            <label class="block typography-micro-b-lh150 text-slate-500 mb-2 uppercase">Tipo de Bloco</label>
+            <select name="campaign[message_sequence][INDEX][type]" class="w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-900 focus:border-brand-palette-03 text-sm">
+              <option value="text">Texto</option>
+              <option value="image">Imagem</option>
+              <option value="audio">Áudio</option>
+            </select>
+          </div>
+          <div>
+            <label class="block typography-micro-b-lh150 text-slate-500 mb-2 uppercase">Conteúdo</label>
+            <textarea name="campaign[message_sequence][INDEX][content]" class="w-full h-24 rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-900 focus:border-brand-palette-03 text-sm" placeholder="Digite sua mensagem ou URL do arquivo..."></textarea>
+          </div>
+        </div>
+      </div>
+    </template>
+  <% end %>
+</div>

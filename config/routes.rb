@@ -115,6 +115,15 @@ Rails.application.routes.draw do
       end
     end
     resources :workflows
+    resources :campaigns do
+      member do
+        get :mapping
+        patch :update_mapping
+        get :composition
+        patch :update_composition
+        post :process_campaign
+      end
+    end
   end
   if ENV.fetch('ENABLE_USER_SIGNUP', 'false') == 'true'
     devise_for :users, controllers: {

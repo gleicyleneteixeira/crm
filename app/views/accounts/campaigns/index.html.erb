@@ -1,0 +1,40 @@
+<div class="flex flex-col gap-8">
+  <div class="flex items-center justify-between">
+    <h1 class="typography-title-b-lh150 text-dark-gray-palette-p1">Campanhas</h1>
+    <%= link_to 'Nova Campanha', new_account_campaign_path(current_user.account), class: 'btn-primary' %>
+  </div>
+
+  <div class="overflow-x-auto shadow-sm rounded-lg border border-slate-200 dark:border-slate-700">
+    <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+      <thead class="bg-slate-50 dark:bg-slate-800">
+        <tr>
+          <th class="px-6 py-3 text-left typography-micro-b-lh150 text-slate-500 uppercase tracking-wider">Nome</th>
+          <th class="px-6 py-3 text-left typography-micro-b-lh150 text-slate-500 uppercase tracking-wider">Status</th>
+          <th class="px-6 py-3 text-left typography-micro-b-lh150 text-slate-500 uppercase tracking-wider">Data</th>
+          <th class="px-6 py-3 text-right typography-micro-b-lh150 text-slate-500 uppercase tracking-wider">Ações</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-700">
+        <% @campaigns.each do |campaign| %>
+          <tr class="hover:bg-slate-50 dark:hover:bg-slate-800">
+            <td class="px-6 py-4 whitespace-nowrap typography-body-s-lh150 text-dark-gray-palette-p1">
+              <%= link_to campaign.name, account_campaign_path(current_user.account, campaign) %>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="px-2 py-1 rounded-full typography-micro-b-lh150 <%= campaign.completed? ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' %>">
+                <%= campaign.status.humanize %>
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap typography-body-s-lh150 text-slate-500">
+              <%= campaign.created_at.strftime('%d/%m/%Y %H:%M') %>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right">
+              <%= link_to 'Mapeamento', mapping_account_campaign_path(current_user.account, campaign), class: 'text-brand-palette-03 hover:underline mr-4' %>
+              <%= link_to 'Composição', composition_account_campaign_path(current_user.account, campaign), class: 'text-brand-palette-03 hover:underline' %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
