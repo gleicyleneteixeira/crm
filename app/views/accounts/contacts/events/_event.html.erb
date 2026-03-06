@@ -34,36 +34,42 @@
             </div>
           <% end %>
           <div class="flex-grow py-1">
-            <div class="flex items-center gap-2">
-              <span class="m-0 text-dark-gray-palette-p1 typography-text-s-lh150 flex items-center gap-1.5">
-                <%= event.activity? ? event.title : Event.human_enum_name(:kind, event.kind) %>
-              </span>
+            <div class="flex flex-col gap-1.5">
               <% if defined?(deal) && event.deal_id.present? %>
-                <% if event.deal_id != deal.id %>
-                  <span class="px-2 py-0.5 rounded-full typography-micro-b-lh150 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                    Outro negócio
-                  </span>
-                <% else %>
-                  <span class="px-2 py-0.5 rounded-full typography-micro-b-lh150 bg-brand-palette-08 text-brand-palette-03 dark:bg-brand-palette-03/20 dark:text-brand-palette-06 font-bold flex items-center gap-1.5 border border-brand-palette-03/30">
-                    <i data-lucide="target" class="w-3 h-3"></i> O negócio atual
-                  </span>
-                <% end %>
+                <div class="flex items-center gap-2">
+                  <% if event.deal_id != deal.id %>
+                    <span class="px-2 py-0.5 rounded-full typography-micro-b-lh150 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                      Outro negócio
+                    </span>
+                  <% else %>
+                    <span class="px-2 py-0.5 rounded-full typography-micro-b-lh150 bg-brand-palette-08 text-brand-palette-03 dark:bg-brand-palette-03/20 dark:text-brand-palette-06 font-bold flex items-center gap-1.5 border border-brand-palette-03/30 w-fit">
+                      <i data-lucide="target" class="w-3 h-3"></i> O negócio atual
+                    </span>
+                  <% end %>
+                </div>
               <% end %>
-              <% if event.evolution_api_message? %>
-                <%= embedded_svg('icon-whtass.svg', {class: "w-3.5 fill-[#26D367]"})  %>
-              <% else %>
-                <i data-lucide="<%= event.icon_key %>" class="<%= event.icon_key %> self-center"></i>
-              <%  end  %>
+
+              <div class="flex items-center gap-2">
+                <span class="m-0 text-dark-gray-palette-p1 typography-text-s-lh150 font-bold flex items-center gap-2">
+                  <%= event.activity? ? event.title : Event.human_enum_name(:kind, event.kind) %>
+                  <% if event.evolution_api_message? %>
+                    <%= embedded_svg('icon-whtass.svg', {class: "w-3.5 fill-[#26D367]"})  %>
+                  <% else %>
+                    <i data-lucide="<%= event.icon_key %>" class="w-4 h-4 text-slate-400"></i>
+                  <% end %>
+                </span>
+              </div>
             </div>
+
             <% if event.scheduled_at.present? %>
-              <div class="m-0 text-brand-palette-04 group-[.event-scheduled]:font-semibold group-[.event-item-from-contacts]:text-dark-gray-palette-p4 flex items-center gap-1">
+              <div class="m-0 text-brand-palette-04 group-[.event-scheduled]:font-semibold group-[.event-item-from-contacts]:text-dark-gray-palette-p4 flex items-center gap-1 mt-1">
                 <span>
                   <%= t('views.accounts.contacts.events.event.deadline') %>:
                 </span>
                 <%= render "components/formatters/datetime", value: event.primary_date, type: "compact" %>
               </div>
             <% else %>
-              <%= render "components/formatters/datetime", value: event.primary_date, type: "compact", class_style: "m-0 typography-subtext-m-lh150 text-dark-gray-palette-p4" %>
+              <%= render "components/formatters/datetime", value: event.primary_date, type: "compact", class_style: "m-0 typography-subtext-m-lh150 text-dark-gray-palette-p4 mt-1 block" %>
             <% end %>
           </div>
           <% if event.editable? %>
