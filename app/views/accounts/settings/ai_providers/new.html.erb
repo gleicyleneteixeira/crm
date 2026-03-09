@@ -1,0 +1,41 @@
+<div class="max-w-2xl mx-auto py-8">
+  <div class="mb-8">
+    <h1 class="typography-title-b-lh150 text-dark-gray-palette-p1"><%= @ai_provider.new_record? ? 'Novo Provedor de IA' : 'Editar Provedor' %></h1>
+    <p class="typography-body-s-lh150 text-slate-500 italic">Cadastre sua chave de API para habilitar o rodízio.</p>
+  </div>
+
+  <%= form_with(model: [current_user.account, :settings, :ai_settings, @ai_provider], local: true) do |f| %>
+    <div class="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 space-y-6">
+      <div>
+        <%= f.label :name, 'Apelido (ex: OpenAI Chip 01)', class: 'block typography-micro-b-lh150 text-slate-700 mb-2' %>
+        <%= f.text_field :name, class: 'w-full rounded-lg border-slate-300 dark:bg-slate-800', required: true %>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <%= f.label :provider_type, 'Plataforma', class: 'block typography-micro-b-lh150 text-slate-700 mb-2' %>
+          <%= f.select :provider_type, AiProvider.provider_types.keys.map { |k| [k.humanize, k] }, {}, class: 'w-full rounded-lg border-slate-300 dark:bg-slate-800' %>
+        </div>
+        <div>
+          <%= f.label :model_name, 'ID do Modelo (ex: gpt-4o)', class: 'block typography-micro-b-lh150 text-slate-700 mb-2' %>
+          <%= f.text_field :model_name, class: 'w-full rounded-lg border-slate-300 dark:bg-slate-800', placeholder: 'gpt-4o ou llama-3.3-70b-versatile', required: true %>
+        </div>
+      </div>
+
+      <div>
+        <%= f.label :api_key, 'API Key (Token)', class: 'block typography-micro-b-lh150 text-slate-700 mb-2' %>
+        <%= f.password_field :api_key, class: 'w-full rounded-lg border-slate-300 dark:bg-slate-800', required: @ai_provider.new_record? %>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <%= f.check_box :active, class: 'rounded text-brand-palette-03 focus:ring-brand-palette-03' %>
+        <%= f.label :active, 'Chave Ativa para Rodízio', class: 'typography-body-s-lh150 text-slate-700' %>
+      </div>
+
+      <div class="flex justify-end gap-3 pt-6 border-t border-slate-100 dark:border-slate-800">
+        <%= link_to 'Cancelar', account_settings_ai_settings_path(current_user.account), class: 'btn-secondary text-sm' %>
+        <%= f.submit 'Salvar Provedor', class: 'btn-primary text-sm px-6' %>
+      </div>
+    </div>
+  <% end %>
+</div>

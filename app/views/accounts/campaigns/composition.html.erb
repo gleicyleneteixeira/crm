@@ -93,6 +93,16 @@
                 <span class="text-sm text-slate-500 font-medium">Segundos recomendado (ex: 30)</span>
               </div>
             </div>
+            
+            <div class="p-6 bg-brand-palette-03/5 border border-brand-palette-03/20 rounded-xl">
+              <div class="flex items-start gap-3">
+                <%= f.check_box :ai_randomization, class: 'mt-1 rounded text-brand-palette-03 focus:ring-brand-palette-03' %>
+                <div>
+                  <%= f.label :ai_randomization, 'Randomização por IA', class: 'block typography-body-b-lh150 text-brand-palette-03 mb-1' %>
+                  <p class="text-xs text-slate-500 italic">Quando ativo, o sistema usará o **AI Gateway** para reescrever cada mensagem de texto, garantindo que nenhum contato receba exatamente o mesmo conteúdo.</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

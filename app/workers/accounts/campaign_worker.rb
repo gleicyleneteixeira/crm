@@ -34,7 +34,7 @@ class Accounts::CampaignWorker
 
         # 4. Send Messages Sequentially
         campaign.message_sequence.each do |message_block|
-          send_campaign_message(chatwoot_app, contact, inbox_id, message_block)
+          send_campaign_message(chatwoot_app, contact, inbox_id, message_block, campaign)
         end
 
         # 5. Create Deal
@@ -103,11 +103,17 @@ class Accounts::CampaignWorker
     params
   end
 
-  def send_campaign_message(chatwoot_app, contact, inbox_id, message_block)
+  def send_campaign_message(chatwoot_app, contact, inbox_id, message_block, campaign)
+    content = message_block['content']
+    
+    if campaign.ai_randomization? && message_block['type'] == 'text'
+      content = AiManager.call(campaign.account, context: :campaign, content: content)
+    end
+
     event = contact.events.new(
       account: chatwoot_app.account,
       kind: 'chatwoot_message',
-      content: message_block['content'],
+      content: content,
       app: chatwoot_app,
       from_me: true,
       done_at: Time.current

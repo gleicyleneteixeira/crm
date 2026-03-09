@@ -1,0 +1,107 @@
+<div class="max-w-6xl mx-auto py-8 px-4">
+  <div class="mb-10">
+    <h1 class="typography-title-b-lh150 text-dark-gray-palette-p1">Configurações de IA (AI Gateway)</h1>
+    <p class="typography-body-s-lh150 text-slate-500 max-w-2xl">
+      Gerencie seus provedores de inteligência artificial como se fossem "chips" de celular. 
+      O sistema faz o rodízio automático entre as chaves ativas e aplica um cooldown em caso de erro.
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+    <!-- AI Providers Section -->
+    <section>
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="typography-title-s-lh150 text-dark-gray-palette-p1 flex items-center gap-2">
+          <i data-lucide="cpu" class="w-5 h-5 text-brand-palette-03"></i> Provedores de IA
+        </h2>
+        <%= link_to 'Adicionar Provedor', new_account_settings_ai_provider_path(current_user.account), class: 'btn-secondary text-xs' %>
+      </div>
+
+      <div class="space-y-4">
+        <% @ai_providers.each do |provider| %>
+          <div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 hover:border-brand-palette-03 transition-all group">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-slate-400">
+                  <%= provider.provider_type[0].upcase %>
+                </div>
+                <div>
+                  <h3 class="typography-body-b-lh150 text-dark-gray-palette-p1"><%= provider.name %></h3>
+                  <p class="text-xs text-slate-500"><%= provider.provider_type.humanize %> • <%= provider.model_name %></p>
+                </div>
+              </div>
+              <div class="flex flex-col items-end gap-2">
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase <%= provider.active ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-400' %>">
+                  <%= provider.active ? 'Ativo' : 'Inativo' %>
+                </span>
+                <% if provider.cooldown_until && provider.cooldown_until > Time.current %>
+                  <span class="text-[9px] text-amber-500 font-bold flex items-center gap-1">
+                    <i data-lucide="clock" class="w-3 h-3"></i> COOLDOWN ATÉ <%= provider.cooldown_until.strftime('%H:%M') %>
+                  </span>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="mt-4 grid grid-cols-2 gap-4 border-t border-slate-50 dark:border-slate-800 pt-4">
+              <div>
+                <p class="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Uso Total</p>
+                <p class="typography-body-s-lh150 text-dark-gray-palette-p1"><%= provider.usage_count %> chamadas</p>
+              </div>
+              <div class="flex justify-end items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                <%= link_to edit_account_settings_ai_provider_path(current_user.account, provider), class: 'text-slate-400 hover:text-brand-palette-03' do %>
+                  <i data-lucide="edit-3" class="w-4 h-4"></i>
+                <% end %>
+                <%= link_to account_settings_ai_provider_path(current_user.account, provider), data: { turbo_method: :delete, turbo_confirm: 'Remover este provedor?' }, class: 'text-slate-400 hover:text-red-500' do %>
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+        <% if @ai_providers.empty? %>
+          <div class="text-center py-10 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
+            <p class="text-slate-500 typography-body-s-lh150 italic">Nenhum provedor configurado ainda.</p>
+          </div>
+        <% end %>
+      </div>
+    </section>
+
+    <!-- AI Prompts Section -->
+    <section>
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="typography-title-s-lh150 text-dark-gray-palette-p1 flex items-center gap-2">
+          <i data-lucide="message-square" class="w-5 h-5 text-brand-palette-03"></i> Prompts de Sistema
+        </h2>
+        <%= link_to 'Nova Instrução', new_account_settings_ai_prompt_path(current_user.account), class: 'btn-secondary text-xs' %>
+      </div>
+
+      <div class="space-y-4">
+        <% @ai_prompts.each do |prompt| %>
+          <div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 hover:border-brand-palette-03 transition-all group">
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-2 py-1 bg-brand-palette-03/10 text-brand-palette-03 rounded text-[10px] font-bold uppercase tracking-wider">
+                Contexto: <%= prompt.context.humanize %>
+              </span>
+              <div class="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                <%= link_to edit_account_settings_ai_prompt_path(current_user.account, prompt), class: 'text-slate-400 hover:text-brand-palette-03' do %>
+                  <i data-lucide="edit-3" class="w-4 h-4"></i>
+                <% end %>
+                <%= link_to account_settings_ai_prompt_path(current_user.account, prompt), data: { turbo_method: :delete, turbo_confirm: 'Remover esta instrução?' }, class: 'text-slate-400 hover:text-red-500' do %>
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                <% end %>
+              </div>
+            </div>
+            <p class="typography-body-s-lh150 text-slate-600 dark:text-slate-400 line-clamp-3 italic">
+              "<%= prompt.instruction %>"
+            </p>
+          </div>
+        <% end %>
+        <% if @ai_prompts.empty? %>
+          <div class="text-center py-10 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
+            <p class="text-slate-500 typography-body-s-lh150 italic">Defina as instruções de sistema para cada contexto.</p>
+          </div>
+        <% end %>
+      </div>
+    </section>
+  </div>
+</div>

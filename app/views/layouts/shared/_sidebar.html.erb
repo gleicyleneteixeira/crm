@@ -35,6 +35,18 @@
     label: t('activerecord.models.reports'),
     active_if: -> { request.path.include?('reports') },
     link_data: { controller: "form--set-timezone-offset" }
+  },
+  {
+    path: account_campaigns_path(Current.account),
+    icon: 'megaphone',
+    label: 'Campanhas',
+    active_if: -> { request.path.include?('campaigns') }
+  },
+  {
+    path: account_settings_ai_settings_path(Current.account),
+    icon: 'bot',
+    label: 'AI Gateway',
+    active_if: -> { request.path.include?('ai_settings') }
   }
 ]
 %>

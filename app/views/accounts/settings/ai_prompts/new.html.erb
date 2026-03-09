@@ -1,0 +1,25 @@
+<div class="max-w-2xl mx-auto py-8">
+  <div class="mb-8">
+    <h1 class="typography-title-b-lh150 text-dark-gray-palette-p1"><%= @ai_prompt.new_record? ? 'Nova Instrução de Contexto' : 'Editar Instrução' %></h1>
+    <p class="typography-body-s-lh150 text-slate-500 italic">Defina como a IA deve se comportar nesse cenário.</p>
+  </div>
+
+  <%= form_with(model: [current_user.account, :settings, :ai_settings, @ai_prompt], local: true) do |f| %>
+    <div class="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 space-y-6">
+      <div>
+        <%= f.label :context, 'Contexto de Aplicação', class: 'block typography-micro-b-lh150 text-slate-700 mb-2' %>
+        <%= f.select :context, AiPrompt.contexts.keys.map { |k| [k.humanize, k] }, {}, class: 'w-full rounded-lg border-slate-300 dark:bg-slate-800' %>
+      </div>
+
+      <div>
+        <%= f.label :instruction, 'Instrução do Sistema (System Prompt)', class: 'block typography-micro-b-lh150 text-slate-700 mb-2' %>
+        <%= f.text_area :instruction, rows: 6, class: 'w-full rounded-lg border-slate-300 dark:bg-slate-800 text-sm', placeholder: 'Ex: Você é um copywriter sênior focado em conversão. Reescreva a mensagem abaixo para deixá-la mais persuasiva, mantendo um tom amigável.', required: true %>
+      </div>
+
+      <div class="flex justify-end gap-3 pt-6 border-t border-slate-100 dark:border-slate-800">
+        <%= link_to 'Cancelar', account_settings_ai_settings_path(current_user.account), class: 'btn-secondary text-sm' %>
+        <%= f.submit 'Salvar Instrução', class: 'btn-primary text-sm px-6' %>
+      </div>
+    </div>
+  <% end %>
+</div>

@@ -114,6 +114,14 @@ Rails.application.routes.draw do
         get :pipeline_summary
       end
     end
+    namespace :settings do
+      resources :ai_settings, only: [:index] do
+        collection do
+          resources :ai_providers
+          resources :ai_prompts
+        end
+      end
+    end
     resources :workflows
     resources :campaigns do
       member do

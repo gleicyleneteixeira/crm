@@ -11,6 +11,10 @@ class Campaign < ApplicationRecord
     failed: 'failed'
   }
 
+  def ai_randomization?
+    ai_randomization
+  end
+
   def inbox_ids
     chatwoot_inbox_ids || []
   end
