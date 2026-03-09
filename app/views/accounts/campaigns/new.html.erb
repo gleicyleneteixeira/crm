@@ -43,11 +43,11 @@
         ></textarea>
       </div>
 
-      <%= f.hidden_field :spreadsheet_data, data: { campaign--import_target: 'jsonOutput' } %>
+      <%= f.hidden_field :spreadsheet_data, data: { 'campaign--import-target': 'jsonOutput' } %>
 
       <div class="flex justify-end gap-4 border-t border-slate-100 dark:border-slate-800 pt-6">
         <%= link_to 'Cancelar', account_campaigns_path(current_user.account), class: 'btn-secondary' %>
-        <%= f.submit 'Próximo: Mapear Campos', class: 'btn-primary', data: { campaign--import_target: 'submitButton' } %>
+        <%= f.submit 'Próximo: Mapear Campos', class: 'btn-primary', data: { 'campaign--import-target': 'submitButton' } %>
       </div>
     </div>
   <% end %>
