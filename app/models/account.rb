@@ -73,6 +73,10 @@ class Account < ApplicationRecord
     Deal.all
   end
 
+  def campaigns
+    Campaign.all
+  end
+
   def custom_attribute_definitions
     CustomAttributeDefinition.all
   end
