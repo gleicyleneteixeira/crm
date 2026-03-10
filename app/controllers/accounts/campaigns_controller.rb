@@ -10,11 +10,13 @@ class Accounts::CampaignsController < InternalController
   def new
     @campaign = current_user.account.campaigns.new
     @campaign_categories = CampaignCategory.all
+    @pipelines = current_user.account.pipelines.includes(:stages)
     @crm_fields = fetch_crm_fields
   end
 
   def edit
     @campaign_categories = CampaignCategory.all
+    @pipelines = current_user.account.pipelines.includes(:stages)
     @crm_fields = fetch_crm_fields
   end
 
@@ -110,7 +112,7 @@ class Accounts::CampaignsController < InternalController
   end
 
   def campaign_params
-    permitted = params.require(:campaign).permit(:name, :spreadsheet_data, :campaign_category_id)
+    permitted = params.require(:campaign).permit(:name, :spreadsheet_data, :campaign_category_id, :pipeline_id, :stage_id)
     permitted[:mapping] = params[:campaign][:mapping].permit! if params[:campaign][:mapping].present?
     permitted[:spreadsheet_data] = JSON.parse(permitted[:spreadsheet_data]) if permitted[:spreadsheet_data].is_a?(String)
     permitted

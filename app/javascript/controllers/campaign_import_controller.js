@@ -13,15 +13,81 @@ export default class extends Controller {
         "countTotal",
         "countValid",
         "countInvalid",
+        "countInvalid",
         "categorySelect",
-        "mappingSection",
-        "mappingSelect"
+        "pipelineSelect",
+        "stageSelect"
     ]
+
+    static values = {
+        pipelines: Array,
+        crmFields: Object
+    }
 
     connect() {
         this.rawData = []
         this.ignoredRows = new Set()
+        this.loadCurrentMapping()
         this.updateSubmitButton()
+    }
+
+    loadCurrentMapping() {
+        this.currentMapping = {};
+        this.savedHeaderMappings = JSON.parse(localStorage.getItem('campaignInverseMappingsByName') || '{}');
+    }
+
+    saveCurrentMapping() {
+        const headers = this.rawData && this.rawData.length > 0 ? this.rawData[0] : [];
+        this.savedHeaderMappings = {};
+
+        for (const [crmKey, colIndex] of Object.entries(this.currentMapping)) {
+            if (headers[colIndex]) {
+                this.savedHeaderMappings[crmKey] = headers[colIndex];
+            }
+        }
+        localStorage.setItem('campaignInverseMappingsByName', JSON.stringify(this.savedHeaderMappings));
+
+        this.validateMapping();
+    }
+
+    autoMatchHeaders() {
+        if (!this.rawData || this.rawData.length === 0) return;
+        const headers = this.rawData[0];
+
+        this.currentMapping = {};
+
+        headers.forEach((header, index) => {
+            if (header === undefined || header === null) return;
+            const colIndexStr = index.toString();
+
+            let matchedCrmKey = null;
+
+            for (const [crmKey, savedHeader] of Object.entries(this.savedHeaderMappings)) {
+                if (savedHeader === header && !Object.values(this.currentMapping).includes(colIndexStr)) {
+                    matchedCrmKey = crmKey;
+                    break;
+                }
+            }
+
+            if (!matchedCrmKey) {
+                for (const groupName in this.crmFieldsValue) {
+                    const attributesList = this.crmFieldsValue[groupName];
+                    for (const [label, key] of attributesList) {
+                        if (this.stringMatch(label, header) && !this.currentMapping[key] && !Object.values(this.currentMapping).includes(colIndexStr)) {
+                            matchedCrmKey = key;
+                            break;
+                        }
+                    }
+                    if (matchedCrmKey) break;
+                }
+            }
+
+            if (matchedCrmKey) {
+                this.currentMapping[matchedCrmKey] = colIndexStr;
+            }
+        });
+
+        this.saveCurrentMapping();
     }
 
     handleFile(event) {
@@ -47,8 +113,8 @@ export default class extends Controller {
 
             this.ignoredRows.clear()
             this.rawData = this.normalizeMatrix(processedJson)
+            this.autoMatchHeaders()
             this.renderizarGrid()
-            this.populateMappingSelects()
 
             event.target.value = ''
         }
@@ -85,8 +151,8 @@ export default class extends Controller {
 
         this.ignoredRows.clear()
         this.rawData = this.normalizeMatrix(data)
+        this.autoMatchHeaders()
         this.renderizarGrid()
-        this.populateMappingSelects()
     }
 
     normalizeMatrix(matrix) {
@@ -116,7 +182,6 @@ export default class extends Controller {
         if (this.hasGridWrapperTarget) this.gridWrapperTarget.classList.add('hidden')
         if (this.hasPasteAreaTarget) this.pasteAreaTarget.classList.remove('hidden')
         if (this.hasEmptyStateContainerTarget) this.emptyStateContainerTarget.classList.remove('hidden')
-        if (this.hasMappingSectionTarget) this.mappingSectionTarget.classList.add('hidden')
 
         this.updateCounters(0, 0, 0)
         this.validateMapping()
@@ -176,10 +241,21 @@ export default class extends Controller {
             if (isHeaderRow) {
                 rowHtml += '<thead class="bg-slate-100 dark:bg-slate-800">'
                 rowHtml += `<tr class="${trClass}">`
-                row.forEach((cell) => {
-                    rowHtml += `<th class="px-4 py-3 border-r border-slate-200 dark:border-slate-700 text-left text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">${this.escapeHtml(cell)}</th>`
+                row.forEach((cell, colIndex) => {
+                    const colIndexStr = colIndex.toString();
+                    const mappedCrmKey = Object.keys(this.currentMapping).find(k => this.currentMapping[k] === colIndexStr);
+
+                    let bgWarningClass = "bg-white dark:bg-slate-900";
+                    if (mappedCrmKey) {
+                        bgWarningClass = "bg-brand-palette-03/10 border-brand-palette-03 shadow-inner";
+                    }
+
+                    rowHtml += `<th class="px-3 py-3 border-r border-slate-200 dark:border-slate-700 text-left align-top transition-colors border-t-2 border-t-transparent ${bgWarningClass} ${mappedCrmKey ? '!border-t-brand-palette-03' : ''}">`
+                    rowHtml += this.generateHeaderMappingSelect(colIndex, cell);
+                    rowHtml += `<div class="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider truncate" title="${this.escapeHtml(cell)}">${this.escapeHtml(cell)}</div>`
+                    rowHtml += `</th>`
                 })
-                rowHtml += `<th class="px-4 py-3 text-right text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider min-w-[210px]">Status</th>`
+                rowHtml += `<th class="px-4 py-3 text-right text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider min-w-[210px] bg-slate-100 dark:bg-slate-800">Status</th>`
                 rowHtml += '</tr></thead><tbody>'
             } else {
                 rowHtml += `<tr class="border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${trClass}">`
@@ -369,48 +445,45 @@ export default class extends Controller {
         }
     }
 
-    populateMappingSelects() {
-        if (!this.hasMappingSectionTarget || !this.hasMappingSelectTarget) return
+    generateHeaderMappingSelect(colIndex, headerName) {
+        if (!this.hasCrmFieldsValue) return '';
 
-        if (this.rawData.length === 0) {
-            this.mappingSectionTarget.classList.add('hidden')
-            return
+        const colIndexStr = colIndex.toString();
+        let mappedCrmKey = Object.keys(this.currentMapping).find(k => this.currentMapping[k] === colIndexStr);
+
+        let selectHtml = `<select class="w-full text-xs py-1 px-1 rounded border-slate-300 dark:border-slate-600 dark:bg-slate-800 focus:border-brand-palette-03 focus:ring-brand-palette-03 mb-2 font-normal" data-action="change->campaign-import#handleHeaderMappingChange" data-col="${colIndex}">`;
+        selectHtml += `<option value="">Não Carregar</option>`;
+
+        for (const [groupName, attributesList] of Object.entries(this.crmFieldsValue)) {
+            selectHtml += `<optgroup label="${this.escapeHtml(groupName)}">`;
+            for (const [label, key] of attributesList) {
+                const isSelected = (mappedCrmKey === key) ? 'selected' : '';
+                const isRequired = (key === 'contact.full_name' || key === 'contact.phone') ? ' *' : '';
+                selectHtml += `<option value="${key}" ${isSelected}>${this.escapeHtml(label)}${isRequired}</option>`;
+            }
+            selectHtml += `</optgroup>`;
+        }
+        selectHtml += `</select>`;
+        return selectHtml;
+    }
+
+    handleHeaderMappingChange(event) {
+        const select = event.target;
+        const colIndexStr = select.dataset.col.toString();
+        const selectedCrmKey = select.value;
+
+        for (const key in this.currentMapping) {
+            if (this.currentMapping[key] === colIndexStr) {
+                delete this.currentMapping[key];
+            }
         }
 
-        this.mappingSectionTarget.classList.remove('hidden')
+        if (selectedCrmKey) {
+            this.currentMapping[selectedCrmKey] = colIndexStr;
+        }
 
-        const headers = this.rawData[0]
-        const savedMappings = JSON.parse(localStorage.getItem('campaignFieldMappings') || '{}')
-
-        this.mappingSelectTargets.forEach(select => {
-            const currentVal = select.value
-            select.innerHTML = '<option value="">Ignorar este campo</option>'
-
-            const fieldName = select.dataset.crmField
-            let bestMatchIndex = -1
-
-            headers.forEach((header, index) => {
-                if (header === undefined || header === null) return
-                const opt = document.createElement('option')
-                opt.value = index.toString()
-                opt.textContent = `${header} (Coluna ${index + 1})`
-                select.appendChild(opt)
-
-                if (savedMappings[fieldName] === header) {
-                    bestMatchIndex = index
-                } else if (bestMatchIndex === -1 && this.stringMatch(fieldName, header)) {
-                    bestMatchIndex = index
-                }
-            })
-
-            if (bestMatchIndex !== -1) {
-                select.value = bestMatchIndex.toString()
-            } else if (currentVal !== "") {
-                select.value = currentVal
-            }
-        })
-
-        this.validateMapping()
+        this.saveCurrentMapping();
+        this.renderizarGrid();
     }
 
     stringMatch(crm, col) {
@@ -420,41 +493,40 @@ export default class extends Controller {
         return normalizedCrm.includes(normalizedCol) || normalizedCol.includes(normalizedCrm)
     }
 
-    saveMappingPreference(fieldName, columnHeader) {
-        const savedMappings = JSON.parse(localStorage.getItem('campaignFieldMappings') || '{}')
-        if (columnHeader && columnHeader !== "Ignorar este campo") {
-            savedMappings[fieldName] = columnHeader
-        } else {
-            delete savedMappings[fieldName]
-        }
-        localStorage.setItem('campaignFieldMappings', JSON.stringify(savedMappings))
-        this.validateMapping()
-    }
-
     handleCategoryChange() {
         this.validateMapping()
     }
 
-    validateMapping(event = null) {
-        if (event && event.target && event.target.dataset.crmField) {
-            const select = event.target
-            const headerName = select.options[select.selectedIndex]?.text?.split(' (Coluna')[0]
-            if (select.value !== "") {
-                this.saveMappingPreference(select.dataset.crmField, headerName)
-            } else {
-                this.saveMappingPreference(select.dataset.crmField, null)
+    handlePipelineChange() {
+        if (!this.hasPipelineSelectTarget || !this.hasStageSelectTarget) return
+
+        const pipelineId = parseInt(this.pipelineSelectTarget.value, 10)
+        this.stageSelectTarget.innerHTML = '<option value="">Selecione a etapa inicial...</option>'
+
+        if (pipelineId && this.hasPipelinesValue) {
+            const pipeline = this.pipelinesValue.find(p => p.id === pipelineId)
+            if (pipeline && pipeline.stages) {
+                pipeline.stages.forEach(stage => {
+                    const opt = document.createElement('option')
+                    opt.value = stage.id
+                    opt.textContent = stage.name
+                    this.stageSelectTarget.appendChild(opt)
+                })
             }
         }
 
+        this.validateMapping()
+    }
+
+    validateMapping(event = null) {
         const exportData = this.rawData ? this.rawData.filter((_, index) => !this.ignoredRows.has(index)) : []
         const hasData = exportData && exportData.length > 0;
 
         let mappingsValid = true
-        if (hasData && this.hasMappingSelectTarget) {
-            let requiredSelects = this.mappingSelectTargets.filter(s => s.dataset.required === 'true')
-            requiredSelects.forEach(select => {
-                if (!select.value) mappingsValid = false
-            })
+        if (hasData) {
+            if (this.currentMapping['contact.full_name'] === undefined || this.currentMapping['contact.phone'] === undefined) {
+                mappingsValid = false;
+            }
         }
 
         let categoryParams = true;
@@ -471,6 +543,26 @@ export default class extends Controller {
             } else {
                 this.submitButtonTarget.classList.add('opacity-50', 'cursor-not-allowed')
             }
+        }
+
+        this.generateHiddenMappingInputs();
+    }
+
+    generateHiddenMappingInputs() {
+        let container = this.element.querySelector('#hidden-mappings-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'hidden-mappings-container';
+            this.element.appendChild(container);
+        }
+        container.innerHTML = '';
+
+        for (const [crmKey, colIndex] of Object.entries(this.currentMapping)) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = `campaign[mapping][${crmKey}]`;
+            input.value = colIndex;
+            container.appendChild(input);
         }
     }
 }
