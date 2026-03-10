@@ -12,29 +12,62 @@
         <%= f.text_field :name, class: 'w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-800 focus:border-brand-palette-03 focus:ring-brand-palette-03', placeholder: 'Ex: Lançamento Março 2024', required: true %>
       </div>
 
-      <div class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-8 text-center transition-colors hover:border-brand-palette-03" data-campaign-import-target="dropzone">
-        <div class="flex flex-col items-center gap-4">
-          <i data-lucide="upload-cloud" class="w-12 h-12 text-slate-400"></i>
-          <div>
-            <p class="typography-body-b-lh150 text-dark-gray-palette-p1">Upload de arquivo</p>
-            <p class="typography-body-s-lh150 text-slate-500">Arraste e solte seu arquivo CSV ou XLS aqui, ou clique para selecionar</p>
+      <div data-campaign-import-target="emptyStateContainer">
+        <div class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-8 text-center transition-colors hover:border-brand-palette-03" data-campaign-import-target="dropzone">
+          <div class="flex flex-col items-center gap-4">
+            <i data-lucide="upload-cloud" class="w-12 h-12 text-slate-400"></i>
+            <div>
+              <p class="typography-body-b-lh150 text-dark-gray-palette-p1">Upload de arquivo</p>
+              <p class="typography-body-s-lh150 text-slate-500">Arraste e solte seu arquivo CSV ou XLS aqui, ou clique para selecionar</p>
+            </div>
+            <input type="file" id="file_upload" class="hidden" accept=".csv, .xlsx, .xls" data-action="change->campaign-import#handleFile">
+            <label for="file_upload" class="btn-secondary cursor-pointer">Selecionar Arquivo</label>
           </div>
-          <input type="file" id="file_upload" class="hidden" accept=".csv, .xlsx, .xls" data-action="change->campaign-import#handleFile">
-          <label for="file_upload" class="btn-secondary cursor-pointer">Selecionar Arquivo</label>
         </div>
-      </div>
 
-      <div class="relative">
-        <div class="absolute inset-0 flex items-center" aria-hidden="true">
-          <div class="w-full border-t border-slate-200 dark:border-slate-700"></div>
-        </div>
-        <div class="relative flex justify-center text-sm">
-          <span class="px-3 bg-white dark:bg-slate-900 text-slate-500 typography-micro-b-lh150 uppercase">Ou cole os dados abaixo</span>
+        <div class="relative mt-6">
+          <div class="absolute inset-0 flex items-center" aria-hidden="true">
+            <div class="w-full border-t border-slate-200 dark:border-slate-700"></div>
+          </div>
+          <div class="relative flex justify-center text-sm">
+            <span class="px-3 bg-white dark:bg-slate-900 text-slate-500 typography-micro-b-lh150 uppercase">Ou cole os dados abaixo</span>
+          </div>
         </div>
       </div>
 
       <div>
-        <label class="block typography-micro-b-lh150 text-slate-700 mb-2">Editor de Planilha (Cole aqui)</label>
+        <div class="flex items-center justify-between mb-2">
+          <label class="block typography-micro-b-lh150 text-slate-700">Editor de Planilha</label>
+          <div class="flex items-center gap-2">
+            <%= check_box_tag :first_row_header, '1', true, data: { action: 'change->campaign-import#handleHeaderToggle', campaign_import_target: 'headerToggle' }, class: 'rounded border-slate-300 text-brand-palette-03 focus:ring-brand-palette-03 dark:bg-slate-800 dark:border-slate-600' %>
+            <%= label_tag :first_row_header, 'Primeira linha é cabeçalho', class: 'typography-micro-b-lh150 text-slate-700 dark:text-slate-300 cursor-pointer' %>
+          </div>
+        </div>
+        
+        <div data-campaign-import-target="gridWrapper" class="hidden rounded-lg border border-slate-300 dark:border-slate-600 overflow-hidden mb-4">
+          <div class="bg-slate-50 dark:bg-slate-800/50 p-3 lg:p-4 flex flex-col sm:flex-row justify-between items-center border-b border-slate-200 dark:border-slate-700 gap-3">
+            <div class="flex gap-4 sm:gap-6 text-sm">
+               <div class="flex flex-col">
+                  <span class="text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold">Total</span>
+                  <span data-campaign-import-target="countTotal" class="font-bold text-slate-900 dark:text-white text-lg">0</span>
+               </div>
+               <div class="flex flex-col">
+                  <span class="text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold">Válidos</span>
+                  <span data-campaign-import-target="countValid" class="font-bold text-green-600 dark:text-green-400 text-lg">0</span>
+               </div>
+               <div class="flex flex-col">
+                  <span class="text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold">Inválidos</span>
+                  <span data-campaign-import-target="countInvalid" class="font-bold text-red-500 dark:text-red-400 text-lg">0</span>
+               </div>
+            </div>
+            <button type="button" data-action="click->campaign-import#clearData" class="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-1.5 rounded-md text-sm font-semibold transition-colors flex items-center gap-2">
+              <i data-lucide="trash-2" class="w-4 h-4"></i> Limpar Dados
+            </button>
+          </div>
+          <div class="overflow-x-auto max-h-[500px]" data-campaign-import-target="gridContainer" data-action="paste->campaign-import#handleGridPaste">
+          </div>
+        </div>
+
         <textarea 
           class="w-full h-64 rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-800 font-mono text-sm" 
           placeholder="Cole dados do Excel ou Google Sheets aqui..."
