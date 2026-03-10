@@ -9,56 +9,39 @@ class Accounts::CampaignWorker
     spreadsheet_data = campaign.spreadsheet_data
     mapping = campaign.mapping
     inbox_ids = campaign.inbox_ids
-    chatwoot_app = account.apps_chatwoots.active.first
-    pipeline_id = campaign.campaign_category&.default_pipeline_id
-    stage_id = campaign.campaign_category&.default_stage_id
+    pipeline_id = campaign.pipeline_id
+    stage_id = campaign.stage_id
+
+    deals_to_insert = []
+    success_count = 0
 
     spreadsheet_data.each_with_index do |row, index|
       begin
-        # 1. Map and Create/Update Contact
         contact_params = map_row_to_contact_params(row, mapping)
         contact = find_or_initialize_contact(account, contact_params)
         contact.assign_attributes(contact_params)
         contact.save!
 
-        # 2. Export to Chatwoot (if applicable)
-        if chatwoot_app.present?
-          Accounts::Apps::Chatwoots::ExportContact.call(chatwoot_app, contact)
-          contact.reload
-
-          # 3. Send Messages Sequentially (If Sequence is mapped later)
-          if campaign.sequence.present? && inbox_ids.present?
-            inbox_id = inbox_ids[index % inbox_ids.size]
-            campaign.sequence.each do |message_block|
-              send_campaign_message(chatwoot_app, contact, inbox_id, message_block, campaign)
-            end
-          end
-        end
-
-        # 4. Create Deal linked to Category and Campaign
-        deal = nil
         if pipeline_id.present? && stage_id.present?
           deal_params = map_row_to_deal_params(row, mapping)
-          deal_params[:name] ||= "Oportunidade #{contact.full_name}" 
+          name = deal_params[:name] || "Oportunidade #{contact.full_name}" 
           
-          deal = account.deals.create!(
-            deal_params.merge(
-              contact: contact,
-              pipeline_id: pipeline_id,
-              stage_id: stage_id,
-              campaign_id: campaign.id,
-              status: 'open'
-            )
-          )
+          deals_to_insert << {
+            account_id: account.id,
+            contact_id: contact.id,
+            pipeline_id: pipeline_id,
+            stage_id: stage_id,
+            campaign_id: campaign.id,
+            status: 'open',
+            name: name,
+            custom_attributes: deal_params[:custom_attributes] || {},
+            manual_amount_in_cents: (deal_params[:manual_amount_in_cents].presence || 0).to_i,
+            total_deal_products_amount_in_cents: (deal_params[:total_amount_in_cents].presence || 0).to_i,
+            created_at: Time.current,
+            updated_at: Time.current
+          }
         end
-
-        # 5. Log Success
-        campaign.campaign_logs.create!(
-          contact: contact,
-          deal: deal,
-          status: 'success',
-          message: "Contato #{contact.full_name} e Negócio criado com sucesso."
-        )
+        success_count += 1
       rescue => e
         campaign.campaign_logs.create!(
           status: 'failed',
@@ -66,9 +49,14 @@ class Accounts::CampaignWorker
           metadata: { row: row, index: index }
         )
       end
+    end
 
-      # 7. Respect Delay
-      sleep(campaign.batch_delay) if campaign.batch_delay.to_i > 0
+    if deals_to_insert.any?
+      Deal.insert_all(deals_to_insert)
+      campaign.campaign_logs.create!(
+        status: 'success',
+        message: "#{deals_to_insert.length} Negócios (Deals) criados em lote (Bulk Insert) com sucesso."
+      )
     end
 
     campaign.completed!
