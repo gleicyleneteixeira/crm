@@ -2,7 +2,9 @@ class Campaign < ApplicationRecord
   belongs_to :account
   belongs_to :pipeline, optional: true
   belongs_to :stage, optional: true
+  belongs_to :campaign_category, optional: true
   has_many :campaign_logs, dependent: :destroy
+  has_many :deals
 
   enum status: {
     draft: 'draft',

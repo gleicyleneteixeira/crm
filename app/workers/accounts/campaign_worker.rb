@@ -10,12 +10,8 @@ class Accounts::CampaignWorker
     mapping = campaign.mapping
     inbox_ids = campaign.inbox_ids
     chatwoot_app = account.apps_chatwoots.active.first
-
-    if chatwoot_app.blank?
-      campaign.failed!
-      campaign.campaign_logs.create!(status: 'failed', message: 'Chatwoot App não configurado ou inativo.')
-      return
-    end
+    pipeline_id = campaign.campaign_category&.default_pipeline_id
+    stage_id = campaign.campaign_category&.default_stage_id
 
     spreadsheet_data.each_with_index do |row, index|
       begin
@@ -25,38 +21,43 @@ class Accounts::CampaignWorker
         contact.assign_attributes(contact_params)
         contact.save!
 
-        # 2. Export to Chatwoot to get chatwoot_id
-        Accounts::Apps::Chatwoots::ExportContact.call(chatwoot_app, contact)
-        contact.reload
+        # 2. Export to Chatwoot (if applicable)
+        if chatwoot_app.present?
+          Accounts::Apps::Chatwoots::ExportContact.call(chatwoot_app, contact)
+          contact.reload
 
-        # 3. Choose Inbox
-        inbox_id = inbox_ids[index % inbox_ids.size]
-
-        # 4. Send Messages Sequentially
-        campaign.message_sequence.each do |message_block|
-          send_campaign_message(chatwoot_app, contact, inbox_id, message_block, campaign)
+          # 3. Send Messages Sequentially (If Sequence is mapped later)
+          if campaign.sequence.present? && inbox_ids.present?
+            inbox_id = inbox_ids[index % inbox_ids.size]
+            campaign.sequence.each do |message_block|
+              send_campaign_message(chatwoot_app, contact, inbox_id, message_block, campaign)
+            end
+          end
         end
 
-        # 5. Create Deal
+        # 4. Create Deal linked to Category and Campaign
         deal = nil
-        if campaign.pipeline_id.present? && campaign.stage_id.present?
+        if pipeline_id.present? && stage_id.present?
           deal_params = map_row_to_deal_params(row, mapping)
+          deal_params[:name] ||= "Oportunidade #{contact.full_name}" 
+          
           deal = account.deals.create!(
             deal_params.merge(
               contact: contact,
-              pipeline_id: campaign.pipeline_id,
-              stage_id: campaign.stage_id,
+              pipeline_id: pipeline_id,
+              stage_id: stage_id,
+              campaign_id: campaign.id,
               status: 'open'
             )
           )
         end
 
-        # 6. Log Success
+        # 5. Log Success
         campaign.campaign_logs.create!(
           contact: contact,
           deal: deal,
           status: 'success',
-          message: "Contato #{contact.full_name} processado com sucesso."
+          message: "Contato #{contact.full_name} e Negócio criado com sucesso."
         )
       rescue => e
         campaign.campaign_logs.create!(
@@ -87,18 +88,26 @@ class Accounts::CampaignWorker
 
   def map_row_to_contact_params(row, mapping)
     params = {}
-    mapping.each do |col, field|
+    mapping.each do |field, col|
+      next if col.blank?
       next unless field.start_with?('contact.')
-      params[field.gsub('contact.', '').to_sym] = row[col]
+      params[field.gsub('contact.', '').to_sym] = row[col.to_i]
     end
     params
   end
 
   def map_row_to_deal_params(row, mapping)
-    params = {}
-    mapping.each do |col, field|
+    params = { custom_attributes: {} }
+    mapping.each do |field, col|
+      next if col.blank?
       next unless field.start_with?('deal.')
-      params[field.gsub('deal.', '').to_sym] = row[col]
+      
+      key = field.gsub('deal.', '')
+      if ['name', 'manual_amount_in_cents', 'total_amount_in_cents', 'chatwoot_conversation_url'].include?(key)
+        params[key.to_sym] = row[col.to_i]
+      else
+        params[:custom_attributes][key] = row[col.to_i]
+      end
     end
     params
   end

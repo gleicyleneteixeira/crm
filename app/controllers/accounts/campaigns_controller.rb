@@ -9,16 +9,23 @@ class Accounts::CampaignsController < InternalController
 
   def new
     @campaign = current_user.account.campaigns.new
+    @campaign_categories = CampaignCategory.all
+    @crm_fields = fetch_crm_fields
   end
 
-  def edit; end
+  def edit
+    @campaign_categories = CampaignCategory.all
+    @crm_fields = fetch_crm_fields
+  end
 
   def create
     @campaign = current_user.account.campaigns.new(campaign_params)
 
     if @campaign.save
-      redirect_to mapping_account_campaign_path(current_user.account, @campaign), notice: 'Campanha criada com sucesso. Agora, faça o mapeamento dos campos.'
+      redirect_to composition_account_campaign_path(current_user.account, @campaign), notice: 'Campanha importada e mapeada! Agora, configure o texto a ser enviado.'
     else
+      @campaign_categories = CampaignCategory.all
+      @crm_fields = fetch_crm_fields
       render :new, status: :unprocessable_entity
     end
   end
@@ -103,7 +110,8 @@ class Accounts::CampaignsController < InternalController
   end
 
   def campaign_params
-    permitted = params.require(:campaign).permit(:name, :spreadsheet_data)
+    permitted = params.require(:campaign).permit(:name, :spreadsheet_data, :campaign_category_id)
+    permitted[:mapping] = params[:campaign][:mapping].permit! if params[:campaign][:mapping].present?
     permitted[:spreadsheet_data] = JSON.parse(permitted[:spreadsheet_data]) if permitted[:spreadsheet_data].is_a?(String)
     permitted
   end

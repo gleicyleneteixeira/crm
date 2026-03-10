@@ -12,7 +12,10 @@ export default class extends Controller {
         "emptyStateContainer",
         "countTotal",
         "countValid",
-        "countInvalid"
+        "countInvalid",
+        "categorySelect",
+        "mappingSection",
+        "mappingSelect"
     ]
 
     connect() {
@@ -28,14 +31,24 @@ export default class extends Controller {
         const reader = new FileReader()
         reader.onload = (e) => {
             const data = new Uint8Array(e.target.result)
-            const workbook = XLSX.read(data, { type: 'array' })
+            const workbook = XLSX.read(data, { type: 'array', cellDates: true })
             const firstSheetName = workbook.SheetNames[0]
             const worksheet = workbook.Sheets[firstSheetName]
 
             const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
+            const processedJson = json.map(row =>
+                row.map(cell => {
+                    if (cell instanceof Date) {
+                        return cell.toLocaleDateString("pt-BR", { timeZone: 'UTC' }) // "DD/MM/YYYY" format
+                    }
+                    return cell
+                })
+            )
+
             this.ignoredRows.clear()
-            this.rawData = this.normalizeMatrix(json)
+            this.rawData = this.normalizeMatrix(processedJson)
             this.renderizarGrid()
+            this.populateMappingSelects()
 
             event.target.value = ''
         }
@@ -73,6 +86,7 @@ export default class extends Controller {
         this.ignoredRows.clear()
         this.rawData = this.normalizeMatrix(data)
         this.renderizarGrid()
+        this.populateMappingSelects()
     }
 
     normalizeMatrix(matrix) {
@@ -102,9 +116,10 @@ export default class extends Controller {
         if (this.hasGridWrapperTarget) this.gridWrapperTarget.classList.add('hidden')
         if (this.hasPasteAreaTarget) this.pasteAreaTarget.classList.remove('hidden')
         if (this.hasEmptyStateContainerTarget) this.emptyStateContainerTarget.classList.remove('hidden')
+        if (this.hasMappingSectionTarget) this.mappingSectionTarget.classList.add('hidden')
 
         this.updateCounters(0, 0, 0)
-        this.updateSubmitButton()
+        this.validateMapping()
     }
 
     handleHeaderToggle() {
@@ -214,7 +229,7 @@ export default class extends Controller {
 
         this.updateCounters(totalRecords, validRecords, invalidRecords)
         this.updateJsonOutput()
-        this.updateSubmitButton()
+        this.validateMapping()
     }
 
     updateCounters(total, valid, invalid) {
@@ -354,13 +369,104 @@ export default class extends Controller {
         }
     }
 
-    updateSubmitButton() {
+    populateMappingSelects() {
+        if (!this.hasMappingSectionTarget || !this.hasMappingSelectTarget) return
+
+        if (this.rawData.length === 0) {
+            this.mappingSectionTarget.classList.add('hidden')
+            return
+        }
+
+        this.mappingSectionTarget.classList.remove('hidden')
+
+        const headers = this.rawData[0]
+        const savedMappings = JSON.parse(localStorage.getItem('campaignFieldMappings') || '{}')
+
+        this.mappingSelectTargets.forEach(select => {
+            const currentVal = select.value
+            select.innerHTML = '<option value="">Ignorar este campo</option>'
+
+            const fieldName = select.dataset.crmField
+            let bestMatchIndex = -1
+
+            headers.forEach((header, index) => {
+                if (header === undefined || header === null) return
+                const opt = document.createElement('option')
+                opt.value = index.toString()
+                opt.textContent = `${header} (Coluna ${index + 1})`
+                select.appendChild(opt)
+
+                if (savedMappings[fieldName] === header) {
+                    bestMatchIndex = index
+                } else if (bestMatchIndex === -1 && this.stringMatch(fieldName, header)) {
+                    bestMatchIndex = index
+                }
+            })
+
+            if (bestMatchIndex !== -1) {
+                select.value = bestMatchIndex.toString()
+            } else if (currentVal !== "") {
+                select.value = currentVal
+            }
+        })
+
+        this.validateMapping()
+    }
+
+    stringMatch(crm, col) {
+        if (!crm || !col) return false
+        const normalizedCrm = crm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "")
+        const normalizedCol = col.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "")
+        return normalizedCrm.includes(normalizedCol) || normalizedCol.includes(normalizedCrm)
+    }
+
+    saveMappingPreference(fieldName, columnHeader) {
+        const savedMappings = JSON.parse(localStorage.getItem('campaignFieldMappings') || '{}')
+        if (columnHeader && columnHeader !== "Ignorar este campo") {
+            savedMappings[fieldName] = columnHeader
+        } else {
+            delete savedMappings[fieldName]
+        }
+        localStorage.setItem('campaignFieldMappings', JSON.stringify(savedMappings))
+        this.validateMapping()
+    }
+
+    handleCategoryChange() {
+        this.validateMapping()
+    }
+
+    validateMapping(event = null) {
+        if (event && event.target && event.target.dataset.crmField) {
+            const select = event.target
+            const headerName = select.options[select.selectedIndex]?.text?.split(' (Coluna')[0]
+            if (select.value !== "") {
+                this.saveMappingPreference(select.dataset.crmField, headerName)
+            } else {
+                this.saveMappingPreference(select.dataset.crmField, null)
+            }
+        }
+
         const exportData = this.rawData ? this.rawData.filter((_, index) => !this.ignoredRows.has(index)) : []
         const hasData = exportData && exportData.length > 0;
 
+        let mappingsValid = true
+        if (hasData && this.hasMappingSelectTarget) {
+            let requiredSelects = this.mappingSelectTargets.filter(s => s.dataset.required === 'true')
+            requiredSelects.forEach(select => {
+                if (!select.value) mappingsValid = false
+            })
+        }
+
+        let categoryParams = true;
+        if (this.hasCategorySelectTarget && !this.categorySelectTarget.value) {
+            categoryParams = false;
+        }
+
+        const isValid = hasData && mappingsValid && categoryParams
+
         if (this.hasSubmitButtonTarget) {
-            this.submitButtonTarget.disabled = !hasData
-            if (hasData) {
+            this.submitButtonTarget.disabled = !isValid
+            if (isValid) {
                 this.submitButtonTarget.classList.remove('opacity-50', 'cursor-not-allowed')
             } else {
                 this.submitButtonTarget.classList.add('opacity-50', 'cursor-not-allowed')

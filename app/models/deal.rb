@@ -42,6 +42,7 @@ class Deal < ApplicationRecord
   belongs_to :stage
   belongs_to :pipeline
   belongs_to :creator, class_name: 'User', foreign_key: 'created_by_id', optional: true
+  belongs_to :campaign, optional: true
   acts_as_list scope: :stage
   has_many :events, dependent: :destroy
   has_many :activities
