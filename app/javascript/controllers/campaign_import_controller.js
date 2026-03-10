@@ -25,10 +25,12 @@ export default class extends Controller {
     }
 
     processRawData(raw) {
+        if (!raw || !raw.trim()) return
+
         const rows = raw.trim().split(/\r?\n/)
         if (rows.length === 0) return
 
-        // Detect separator (tab for pasted from Excel/Sheets, comma for CSV)
+        // Detect separator (tab for pasted from Excel/Sheets, comma or semicolon for CSV)
         const firstRow = rows[0]
         const separator = firstRow.includes('\t') ? '\t' : (firstRow.includes(';') ? ';' : ',')
 
@@ -36,17 +38,30 @@ export default class extends Controller {
             return row.split(separator).map(cell => cell.trim().replace(/^"|"$/g, ''))
         })
 
-        this.jsonOutputTarget.value = JSON.stringify(data)
+        if (this.hasJsonOutputTarget) {
+            this.jsonOutputTarget.value = JSON.stringify(data)
+        }
         this.updateSubmitButton()
     }
 
     updateSubmitButton() {
-        const hasData = this.jsonOutputTarget.value && JSON.parse(this.jsonOutputTarget.value).length > 0
-        this.submitButtonTarget.disabled = !hasData
-        if (hasData) {
-            this.submitButtonTarget.classList.remove('opacity-50', 'cursor-not-allowed')
-        } else {
-            this.submitButtonTarget.classList.add('opacity-50', 'cursor-not-allowed')
+        let hasData = false
+        try {
+            if (this.hasJsonOutputTarget && this.jsonOutputTarget.value) {
+                const parsed = JSON.parse(this.jsonOutputTarget.value)
+                hasData = Array.isArray(parsed) && parsed.length > 0
+            }
+        } catch (e) {
+            console.error("Invalid JSON in hidden field", e)
+        }
+
+        if (this.hasSubmitButtonTarget) {
+            this.submitButtonTarget.disabled = !hasData
+            if (hasData) {
+                this.submitButtonTarget.classList.remove('opacity-50', 'cursor-not-allowed')
+            } else {
+                this.submitButtonTarget.classList.add('opacity-50', 'cursor-not-allowed')
+            }
         }
     }
 }
