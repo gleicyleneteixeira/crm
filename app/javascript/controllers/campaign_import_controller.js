@@ -13,7 +13,6 @@ export default class extends Controller {
         "countTotal",
         "countValid",
         "countInvalid",
-        "countInvalid",
         "categorySelect",
         "pipelineSelect",
         "stageSelect"
@@ -28,7 +27,7 @@ export default class extends Controller {
         this.rawData = []
         this.ignoredRows = new Set()
         this.loadCurrentMapping()
-        this.updateSubmitButton()
+        this.validateMapping()
     }
 
     loadCurrentMapping() {
@@ -113,6 +112,7 @@ export default class extends Controller {
 
             this.ignoredRows.clear()
             this.rawData = this.normalizeMatrix(processedJson)
+            console.log('Dados carregados:', this.rawData);
             this.autoMatchHeaders()
             this.renderizarGrid()
 
@@ -151,6 +151,7 @@ export default class extends Controller {
 
         this.ignoredRows.clear()
         this.rawData = this.normalizeMatrix(data)
+        console.log('Dados processados colados:', this.rawData);
         this.autoMatchHeaders()
         this.renderizarGrid()
     }
@@ -197,86 +198,89 @@ export default class extends Controller {
             return
         }
 
-        const isHeader = this.hasHeaderToggleTarget ? this.headerToggleTarget.checked : true
+        console.log('Iniciando renderizarGrid com rawData length:', this.rawData.length);
 
-        let html = '<table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">'
+        try {
+            const isHeader = this.hasHeaderToggleTarget ? this.headerToggleTarget.checked : true
 
-        let phoneIndex = -1;
-        if (isHeader && this.rawData.length > 0) {
-            phoneIndex = this.rawData[0].findIndex(col =>
-                col && col.toString().toLowerCase().match(/telefone|whatsapp|celular|phone|fone/i)
-            );
-        }
+            let html = '<table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">'
 
-        let totalRecords = 0;
-        let validRecords = 0;
-        let invalidRecords = 0;
-
-        this.rawData.forEach((row, rowIndex) => {
-            let rowHtml = ""
-            let isValid = true;
-
-            const isIgnored = this.ignoredRows.has(rowIndex);
-            const isHeaderRow = isHeader && rowIndex === 0;
-
-            if (phoneIndex !== -1 && !isHeaderRow) {
-                isValid = this.validarLinha(row, phoneIndex)
-            } else if (phoneIndex === -1 && !isHeaderRow) {
-                isValid = this.validarLinha(row, -1)
+            let phoneIndex = -1;
+            if (isHeader && this.rawData.length > 0) {
+                phoneIndex = this.rawData[0].findIndex(col =>
+                    col && col.toString().toLowerCase().match(/telefone|whatsapp|celular|phone|fone/i)
+                );
             }
 
-            if (!isHeaderRow && !isIgnored) {
-                totalRecords++;
-                if (isValid) validRecords++;
-                else invalidRecords++;
-            }
+            let totalRecords = 0;
+            let validRecords = 0;
+            let invalidRecords = 0;
 
-            let trClass = "";
-            if (isIgnored) {
-                trClass = "opacity-40 bg-slate-100 dark:bg-slate-800 line-through";
-            } else if (!isValid && !isHeaderRow) {
-                trClass = "bg-red-50 dark:bg-red-900/10 linha-erro";
-            }
+            this.rawData.forEach((row, rowIndex) => {
+                let rowHtml = ""
+                let isValid = true;
 
-            if (isHeaderRow) {
-                rowHtml += '<thead class="bg-slate-100 dark:bg-slate-800">'
-                rowHtml += `<tr class="${trClass}">`
-                row.forEach((cell, colIndex) => {
-                    const colIndexStr = colIndex.toString();
-                    const mappedCrmKey = Object.keys(this.currentMapping).find(k => this.currentMapping[k] === colIndexStr);
+                const isIgnored = this.ignoredRows.has(rowIndex);
+                const isHeaderRow = isHeader && rowIndex === 0;
 
-                    let bgWarningClass = "bg-white dark:bg-slate-900";
-                    if (mappedCrmKey) {
-                        bgWarningClass = "bg-brand-palette-03/10 border-brand-palette-03 shadow-inner";
-                    }
+                if (phoneIndex !== -1 && !isHeaderRow) {
+                    isValid = this.validarLinha(row, phoneIndex)
+                } else if (phoneIndex === -1 && !isHeaderRow) {
+                    isValid = this.validarLinha(row, -1)
+                }
 
-                    rowHtml += `<th class="px-3 py-3 border-r border-slate-200 dark:border-slate-700 text-left align-top transition-colors border-t-2 border-t-transparent ${bgWarningClass} ${mappedCrmKey ? '!border-t-brand-palette-03' : ''}">`
-                    rowHtml += this.generateHeaderMappingSelect(colIndex, cell);
-                    rowHtml += `<div class="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider truncate" title="${this.escapeHtml(cell)}">${this.escapeHtml(cell)}</div>`
-                    rowHtml += `</th>`
-                })
-                rowHtml += `<th class="px-4 py-3 text-right text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider min-w-[210px] bg-slate-100 dark:bg-slate-800">Status</th>`
-                rowHtml += '</tr></thead><tbody>'
-            } else {
-                rowHtml += `<tr class="border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${trClass}">`
-                row.forEach((cell, colIndex) => {
-                    rowHtml += `<td class="px-4 py-3 whitespace-nowrap editable-cell cursor-text transition-colors text-sm text-slate-900 dark:text-slate-200 border-r border-slate-200 dark:border-slate-700" data-row="${rowIndex}" data-col="${colIndex}" data-action="click->campaign-import#editCell">${this.escapeHtml(cell)}</td>`
-                })
+                if (!isHeaderRow && !isIgnored) {
+                    totalRecords++;
+                    if (isValid) validRecords++;
+                    else invalidRecords++;
+                }
 
+                let trClass = "";
                 if (isIgnored) {
-                    rowHtml += `<td class="px-4 py-3 text-right text-slate-500 text-xs font-medium">
+                    trClass = "opacity-40 bg-slate-100 dark:bg-slate-800 line-through";
+                } else if (!isValid && !isHeaderRow) {
+                    trClass = "bg-red-50 dark:bg-red-900/10 linha-erro";
+                }
+
+                if (isHeaderRow) {
+                    rowHtml += '<thead class="bg-slate-100 dark:bg-slate-800">'
+                    rowHtml += `<tr class="${trClass}">`
+                    row.forEach((cell, colIndex) => {
+                        const colIndexStr = colIndex.toString();
+                        const mappedCrmKey = Object.keys(this.currentMapping).find(k => this.currentMapping[k] === colIndexStr);
+
+                        let bgWarningClass = "bg-white dark:bg-slate-900";
+                        if (mappedCrmKey) {
+                            bgWarningClass = "bg-brand-palette-03/10 border-brand-palette-03 shadow-inner";
+                        }
+
+                        rowHtml += `<th class="px-3 py-3 border-r border-slate-200 dark:border-slate-700 text-left align-top transition-colors border-t-2 border-t-transparent ${bgWarningClass} ${mappedCrmKey ? '!border-t-brand-palette-03' : ''}">`
+                        rowHtml += this.generateHeaderMappingSelect(colIndex, cell);
+                        rowHtml += `<div class="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider truncate" title="${this.escapeHtml(cell)}">${this.escapeHtml(cell)}</div>`
+                        rowHtml += `</th>`
+                    })
+                    rowHtml += `<th class="px-4 py-3 text-right text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider min-w-[210px] bg-slate-100 dark:bg-slate-800">Status</th>`
+                    rowHtml += '</tr></thead><tbody>'
+                } else {
+                    rowHtml += `<tr class="border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${trClass}">`
+                    row.forEach((cell, colIndex) => {
+                        rowHtml += `<td class="px-4 py-3 whitespace-nowrap editable-cell cursor-text transition-colors text-sm text-slate-900 dark:text-slate-200 border-r border-slate-200 dark:border-slate-700" data-row="${rowIndex}" data-col="${colIndex}" data-action="click->campaign-import#editCell">${this.escapeHtml(cell)}</td>`
+                    })
+
+                    if (isIgnored) {
+                        rowHtml += `<td class="px-4 py-3 text-right text-slate-500 text-xs font-medium">
                         Ignorado
                         <button type="button" class="ml-2 text-brand-palette-03 hover:underline text-xs" data-action="click->campaign-import#restoreRow" data-row="${rowIndex}">Restaurar</button>
                     </td>`
-                } else if (isValid) {
-                    rowHtml += `<td class="px-4 py-3 text-right">
+                    } else if (isValid) {
+                        rowHtml += `<td class="px-4 py-3 text-right">
                         <span class="inline-flex items-center gap-1 text-green-600 dark:text-green-400 font-semibold text-xs tracking-tight bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full mr-2"><i data-lucide="check-circle" class="w-3 h-3"></i> Válido</span>
                         <div class="inline-flex gap-2">
                            <button type="button" class="text-slate-500 hover:text-red-500 hover:underline text-xs" data-action="click->campaign-import#deleteRow" data-row="${rowIndex}">Excluir</button>
                         </div>
                     </td>`
-                } else {
-                    rowHtml += `<td class="px-4 py-3 text-right">
+                    } else {
+                        rowHtml += `<td class="px-4 py-3 text-right">
                         <span class="inline-flex items-center gap-1 text-red-600 dark:text-red-400 font-bold text-xs tracking-tight bg-red-100 dark:bg-red-900/30 px-2 py-0.5 rounded-full block sm:inline-block mb-1 sm:mb-0 mr-2"><i data-lucide="alert-circle" class="w-3 h-3"></i> Erro</span>
                         <div class="inline-flex gap-2">
                            <button type="button" class="text-brand-palette-03 font-medium hover:underline text-xs" data-action="click->campaign-import#editRow" data-row="${rowIndex}">Editar</button>
@@ -284,28 +288,31 @@ export default class extends Controller {
                            <button type="button" class="text-red-600 hover:underline text-xs font-medium" data-action="click->campaign-import#deleteRow" data-row="${rowIndex}">Excluir</button>
                         </div>
                     </td>`
+                    }
+                    rowHtml += '</tr>'
                 }
-                rowHtml += '</tr>'
+                html += rowHtml
+            })
+
+            if (isHeader || this.rawData.length > 0) {
+                html += '</tbody>'
             }
-            html += rowHtml
-        })
+            html += '</table>'
 
-        if (isHeader || this.rawData.length > 0) {
-            html += '</tbody>'
+            if (this.hasGridContainerTarget) this.gridContainerTarget.innerHTML = html
+            if (this.hasGridWrapperTarget) this.gridWrapperTarget.classList.remove('hidden')
+            if (this.hasPasteAreaTarget) this.pasteAreaTarget.classList.add('hidden')
+            if (this.hasEmptyStateContainerTarget) this.emptyStateContainerTarget.classList.add('hidden')
+
+            // Retrigger lucide icons for new elements
+            if (window.lucide) window.lucide.createIcons();
+
+            this.updateCounters(totalRecords, validRecords, invalidRecords)
+            this.updateJsonOutput()
+            this.validateMapping()
+        } catch (error) {
+            console.error('Erro ao renderizar a grid (DOM Builder):', error);
         }
-        html += '</table>'
-
-        if (this.hasGridContainerTarget) this.gridContainerTarget.innerHTML = html
-        if (this.hasGridWrapperTarget) this.gridWrapperTarget.classList.remove('hidden')
-        if (this.hasPasteAreaTarget) this.pasteAreaTarget.classList.add('hidden')
-        if (this.hasEmptyStateContainerTarget) this.emptyStateContainerTarget.classList.add('hidden')
-
-        // Retrigger lucide icons for new elements
-        if (window.lucide) window.lucide.createIcons();
-
-        this.updateCounters(totalRecords, validRecords, invalidRecords)
-        this.updateJsonOutput()
-        this.validateMapping()
     }
 
     updateCounters(total, valid, invalid) {
