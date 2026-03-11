@@ -1,0 +1,10 @@
+<div class="p-6">
+  <div class="mb-6 flex items-center justify-between">
+    <h2 class="typography-h4-lh150 text-dark-gray-palette-p1">Novo Tipo de Campanha</h2>
+    <button type="button" class="text-slate-400 hover:text-slate-500" data-action="click->modal#close">
+      <i data-lucide="x" class="w-5 h-5"></i>
+    </button>
+  </div>
+
+  <%= render 'form', campaign_category: @campaign_category %>
+</div>

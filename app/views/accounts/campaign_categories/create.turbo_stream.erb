@@ -1,0 +1,8 @@
+<%= turbo_stream.append "category-select-options" do %>
+  <option value="<%= @campaign_category.id %>" selected="selected"><%= @campaign_category.name %></option>
+<% end %>
+
+<%= turbo_stream.remove 'modal' %>
+<%= turbo_stream.append "flash-messages" do %>
+  <%= render 'components/flash_message', type: 'notice', message: 'Tipo de campanha criado com sucesso!' %>
+<% end %>

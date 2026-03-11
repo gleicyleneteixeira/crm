@@ -1,0 +1,26 @@
+<%= form_with(model: [current_user.account, campaign_category], id: "campaign_category_form", class: "flex flex-col gap-4") do |f| %>
+  <% if campaign_category.errors.any? %>
+    <div class="p-3 bg-red-50 text-red-600 rounded-md text-sm border border-red-200">
+      <ul class="list-disc pl-4">
+        <% campaign_category.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :name, 'Nome do Tipo (Ex: Lançamento VIP)', class: 'block typography-micro-b-lh150 text-slate-700 mb-1' %>
+    <%= f.text_field :name, class: 'w-full rounded-md border-slate-300 focus:border-brand-palette-03 focus:ring-brand-palette-03 text-sm dark:bg-slate-800 dark:border-slate-600', required: true %>
+  </div>
+
+  <div>
+    <%= f.label :value_proposition, 'Proposta de Valor (Opcional - Para a IA)', class: 'block typography-micro-b-lh150 text-slate-700 mb-1' %>
+    <%= f.text_area :value_proposition, rows: 2, class: 'w-full rounded-md border-slate-300 focus:border-brand-palette-03 focus:ring-brand-palette-03 text-sm dark:bg-slate-800 dark:border-slate-600', placeholder: 'Qual o objetivo principal desta campanha?' %>
+  </div>
+
+  <div class="flex justify-end gap-3 mt-4">
+    <button type="button" class="btn-secondary px-4 py-2" data-action="click->modal#close">Cancelar</button>
+    <%= f.submit 'Salvar Tipo de Campanha', class: 'btn-primary px-4 py-2' %>
+  </div>
+<% end %>

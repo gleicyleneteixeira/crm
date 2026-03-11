@@ -18,7 +18,12 @@
         
         <div>
           <%= f.label :campaign_category_id, 'Tipo de Campanha', class: 'block typography-micro-b-lh150 text-slate-700 mb-2' %>
-          <%= f.collection_select :campaign_category_id, @campaign_categories, :id, :name, { prompt: 'Selecione...' }, { class: 'w-full rounded-lg border-slate-300 focus:border-brand-palette-03 focus:ring-brand-palette-03 dark:bg-slate-800 dark:border-slate-600 text-sm', required: true, data: { action: 'change->campaign-import#handleCategoryChange', 'campaign-import-target': 'categorySelect' } } %>
+          <div class="flex gap-2">
+            <%= f.collection_select :campaign_category_id, @campaign_categories, :id, :name, { prompt: 'Selecione...' }, { id: 'category-select-options', class: 'w-full rounded-lg border-slate-300 focus:border-brand-palette-03 focus:ring-brand-palette-03 dark:bg-slate-800 dark:border-slate-600 text-sm', required: true, data: { action: 'change->campaign-import#handleCategoryChange', 'campaign-import-target': 'categorySelect' } } %>
+            <%= link_to new_account_campaign_category_path(current_user.account), class: 'btn-secondary px-3 flex items-center justify-center', title: 'Novo Tipo de Campanha', data: { turbo_frame: 'modal' } do %>
+              <i data-lucide="plus" class="w-5 h-5"></i>
+            <% end %>
+          </div>
         </div>
 
         <div>

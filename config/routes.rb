@@ -123,6 +123,7 @@ Rails.application.routes.draw do
       end
     end
     resources :workflows
+    resources :campaign_categories, except: [:show]
     resources :campaigns do
       member do
         get :mapping
