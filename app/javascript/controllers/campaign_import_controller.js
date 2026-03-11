@@ -478,12 +478,16 @@ export default class extends Controller {
             selectHtml += `<optgroup label="${this.escapeHtml(groupName)}">`;
             for (const [label, key] of attributesList) {
                 let optionVal = key;
+                let optionLabel = label;
                 if (key === 'extra_variable') {
                     optionVal = `extra_${headerSlug}`;
+                    if (headerName) {
+                        optionLabel = `Variável: {{${headerSlug}}}`;
+                    }
                 }
                 const isSelected = (mappedCrmKey === optionVal) ? 'selected' : '';
                 const isRequired = (key === 'contact.full_name' || key.includes('contact.phone')) ? ' *' : '';
-                selectHtml += `<option value="${optionVal}" ${isSelected}>${this.escapeHtml(label)}${isRequired}</option>`;
+                selectHtml += `<option value="${optionVal}" ${isSelected}>${this.escapeHtml(optionLabel)}${isRequired}</option>`;
             }
             selectHtml += `</optgroup>`;
         }
