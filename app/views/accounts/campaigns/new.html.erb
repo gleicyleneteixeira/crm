@@ -1,61 +1,51 @@
-<div class="max-w-4xl mx-auto py-8">
-  <div class="mb-8">
-    <h1 class="typography-title-b-lh150 text-dark-gray-palette-p1">Nova Campanha</h1>
-    <p class="typography-body-s-lh150 text-slate-500">Comece carregando seus dados. Você pode subir um arquivo CSV/XLS ou colar os dados diretamente.</p>
+<div class="w-full px-4 sm:px-6 lg:px-8 py-8 mx-auto xl:max-w-[1600px]">
+  <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <h1 class="typography-title-b-lh150 text-dark-gray-palette-p1">Nova Campanha</h1>
+      <p class="typography-body-s-lh150 text-slate-500">Configure os destinos e importe seus dados (CSV, XLS ou Colar).</p>
+    </div>
   </div>
 
-  <%= form_with(model: [current_user.account, @campaign], data: { controller: 'campaign-import', 'campaign-import-pipelines-value': @pipelines.to_json(include: :stages), 'campaign-import-crm-fields-value': @crm_fields.to_json }) do |f| %>
-    <div class="flex flex-col gap-6 bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-      
-      <div class="flex flex-col md:flex-row gap-4">
-        <div class="flex-1">
+  <%= form_with(model: [current_user.account, @campaign], data: { controller: 'campaign-import', 'campaign-import-pipelines-value': @pipelines.to_json(include: :stages), 'campaign-import-crm-fields-value': @crm_fields.to_json }, class: "flex flex-col gap-6") do |f| %>
+    
+    <!-- TOP SECTION: Configuração de Campanha e Destino -->
+    <div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div>
           <%= f.label :name, 'Nome da Campanha', class: 'block typography-micro-b-lh150 text-slate-700 mb-2' %>
-          <%= f.text_field :name, class: 'w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-800 focus:border-brand-palette-03 focus:ring-brand-palette-03', placeholder: 'Ex: Lançamento Março 2024', required: true %>
+          <%= f.text_field :name, class: 'w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-800 focus:border-brand-palette-03 focus:ring-brand-palette-03 text-sm', placeholder: 'Ex: Lançamento Março 2024', required: true %>
         </div>
-        <div class="flex-1">
+        
+        <div>
           <%= f.label :campaign_category_id, 'Tipo de Campanha', class: 'block typography-micro-b-lh150 text-slate-700 mb-2' %>
-          <div class="flex gap-2">
-            <%= f.collection_select :campaign_category_id, @campaign_categories, :id, :name, { prompt: 'Selecione o tipo...' }, { class: 'w-full rounded-lg border-slate-300 focus:border-brand-palette-03 focus:ring-brand-palette-03 dark:bg-slate-800 dark:border-slate-600', required: true, data: { action: 'change->campaign-import#handleCategoryChange', 'campaign-import-target': 'categorySelect' } } %>
-            <button type="button" class="btn-secondary px-3" title="Novo Tipo de Campanha">
-              <i data-lucide="plus" class="w-5 h-5"></i>
-            </button>
-          </div>
+          <%= f.collection_select :campaign_category_id, @campaign_categories, :id, :name, { prompt: 'Selecione...' }, { class: 'w-full rounded-lg border-slate-300 focus:border-brand-palette-03 focus:ring-brand-palette-03 dark:bg-slate-800 dark:border-slate-600 text-sm', required: true, data: { action: 'change->campaign-import#handleCategoryChange', 'campaign-import-target': 'categorySelect' } } %>
+        </div>
+
+        <div>
+          <%= f.label :pipeline_id, 'Pipeline de Destino', class: 'block typography-micro-b-lh150 text-slate-700 mb-2' %>
+          <%= f.collection_select :pipeline_id, @pipelines, :id, :name, { prompt: 'Selecione o funil...' }, { class: 'w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-800 focus:border-brand-palette-03 text-sm', data: { action: 'change->campaign-import#handlePipelineChange', 'campaign-import-target': 'pipelineSelect' }, required: true } %>
+        </div>
+        
+        <div>
+          <%= f.label :stage_id, 'Etapa Inicial', class: 'block typography-micro-b-lh150 text-slate-700 mb-2' %>
+          <%= f.select :stage_id, [], { prompt: 'Selecione o funil primeiro...' }, { class: 'w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-800 focus:border-brand-palette-03 text-sm', data: { 'campaign-import-target': 'stageSelect', action: 'change->campaign-import#validateMapping' }, required: true } %>
         </div>
       </div>
+    </div>
 
-      <div data-campaign-import-target="emptyStateContainer">
-        <div class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-8 text-center transition-colors hover:border-brand-palette-03" data-campaign-import-target="dropzone">
-          <div class="flex flex-col items-center gap-4">
-            <i data-lucide="upload-cloud" class="w-12 h-12 text-slate-400"></i>
-            <div>
-              <p class="typography-body-b-lh150 text-dark-gray-palette-p1">Upload de arquivo</p>
-              <p class="typography-body-s-lh150 text-slate-500">Arraste e solte seu arquivo CSV ou XLS aqui, ou clique para selecionar</p>
-            </div>
-            <input type="file" id="file_upload" class="hidden" accept=".csv, .xlsx, .xls" data-action="change->campaign-import#handleFile">
-            <label for="file_upload" class="btn-secondary cursor-pointer">Selecionar Arquivo</label>
-          </div>
-        </div>
-
-        <div class="relative mt-6">
-          <div class="absolute inset-0 flex items-center" aria-hidden="true">
-            <div class="w-full border-t border-slate-200 dark:border-slate-700"></div>
-          </div>
-          <div class="relative flex justify-center text-sm">
-            <span class="px-3 bg-white dark:bg-slate-900 text-slate-500 typography-micro-b-lh150 uppercase">Ou cole os dados abaixo</span>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <div class="flex items-center justify-between mb-2">
-          <label class="block typography-micro-b-lh150 text-slate-700">Editor de Planilha</label>
-          <div class="flex items-center gap-2">
-            <%= check_box_tag :first_row_header, '1', true, data: { action: 'change->campaign-import#handleHeaderToggle', campaign_import_target: 'headerToggle' }, class: 'rounded border-slate-300 text-brand-palette-03 focus:ring-brand-palette-03 dark:bg-slate-800 dark:border-slate-600' %>
-            <%= label_tag :first_row_header, 'Primeira linha é cabeçalho', class: 'typography-micro-b-lh150 text-slate-700 dark:text-slate-300 cursor-pointer' %>
+    <!-- MAIN SECTION: Importação de Dados -->
+    <div class="bg-white dark:bg-slate-900 p-0 sm:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col min-h-[500px]">
+      <div data-campaign-import-target="emptyStateContainer" class="p-6">
+      <div class="flex-1 flex flex-col px-6 pb-6">
+        <div class="flex items-center justify-between mb-4 mt-2">
+          <label class="block typography-h4-lh150 text-slate-800 dark:text-slate-100 font-bold">Planilha de Importação</label>
+          <div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 py-1.5 px-3 rounded-md">
+            <%= check_box_tag :first_row_header, '1', true, data: { action: 'change->campaign-import#handleHeaderToggle', campaign_import_target: 'headerToggle' }, class: 'rounded border-slate-300 text-brand-palette-03 focus:ring-brand-palette-03 dark:bg-slate-700 dark:border-slate-600' %>
+            <%= label_tag :first_row_header, '1ª linha é cabeçalho', class: 'text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer mb-0' %>
           </div>
         </div>
         
-        <div data-campaign-import-target="gridWrapper" class="hidden rounded-lg border border-slate-300 dark:border-slate-600 overflow-hidden mb-4">
+        <div data-campaign-import-target="gridWrapper" class="hidden flex-1 flex flex-col rounded-lg border border-slate-300 dark:border-slate-600 overflow-hidden mb-2 shadow-sm">
           <div class="bg-slate-50 dark:bg-slate-800/50 p-3 lg:p-4 flex flex-col sm:flex-row justify-between items-center border-b border-slate-200 dark:border-slate-700 gap-3">
             <div class="flex gap-4 sm:gap-6 text-sm">
                <div class="flex flex-col">
@@ -75,34 +65,29 @@
               <i data-lucide="trash-2" class="w-4 h-4"></i> Limpar Dados
             </button>
           </div>
-          <div class="overflow-x-auto max-h-[500px]" data-campaign-import-target="gridContainer" data-action="paste->campaign-import#handleGridPaste">
+          <div class="overflow-x-auto overflow-y-auto max-h-[65vh] w-full" data-campaign-import-target="gridContainer" data-action="paste->campaign-import#handleGridPaste">
           </div>
         </div>
 
         <textarea 
-          class="w-full h-64 rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-800 font-mono text-sm" 
+          class="w-full h-48 rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-800 font-mono text-sm shadow-inner" 
           placeholder="Cole dados do Excel ou Google Sheets aqui..."
           data-action="input->campaign-import#handlePaste"
           data-campaign-import-target="pasteArea"
         ></textarea>
       </div>
+    </div>
 
-      <%= f.hidden_field :spreadsheet_data, data: { 'campaign-import-target': 'jsonOutput' } %>
+    <%= f.hidden_field :spreadsheet_data, data: { 'campaign-import-target': 'jsonOutput' } %>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 p-6 bg-brand-palette-03/5 border border-brand-palette-03/20 rounded-xl">
-        <div>
-          <%= f.label :pipeline_id, 'Pipeline de Destino', class: 'block typography-micro-b-lh150 text-slate-700 mb-2' %>
-          <%= f.collection_select :pipeline_id, @pipelines, :id, :name, { prompt: 'Selecione o funil...' }, { class: 'w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-800 focus:border-brand-palette-03 text-sm', data: { action: 'change->campaign-import#handlePipelineChange', 'campaign-import-target': 'pipelineSelect' }, required: true } %>
-        </div>
-        <div>
-          <%= f.label :stage_id, 'Etapa Inicial', class: 'block typography-micro-b-lh150 text-slate-700 mb-2' %>
-          <%= f.select :stage_id, [], { prompt: 'Selecione um pipeline primeiro...' }, { class: 'w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-800 focus:border-brand-palette-03 text-sm', data: { 'campaign-import-target': 'stageSelect', action: 'change->campaign-import#validateMapping' }, required: true } %>
-        </div>
+    <!-- BOTTOM SECTION: Action Form -->
+    <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 sticky bottom-4 z-40 flex items-center justify-between">
+      <div class="text-sm text-slate-500">
+        Mapeie os campos de Nome e Telefone para habilitar o envio.
       </div>
-
-      <div class="flex justify-end gap-4 border-t border-slate-100 dark:border-slate-800 pt-6 mt-6">
-        <%= link_to 'Cancelar', account_campaigns_path(current_user.account), class: 'btn-secondary' %>
-        <%= f.button 'Finalizar e Criar Campanha', type: 'submit', class: 'btn-primary opacity-50 cursor-not-allowed', disabled: true, data: { 'campaign-import-target': 'submitButton' } %>
+      <div class="flex gap-3">
+        <%= link_to 'Cancelar', account_campaigns_path(current_user.account), class: 'btn-secondary font-semibold' %>
+        <%= f.button '<i data-lucide="check" class="w-4 h-4 mr-2"></i> Finalizar e Criar Campanha'.html_safe, type: 'submit', class: 'btn-primary font-semibold opacity-50 cursor-not-allowed flex items-center shadow-lg hover:shadow-xl transition-all', disabled: true, data: { 'campaign-import-target': 'submitButton' } %>
       </div>
     </div>
   <% end %>
