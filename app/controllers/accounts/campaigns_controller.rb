@@ -87,22 +87,26 @@ class Accounts::CampaignsController < InternalController
     fields = {
       'Contato' => [
         ['Nome Completo', 'contact.full_name'],
-        ['Email', 'contact.email'],
-        ['Telefone', 'contact.phone']
+        ['CPF', 'contact.cpf'],
+        ['Telefone 1', 'contact.phone'],
+        ['Telefone 2', 'contact.phone_2'],
+        ['Telefone 3', 'contact.phone_3'],
+        ['Email', 'contact.email']
       ],
       'Negócio' => [
         ['Nome do Negócio', 'deal.name']
       ]
     }
 
-    # Custom Attributes
+    # Custom Attributes (All lumped into Negócio per user request for CRM tributos)
     current_user.account.custom_attribute_definitions.each do |definition|
-      group = definition.contact_attribute? ? 'Contato (Personalizado)' : 'Negócio (Personalizado)'
       prefix = definition.contact_attribute? ? 'contact.' : 'deal.'
-      
-      fields[group] ||= []
-      fields[group] << [definition.attribute_display_name, "#{prefix}#{definition.attribute_key}"]
+      fields['Negócio'] << [definition.attribute_display_name, "#{prefix}#{definition.attribute_key}"]
     end
+
+    fields['Variável Extra'] = [
+      ['Usar Nome da Coluna', 'extra_variable']
+    ]
 
     fields
   end

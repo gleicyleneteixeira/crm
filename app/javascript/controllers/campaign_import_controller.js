@@ -250,17 +250,29 @@ export default class extends Controller {
                         const mappedCrmKey = Object.keys(this.currentMapping).find(k => this.currentMapping[k] === colIndexStr);
 
                         let bgWarningClass = "bg-white dark:bg-slate-900";
+                        let borderColor = "border-t-transparent";
+                        let iconHtml = "";
+
                         if (mappedCrmKey) {
-                            bgWarningClass = "bg-brand-palette-03/10 border-brand-palette-03 shadow-inner";
+                            if (mappedCrmKey.startsWith('extra_')) {
+                                bgWarningClass = "bg-purple-50 dark:bg-purple-900/10 shadow-inner";
+                                borderColor = "!border-t-purple-500";
+                                iconHtml = `<i data-lucide="sparkles" class="w-3 h-3 text-purple-500 inline-block mr-1"></i>`;
+                            } else {
+                                bgWarningClass = "bg-blue-50 dark:bg-blue-900/10 shadow-inner";
+                                borderColor = "!border-t-blue-500";
+                                iconHtml = `<i data-lucide="database" class="w-3 h-3 text-blue-500 inline-block mr-1"></i>`;
+                            }
                         }
 
-                        rowHtml += `<th class="px-3 py-3 border-r border-slate-200 dark:border-slate-700 text-left align-top transition-colors border-t-2 border-t-transparent ${bgWarningClass} ${mappedCrmKey ? '!border-t-brand-palette-03' : ''}">`
+                        rowHtml += `<th class="px-3 py-3 border-r border-slate-200 dark:border-slate-700 text-left align-top transition-colors border-t-2 ${borderColor} ${bgWarningClass}">`
                         rowHtml += this.generateHeaderMappingSelect(colIndex, cell);
-                        rowHtml += `<div class="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider truncate" title="${this.escapeHtml(cell)}">${this.escapeHtml(cell)}</div>`
+                        rowHtml += `<div class="flex items-center text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider truncate" title="${this.escapeHtml(cell)}">${iconHtml}<span>${this.escapeHtml(cell)}</span></div>`
                         rowHtml += `</th>`
                     })
                     rowHtml += `<th class="px-4 py-3 text-right text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider min-w-[210px] bg-slate-100 dark:bg-slate-800">Status</th>`
-                    rowHtml += '</tr></thead><tbody>'
+                    rowHtml += '</tr></thead>'
+                    rowHtml += '<tbody>'
                 } else {
                     rowHtml += `<tr class="border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${trClass}">`
                     row.forEach((cell, colIndex) => {
@@ -457,6 +469,7 @@ export default class extends Controller {
 
         const colIndexStr = colIndex.toString();
         let mappedCrmKey = Object.keys(this.currentMapping).find(k => this.currentMapping[k] === colIndexStr);
+        let headerSlug = headerName ? headerName.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "_") : `col_${colIndex}`;
 
         let selectHtml = `<select class="w-full text-xs py-1 px-1 rounded border-slate-300 dark:border-slate-600 dark:bg-slate-800 focus:border-brand-palette-03 focus:ring-brand-palette-03 mb-2 font-normal" data-action="change->campaign-import#handleHeaderMappingChange" data-col="${colIndex}">`;
         selectHtml += `<option value="">Não Carregar</option>`;
@@ -464,9 +477,13 @@ export default class extends Controller {
         for (const [groupName, attributesList] of Object.entries(this.crmFieldsValue)) {
             selectHtml += `<optgroup label="${this.escapeHtml(groupName)}">`;
             for (const [label, key] of attributesList) {
-                const isSelected = (mappedCrmKey === key) ? 'selected' : '';
-                const isRequired = (key === 'contact.full_name' || key === 'contact.phone') ? ' *' : '';
-                selectHtml += `<option value="${key}" ${isSelected}>${this.escapeHtml(label)}${isRequired}</option>`;
+                let optionVal = key;
+                if (key === 'extra_variable') {
+                    optionVal = `extra_${headerSlug}`;
+                }
+                const isSelected = (mappedCrmKey === optionVal) ? 'selected' : '';
+                const isRequired = (key === 'contact.full_name' || key.includes('contact.phone')) ? ' *' : '';
+                selectHtml += `<option value="${optionVal}" ${isSelected}>${this.escapeHtml(label)}${isRequired}</option>`;
             }
             selectHtml += `</optgroup>`;
         }
@@ -531,7 +548,12 @@ export default class extends Controller {
 
         let mappingsValid = true
         if (hasData) {
-            if (this.currentMapping['contact.full_name'] === undefined || this.currentMapping['contact.phone'] === undefined) {
+            const hasName = this.currentMapping['contact.full_name'] !== undefined;
+            const hasPhone = this.currentMapping['contact.phone'] !== undefined ||
+                this.currentMapping['contact.phone_2'] !== undefined ||
+                this.currentMapping['contact.phone_3'] !== undefined;
+
+            if (!hasName || !hasPhone) {
                 mappingsValid = false;
             }
         }
