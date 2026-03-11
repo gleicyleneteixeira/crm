@@ -13,7 +13,23 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div>
           <%= f.label :name, 'Nome da Campanha', class: 'block typography-micro-b-lh150 text-slate-700 mb-2' %>
-          <%= f.text_field :name, class: 'w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-800 focus:border-brand-palette-03 focus:ring-brand-palette-03 text-sm', placeholder: 'Ex: Lançamento Março 2024', required: true %>
+          <%= f.text_field :name, class: 'w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-800 focus:border-brand-palette-03 focus:ring-brand-palette-03 text-sm mb-2', placeholder: 'Ex: Lançamento Março 2024', required: true %>
+          <div>
+            <label class="flex items-center gap-2 cursor-pointer mb-2">
+              <input type="checkbox" data-action="change->campaign-import#toggleNameMapping" class="rounded border-slate-300 text-brand-palette-03 focus:ring-brand-palette-03 dark:bg-slate-800 dark:border-slate-600 transition-colors">
+              <span class="text-xs text-slate-600 dark:text-slate-400 font-medium">Mapear nome para um tributo?</span>
+            </label>
+            <div data-name-mapping-select-container class="hidden">
+              <select name="campaign[mapping][__campaign_name_target__]" class="w-full text-xs py-1.5 px-2 rounded-md border-slate-300 dark:border-slate-600 dark:bg-slate-800 focus:border-brand-palette-03 text-slate-700 dark:text-slate-300">
+                <option value="">Selecione o tributo...</option>
+                <% if @crm_fields['Negócio'] %>
+                  <% @crm_fields['Negócio'].each do |label, key| %>
+                    <option value="<%= key %>"><%= label %></option>
+                  <% end %>
+                <% end %>
+              </select>
+            </div>
+          </div>
         </div>
         
         <div>
@@ -108,13 +124,13 @@
     <%= f.hidden_field :spreadsheet_data, data: { 'campaign-import-target': 'jsonOutput' } %>
 
     <!-- BOTTOM SECTION: Action Form -->
-    <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 sticky bottom-4 z-40 flex items-center justify-between">
+    <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 mt-6 flex items-center justify-between">
       <div class="text-sm text-slate-500">
         Mapeie os campos de Nome e Telefone para habilitar o envio.
       </div>
       <div class="flex gap-3">
         <%= link_to 'Cancelar', account_campaigns_path(current_user.account), class: 'btn-secondary font-semibold' %>
-        <%= f.button '<i data-lucide="check" class="w-4 h-4 mr-2"></i> Finalizar e Criar Campanha'.html_safe, type: 'submit', class: 'btn-primary font-semibold opacity-50 cursor-not-allowed flex items-center shadow-lg hover:shadow-xl transition-all', disabled: true, data: { 'campaign-import-target': 'submitButton' } %>
+        <%= f.button 'Próximo <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>'.html_safe, type: 'submit', class: 'btn-primary font-semibold opacity-50 cursor-not-allowed flex items-center shadow-lg hover:shadow-xl transition-all', disabled: true, data: { 'campaign-import-target': 'submitButton' } %>
       </div>
     </div>
   <% end %>

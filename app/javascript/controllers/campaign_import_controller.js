@@ -521,6 +521,20 @@ export default class extends Controller {
         return normalizedCrm.includes(normalizedCol) || normalizedCol.includes(normalizedCrm)
     }
 
+    toggleNameMapping(event) {
+        const checkbox = event.currentTarget;
+        const container = checkbox.closest('div').querySelector('[data-name-mapping-select-container]');
+        if (container) {
+            if (checkbox.checked) {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+                const select = container.querySelector('select');
+                if (select) select.value = '';
+            }
+        }
+    }
+
     handleCategoryChange() {
         this.validateMapping()
     }
