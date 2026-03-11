@@ -73,6 +73,10 @@ class Account < ApplicationRecord
     Deal.all
   end
 
+  def pipelines
+    Pipeline.all
+  end
+
   def campaigns
     Campaign.all
   end
