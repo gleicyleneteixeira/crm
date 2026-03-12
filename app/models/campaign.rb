@@ -6,17 +6,11 @@ class Campaign < ApplicationRecord
   has_many :campaign_logs, dependent: :destroy
   has_many :deals
 
-  belongs_to :prompt_a, class_name: 'AiPrompt', optional: true
-  belongs_to :prompt_b, class_name: 'AiPrompt', optional: true
-
   enum status: {
     draft: 'draft',
-    scheduled: 'scheduled',
-    running: 'running',
-    paused: 'paused',
+    processing: 'processing',
     completed: 'completed',
-    failed: 'failed',
-    processing: 'processing'
+    failed: 'failed'
   }
 
   def ai_randomization?

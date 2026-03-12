@@ -15,14 +15,12 @@ export default class extends Controller {
         "countInvalid",
         "categorySelect",
         "pipelineSelect",
-        "stageSelect",
-        "ddiToggle"
+        "stageSelect"
     ]
 
     static values = {
         pipelines: Array,
-        crmFields: Object,
-        crmPhones: Array
+        crmFields: Object
     }
 
     connect() {
@@ -183,10 +181,10 @@ export default class extends Controller {
         if (this.hasGridContainerTarget) this.gridContainerTarget.innerHTML = ""
 
         if (this.hasGridWrapperTarget) this.gridWrapperTarget.classList.add('hidden')
-        // We no longer hide pasteArea and emptyStateContainer so they remain visible
+        if (this.hasPasteAreaTarget) this.pasteAreaTarget.classList.remove('hidden')
+        if (this.hasEmptyStateContainerTarget) this.emptyStateContainerTarget.classList.remove('hidden')
 
         this.updateCounters(0, 0, 0)
-        this.invalidRecordsCount = 0
         this.validateMapping()
     }
 
@@ -217,8 +215,6 @@ export default class extends Controller {
             let totalRecords = 0;
             let validRecords = 0;
             let invalidRecords = 0;
-            let duplicateRecords = 0;
-            let seenPhones = new Set();
 
             this.rawData.forEach((row, rowIndex) => {
                 let rowHtml = ""
@@ -233,76 +229,17 @@ export default class extends Controller {
                     isValid = this.validarLinha(row, -1)
                 }
 
-                let isDuplicateInSheet = false;
-                let isDuplicateInCrm = false;
-
-                if (!isHeaderRow && !isIgnored && isValid) {
-                    if (phoneIndex !== -1 && row[phoneIndex]) {
-                        const digits = row[phoneIndex].toString().replace(/\D/g, '');
-                        if (digits) {
-                            if (seenPhones.has(digits)) {
-                                isDuplicateInSheet = true;
-                            } else {
-                                seenPhones.add(digits);
-                                if (this.hasCrmPhonesValue && this.crmPhonesValue.includes(digits)) {
-                                    isDuplicateInCrm = true;
-                                }
-                            }
-                        }
-                    }
-                }
-
                 if (!isHeaderRow && !isIgnored) {
                     totalRecords++;
-                    if (!isValid) invalidRecords++;
-                    else if (isDuplicateInSheet) duplicateRecords++;
-                    else validRecords++;
+                    if (isValid) validRecords++;
+                    else invalidRecords++;
                 }
 
                 let trClass = "";
-                let statusHtml = "";
-
                 if (isIgnored) {
                     trClass = "opacity-40 bg-slate-100 dark:bg-slate-800 line-through";
-                    statusHtml = `<td class="px-4 py-3 text-right text-slate-500 text-xs font-medium">
-                        Ignorado
-                        <button type="button" class="ml-2 text-brand-palette-03 hover:underline text-xs" data-action="click->campaign-import#restoreRow" data-row="${rowIndex}">Restaurar</button>
-                    </td>`;
                 } else if (!isValid && !isHeaderRow) {
                     trClass = "bg-red-50 dark:bg-red-900/10 linha-erro";
-                    statusHtml = `<td class="px-4 py-3 text-right">
-                        <span class="inline-flex items-center gap-1 text-red-600 dark:text-red-400 font-bold text-xs tracking-tight bg-red-100 dark:bg-red-900/30 px-2 py-0.5 rounded-full block sm:inline-block mb-1 sm:mb-0 mr-2"><i data-lucide="alert-circle" class="w-3 h-3"></i> Erro</span>
-                        <div class="inline-flex gap-2">
-                           <button type="button" class="text-brand-palette-03 font-medium hover:underline text-xs" data-action="click->campaign-import#editRow" data-row="${rowIndex}">Editar</button>
-                           <button type="button" class="text-slate-500 hover:underline text-xs" data-action="click->campaign-import#ignoreRow" data-row="${rowIndex}">Ignorar</button>
-                           <button type="button" class="text-red-600 hover:underline text-xs font-medium" data-action="click->campaign-import#deleteRow" data-row="${rowIndex}">Excluir</button>
-                        </div>
-                    </td>`;
-                } else if (isDuplicateInSheet && !isHeaderRow) {
-                    trClass = "bg-yellow-50 dark:bg-yellow-900/10 linha-duplicada";
-                    statusHtml = `<td class="px-4 py-3 text-right">
-                        <span class="inline-flex items-center gap-1 text-yellow-600 dark:text-yellow-400 font-bold text-xs tracking-tight bg-yellow-100 dark:bg-yellow-900/30 px-2 py-0.5 rounded-full block sm:inline-block mb-1 sm:mb-0 mr-2"><i data-lucide="alert-triangle" class="w-3 h-3"></i> Duplicado (Planilha)</span>
-                        <div class="inline-flex gap-2">
-                           <button type="button" class="text-brand-palette-03 font-medium hover:underline text-xs" data-action="click->campaign-import#editRow" data-row="${rowIndex}">Editar</button>
-                           <button type="button" class="text-slate-500 hover:underline text-xs" data-action="click->campaign-import#ignoreRow" data-row="${rowIndex}">Ignorar</button>
-                           <button type="button" class="text-red-600 hover:underline text-xs font-medium" data-action="click->campaign-import#deleteRow" data-row="${rowIndex}">Excluir</button>
-                        </div>
-                    </td>`;
-                } else if (isDuplicateInCrm && !isHeaderRow) {
-                    trClass = "bg-orange-50 dark:bg-orange-900/10 linha-crm";
-                    statusHtml = `<td class="px-4 py-3 text-right">
-                        <span class="inline-flex items-center gap-1 text-orange-600 dark:text-orange-400 font-bold text-xs tracking-tight bg-orange-100 dark:bg-orange-900/30 px-2 py-0.5 rounded-full mr-2"><i data-lucide="info" class="w-3 h-3"></i> Já no CRM</span>
-                        <div class="inline-flex gap-2">
-                           <button type="button" class="text-slate-500 hover:text-red-500 hover:underline text-xs" data-action="click->campaign-import#deleteRow" data-row="${rowIndex}">Excluir</button>
-                        </div>
-                    </td>`;
-                } else if (!isHeaderRow) {
-                    statusHtml = `<td class="px-4 py-3 text-right">
-                        <span class="inline-flex items-center gap-1 text-green-600 dark:text-green-400 font-semibold text-xs tracking-tight bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full mr-2"><i data-lucide="check-circle" class="w-3 h-3"></i> Válido</span>
-                        <div class="inline-flex gap-2">
-                           <button type="button" class="text-slate-500 hover:text-red-500 hover:underline text-xs" data-action="click->campaign-import#deleteRow" data-row="${rowIndex}">Excluir</button>
-                        </div>
-                    </td>`;
                 }
 
                 if (isHeaderRow) {
@@ -342,7 +279,28 @@ export default class extends Controller {
                         rowHtml += `<td class="px-4 py-3 whitespace-nowrap editable-cell cursor-text transition-colors text-sm text-slate-900 dark:text-slate-200 border-r border-slate-200 dark:border-slate-700" data-row="${rowIndex}" data-col="${colIndex}" data-action="click->campaign-import#editCell">${this.escapeHtml(cell)}</td>`
                     })
 
-                    rowHtml += statusHtml;
+                    if (isIgnored) {
+                        rowHtml += `<td class="px-4 py-3 text-right text-slate-500 text-xs font-medium">
+                        Ignorado
+                        <button type="button" class="ml-2 text-brand-palette-03 hover:underline text-xs" data-action="click->campaign-import#restoreRow" data-row="${rowIndex}">Restaurar</button>
+                    </td>`
+                    } else if (isValid) {
+                        rowHtml += `<td class="px-4 py-3 text-right">
+                        <span class="inline-flex items-center gap-1 text-green-600 dark:text-green-400 font-semibold text-xs tracking-tight bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full mr-2"><i data-lucide="check-circle" class="w-3 h-3"></i> Válido</span>
+                        <div class="inline-flex gap-2">
+                           <button type="button" class="text-slate-500 hover:text-red-500 hover:underline text-xs" data-action="click->campaign-import#deleteRow" data-row="${rowIndex}">Excluir</button>
+                        </div>
+                    </td>`
+                    } else {
+                        rowHtml += `<td class="px-4 py-3 text-right">
+                        <span class="inline-flex items-center gap-1 text-red-600 dark:text-red-400 font-bold text-xs tracking-tight bg-red-100 dark:bg-red-900/30 px-2 py-0.5 rounded-full block sm:inline-block mb-1 sm:mb-0 mr-2"><i data-lucide="alert-circle" class="w-3 h-3"></i> Erro</span>
+                        <div class="inline-flex gap-2">
+                           <button type="button" class="text-brand-palette-03 font-medium hover:underline text-xs" data-action="click->campaign-import#editRow" data-row="${rowIndex}">Editar</button>
+                           <button type="button" class="text-slate-500 hover:underline text-xs" data-action="click->campaign-import#ignoreRow" data-row="${rowIndex}">Ignorar</button>
+                           <button type="button" class="text-red-600 hover:underline text-xs font-medium" data-action="click->campaign-import#deleteRow" data-row="${rowIndex}">Excluir</button>
+                        </div>
+                    </td>`
+                    }
                     rowHtml += '</tr>'
                 }
                 html += rowHtml
@@ -355,13 +313,13 @@ export default class extends Controller {
 
             if (this.hasGridContainerTarget) this.gridContainerTarget.innerHTML = html
             if (this.hasGridWrapperTarget) this.gridWrapperTarget.classList.remove('hidden')
-            // Don't hide pasteArea and emptyStateContainer to keep 'Importar Planilha' visible
+            if (this.hasPasteAreaTarget) this.pasteAreaTarget.classList.add('hidden')
+            if (this.hasEmptyStateContainerTarget) this.emptyStateContainerTarget.classList.add('hidden')
 
             // Retrigger lucide icons for new elements
             if (window.lucide) window.lucide.createIcons();
 
-            this.invalidRecordsCount = invalidRecords + duplicateRecords; // Count sheet duplicates in invalid block to prevent Next
-            this.updateCounters(totalRecords, validRecords, invalidRecords + duplicateRecords)
+            this.updateCounters(totalRecords, validRecords, invalidRecords)
             this.updateJsonOutput()
             this.validateMapping()
         } catch (error) {
@@ -380,7 +338,7 @@ export default class extends Controller {
             const val = row[phoneIndex]
             if (!val) return false
             const digits = val.toString().replace(/\D/g, '')
-            return digits.length >= 12
+            return digits.length >= 10 && digits.length <= 11
         }
 
         let hasValidPhone = false;
@@ -388,7 +346,7 @@ export default class extends Controller {
 
         row.forEach(cell => {
             const digits = cell ? cell.toString().replace(/\D/g, '') : '';
-            if (digits.length >= 12 && digits.length <= 15) {
+            if (digits.length >= 10 && digits.length <= 11) {
                 hasValidPhone = true;
             } else if (digits.length >= 8 && digits.length <= 15) {
                 hasInvalidPhoneTry = true;
@@ -423,18 +381,7 @@ export default class extends Controller {
 
         const saveValue = () => {
             if (this.rawData[row]) {
-                const mappedCrmKey = Object.keys(this.currentMapping).find(k => this.currentMapping[k] === col.toString());
-                let val = input.value;
-                if (mappedCrmKey && mappedCrmKey.startsWith('contact.phone')) {
-                    val = val.replace(/\D/g, '');
-                    const insertDdi = this.hasDdiToggleTarget ? this.ddiToggleTarget.checked : false;
-                    if (val.length > 0 && insertDdi && !val.startsWith('55')) {
-                        val = '55' + val;
-                    }
-                } else if (mappedCrmKey === 'contact.full_name') {
-                    val = this.toProperCase(val);
-                }
-                this.rawData[row][col] = val;
+                this.rawData[row][col] = input.value
             }
             this.renderizarGrid()
         }
@@ -563,7 +510,6 @@ export default class extends Controller {
             this.currentMapping[selectedCrmKey] = colIndexStr;
         }
 
-        this.applySanitizationAndFormatting();
         this.saveCurrentMapping();
         this.renderizarGrid();
     }
@@ -575,213 +521,7 @@ export default class extends Controller {
         return normalizedCrm.includes(normalizedCol) || normalizedCol.includes(normalizedCrm)
     }
 
-    handleDdiToggle() {
-        this.applySanitizationAndFormatting();
-        this.renderizarGrid();
-    }
-
-    toProperCase(str) {
-        if (!str) return str;
-        return str.replace(/\w\S*/g, function (txt) {
-            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-        });
-    }
-
-    applySanitizationAndFormatting() {
-        if (!this.rawData || this.rawData.length === 0) return;
-        const insertDdi = this.hasDdiToggleTarget ? this.ddiToggleTarget.checked : false;
-        const isHeader = this.hasHeaderToggleTarget ? this.headerToggleTarget.checked : true;
-
-        for (const [crmKey, colIndexStr] of Object.entries(this.currentMapping)) {
-            const colIndex = parseInt(colIndexStr, 10);
-
-            if (crmKey.startsWith('contact.phone')) {
-                this.rawData.forEach((row, rowIndex) => {
-                    if (isHeader && rowIndex === 0) return;
-                    if (row[colIndex] === undefined || row[colIndex] === null) return;
-
-                    let digits = row[colIndex].toString().replace(/\D/g, '');
-                    if (digits.length > 0 && insertDdi) {
-                        if (!digits.startsWith('55')) {
-                            digits = '55' + digits;
-                        }
-                    }
-                    row[colIndex] = digits;
-                });
-            } else if (crmKey === 'contact.full_name') {
-                this.rawData.forEach((row, rowIndex) => {
-                    if (isHeader && rowIndex === 0) return;
-                    if (row[colIndex] === undefined || row[colIndex] === null) return;
-
-                    row[colIndex] = this.toProperCase(row[colIndex].toString());
-                });
-            }
-        }
-    }
-
-    removeInvalidRows() {
-        if (!this.rawData || this.rawData.length === 0) return;
-        const isHeader = this.hasHeaderToggleTarget ? this.headerToggleTarget.checked : true;
-        let phoneIndex = -1;
-        if (isHeader && this.rawData.length > 0) {
-            phoneIndex = this.rawData[0].findIndex(col =>
-                col && col.toString().toLowerCase().match(/telefone|whatsapp|celular|phone|fone/i)
-            );
-        }
-
-        const validRawData = [];
-        const newIgnoredRows = new Set();
-
-        this.rawData.forEach((row, rowIndex) => {
-            const isIgnored = this.ignoredRows.has(rowIndex);
-            const isHeaderRow = isHeader && rowIndex === 0;
-
-            if (isHeaderRow) {
-                validRawData.push(row);
-                if (isIgnored) newIgnoredRows.add(validRawData.length - 1);
-                return;
-            }
-
-            let isValid = true;
-            if (phoneIndex !== -1) {
-                isValid = this.validarLinha(row, phoneIndex);
-            } else {
-                isValid = this.validarLinha(row, -1);
-            }
-
-            if (isValid) {
-                validRawData.push(row);
-                if (isIgnored) newIgnoredRows.add(validRawData.length - 1);
-            }
-        });
-
-        this.rawData = validRawData;
-        this.ignoredRows = newIgnoredRows;
-        this.renderizarGrid();
-    }
-
-    exportInvalidRows() {
-        if (!this.rawData || this.rawData.length === 0) return;
-        const isHeader = this.hasHeaderToggleTarget ? this.headerToggleTarget.checked : true;
-        let phoneIndex = -1;
-        if (isHeader && this.rawData.length > 0) {
-            phoneIndex = this.rawData[0].findIndex(col =>
-                col && col.toString().toLowerCase().match(/telefone|whatsapp|celular|phone|fone/i)
-            );
-        }
-
-        const invalidRows = [];
-        if (isHeader && this.rawData.length > 0) {
-            invalidRows.push(this.rawData[0].slice());
-            invalidRows[0].push("Motivo_Erro");
-        }
-
-        let seenPhones = new Set();
-
-        this.rawData.forEach((row, rowIndex) => {
-            const isIgnored = this.ignoredRows.has(rowIndex);
-            const isHeaderRow = isHeader && rowIndex === 0;
-            if (isHeaderRow) return;
-
-            let isValid = true;
-            if (phoneIndex !== -1) {
-                isValid = this.validarLinha(row, phoneIndex);
-            } else {
-                isValid = this.validarLinha(row, -1);
-            }
-
-            let isDuplicateInSheet = false;
-            if (isValid && phoneIndex !== -1 && row[phoneIndex]) {
-                const digits = row[phoneIndex].toString().replace(/\D/g, '');
-                if (digits) {
-                    if (seenPhones.has(digits)) {
-                        isDuplicateInSheet = true;
-                    } else {
-                        seenPhones.add(digits);
-                    }
-                }
-            }
-
-            if ((!isValid || isDuplicateInSheet) && !isIgnored) {
-                const rowCopy = row.slice();
-                if (!isValid) {
-                    rowCopy.push("Telefone Inválido (Esperado >= 12 dígitos com DDI)");
-                } else if (isDuplicateInSheet) {
-                    rowCopy.push("Duplicado na Planilha");
-                }
-                invalidRows.push(rowCopy);
-            }
-        });
-
-        if (invalidRows.length <= (isHeader ? 1 : 0)) {
-            alert('Não há linhas inválidas ou duplicadas para exportar.');
-            return;
-        }
-
-        const csvContent = invalidRows.map(e => e.map(cell => `"${this.escapeHtml(cell).replace(/"/g, '""')}"`).join(",")).join("\n");
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", "conflitos_importacao.csv");
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-
-    removeDuplicates() {
-        if (!this.rawData || this.rawData.length === 0) return;
-        const isHeader = this.hasHeaderToggleTarget ? this.headerToggleTarget.checked : true;
-
-        let phoneMapppingStr = this.currentMapping['contact.phone'] || this.currentMapping['contact.phone_2'] || this.currentMapping['contact.phone_3'];
-        let phoneIndex = phoneMapppingStr ? parseInt(phoneMapppingStr, 10) : -1;
-
-        if (phoneIndex === -1 && isHeader && this.rawData.length > 0) {
-            phoneIndex = this.rawData[0].findIndex(col =>
-                col && col.toString().toLowerCase().match(/telefone|whatsapp|celular|phone|fone/i)
-            );
-        }
-
-        if (phoneIndex === -1) {
-            alert('Mapeie uma coluna para Telefone para buscar duplicados.');
-            return;
-        }
-
-        const validRawData = [];
-        const seenPhones = new Set();
-        const newIgnoredRows = new Set();
-
-        this.rawData.forEach((row, rowIndex) => {
-            const isIgnored = this.ignoredRows.has(rowIndex);
-            const isHeaderRow = isHeader && rowIndex === 0;
-
-            if (isHeaderRow) {
-                validRawData.push(row);
-                if (isIgnored) newIgnoredRows.add(validRawData.length - 1);
-                return;
-            }
-
-            const isValid = this.validarLinha(row, phoneIndex);
-
-            const phoneVal = row[phoneIndex];
-            const digits = phoneVal ? phoneVal.toString().replace(/\D/g, '') : '';
-
-            if (isValid && digits && seenPhones.has(digits)) {
-                // duplicate in sheet, skip (remove entirely instead of adding to validRawData)
-            } else {
-                if (isValid && digits) seenPhones.add(digits);
-                validRawData.push(row);
-                if (isIgnored) newIgnoredRows.add(validRawData.length - 1);
-            }
-        });
-
-        this.rawData = validRawData;
-        this.ignoredRows = newIgnoredRows;
-        this.renderizarGrid();
-    }
-
-    toggleCategoryMapping(event) {
+    toggleNameMapping(event) {
         const checkbox = event.currentTarget;
         const container = checkbox.closest('div').querySelector('[data-name-mapping-select-container]');
         if (container) {
@@ -841,7 +581,7 @@ export default class extends Controller {
             categoryParams = false;
         }
 
-        const isValid = hasData && mappingsValid && categoryParams && (this.invalidRecordsCount === 0)
+        const isValid = hasData && mappingsValid && categoryParams
 
         if (this.hasSubmitButtonTarget) {
             this.submitButtonTarget.disabled = !isValid

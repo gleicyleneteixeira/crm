@@ -40,6 +40,7 @@ import * as ActiveStorage from "@rails/activestorage";
 import "../channels";
 import "../controllers";
 import lucide from "lucide/dist/umd/lucide";
+window.lucide = lucide;
 import { setBrowserTimezoneCookie } from "../utils/set_browser_timezone_cookie";
 
 Rails.start();
@@ -57,7 +58,7 @@ function applyThemeFromPreference() {
       window.matchMedia("(prefers-color-scheme: dark)").matches;
     const isDark = storedTheme === "dark" || prefersDark;
     document.documentElement.classList.toggle("dark", !!isDark);
-  } catch (e) {}
+  } catch (e) { }
 }
 
 $(document).on("turbo:load", () => {
