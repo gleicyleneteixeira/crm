@@ -1,5 +1,5 @@
 class Accounts::CampaignsController < InternalController
-  before_action :set_campaign, only: %i[show edit update destroy mapping update_mapping composition update_composition process_campaign pause resume duplicate]
+  before_action :set_campaign, only: %i[show edit update destroy mapping update_mapping composition update_composition settings update_settings process_campaign pause resume duplicate]
 
   def index
     @campaigns = current_user.account.campaigns.order(created_at: :desc)
@@ -67,9 +67,21 @@ class Accounts::CampaignsController < InternalController
 
   def update_composition
     if @campaign.update(composition_params)
-      redirect_to account_campaign_path(current_user.account, @campaign), notice: 'Composição da campanha salva com sucesso.'
+      redirect_to settings_account_campaign_path(current_user.account, @campaign), notice: 'Composição da campanha salva com sucesso. Defina o funil.'
     else
       render :composition, status: :unprocessable_entity
+    end
+  end
+
+  def settings
+    @pipelines = current_user.account.pipelines
+  end
+
+  def update_settings
+    if @campaign.update(settings_params)
+      redirect_to account_campaign_path(current_user.account, @campaign), notice: 'Campanha configurada! Pronta para iniciar.'
+    else
+      render :settings, status: :unprocessable_entity
     end
   end
 
@@ -125,11 +137,8 @@ class Accounts::CampaignsController < InternalController
   def fetch_crm_fields
     fields = {
       'Contato' => [
-        ['Nome Completo', 'contact.full_name'],
-        ['CPF', 'contact.cpf'],
-        ['Telefone 1', 'contact.phone'],
-        ['Telefone 2', 'contact.phone_2'],
-        ['Telefone 3', 'contact.phone_3'],
+        ['Nome', 'contact.full_name'],
+        ['Telefone Celular', 'contact.phone'],
         ['Email', 'contact.email']
       ],
       'Negócio' => [
@@ -155,7 +164,7 @@ class Accounts::CampaignsController < InternalController
   end
 
   def campaign_params
-    permitted = params.require(:campaign).permit(:name, :spreadsheet_data, :campaign_category_id, :pipeline_id, :stage_id, :duplicate_action, :prompt_a_id, :prompt_b_id, :start_date, :end_date)
+    permitted = params.require(:campaign).permit(:name, :spreadsheet_data, :campaign_category_id, :duplicate_action, :prompt_a_id, :prompt_b_id, :start_date, :end_date)
     permitted[:mapping] = params[:campaign][:mapping].permit! if params[:campaign][:mapping].present?
     permitted[:spreadsheet_data] = JSON.parse(permitted[:spreadsheet_data]) if permitted[:spreadsheet_data].is_a?(String)
     permitted
@@ -164,10 +173,19 @@ class Accounts::CampaignsController < InternalController
   def composition_params
     params.require(:campaign).permit(
       :batch_delay,
-      :pipeline_id,
-      :stage_id,
+      :prompt_a_id,
+      :prompt_b_id,
+      :ai_randomization,
       chatwoot_inbox_ids: [],
       message_sequence: [:type, :content]
+    )
+  end
+
+  def settings_params
+    params.require(:campaign).permit(
+      :pipeline_id,
+      :stage_id,
+      :duplicate_action
     )
   end
 end

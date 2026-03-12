@@ -124,12 +124,14 @@ Rails.application.routes.draw do
     end
     resources :workflows
     resources :campaign_categories, except: [:show]
-    resources :campaigns do
+      resources :campaigns do
       member do
         get :mapping
         patch :update_mapping
         get :composition
         patch :update_composition
+        get :settings
+        patch :update_settings
         post :process_campaign
         post :pause
         post :resume
