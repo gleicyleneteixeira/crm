@@ -12,14 +12,14 @@ class Accounts::CampaignsController < InternalController
     @campaign_categories = CampaignCategory.all
     @pipelines = current_user.account.pipelines.includes(:stages)
     @crm_fields = fetch_crm_fields
-    @crm_phones = current_user.account.contacts.pluck(:phone, :phone_2, :phone_3).flatten.compact.reject(&:blank?).map { |p| p.gsub(/\D/, '') }.uniq
+    @crm_phones = current_user.account.contacts.pluck(:phone).flatten.compact.reject(&:blank?).map { |p| p.gsub(/\D/, '') }.uniq
   end
 
   def edit
     @campaign_categories = CampaignCategory.all
     @pipelines = current_user.account.pipelines.includes(:stages)
     @crm_fields = fetch_crm_fields
-    @crm_phones = current_user.account.contacts.pluck(:phone, :phone_2, :phone_3).flatten.compact.reject(&:blank?).map { |p| p.gsub(/\D/, '') }.uniq
+    @crm_phones = current_user.account.contacts.pluck(:phone).flatten.compact.reject(&:blank?).map { |p| p.gsub(/\D/, '') }.uniq
   end
 
   def create

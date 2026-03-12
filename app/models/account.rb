@@ -125,6 +125,10 @@ class Account < ApplicationRecord
     Apps::AiAssistent.all
   end
 
+  def ai_prompts
+    AiPrompt.all
+  end
+
   def site_url=(url)
     super(normalize_url(url))
   end
