@@ -25,6 +25,11 @@
     <%= form.label :email, class: "typography-text-m-lh150 text-dark-gray-palette-p1"  %>
     <%= form.text_field :email, placeholder: "joaopaulo@email.com", class: 'form-input' %>
   </div>
+  
+  <div class="flex items-center gap-2 mt-2 bg-red-50 dark:bg-red-900/10 p-3 rounded-lg border border-red-100 dark:border-red-900/20">
+    <%= form.check_box :blacklist, class: "rounded border-red-300 text-red-600 focus:ring-red-600 dark:bg-slate-800 cursor-pointer" %>
+    <%= form.label :blacklist, "Adicionar à Blacklist (Bloqueia envios em massa para este contato)", class: "typography-text-s-lh150 text-red-800 dark:text-red-400 font-medium cursor-pointer mb-0" %>
+  </div>
   <div class="flex flex-col gap-1">
     <%= form.label :label_list, class: "typography-text-m-lh150 text-dark-gray-palette-p1"  %>
     <%= form.text_field :label_list,  value: contact.labels.join(', '), placeholder: t('views.accounts.contacts.form.tag_placeholder'), class: 'form-input !border-light-palette-p3', data: {controller: 'tag-input'}%>

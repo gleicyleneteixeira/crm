@@ -1,0 +1,7 @@
+<div class="flex items-center justify-between p-3 rounded-lg border <%= log.status == 'success' ? 'border-green-100 bg-green-50 dark:bg-green-900/10' : 'border-red-100 bg-red-50 dark:bg-red-900/10' %> mb-2">
+  <div class="flex items-center gap-3">
+    <i data-lucide="<%= log.status == 'success' ? 'check-circle-2' : 'alert-circle' %>" class="w-4 h-4 <%= log.status == 'success' ? 'text-green-500' : 'text-red-500' %>"></i>
+    <span class="typography-body-s-lh150 text-dark-gray-palette-p1"><%= log.message %></span>
+  </div>
+  <span class="text-[10px] text-slate-400 uppercase font-bold"><%= log.created_at.strftime('%H:%M:%S') %></span>
+</div>

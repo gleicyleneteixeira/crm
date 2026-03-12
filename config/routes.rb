@@ -131,6 +131,9 @@ Rails.application.routes.draw do
         get :composition
         patch :update_composition
         post :process_campaign
+        post :pause
+        post :resume
+        post :duplicate
       end
     end
   end

@@ -1,0 +1,21 @@
+<% percentage = (campaign.total_leads.to_i > 0) ? ((campaign.processed_leads.to_f / campaign.total_leads.to_f) * 100).clamp(0, 100).round : 0 %>
+<section class="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700" id="campaign_progress_<%= campaign.id %>">
+  <div class="flex items-center justify-between mb-2">
+    <h2 class="typography-title-s-lh150 text-dark-gray-palette-p1 flex items-center gap-2">
+      <i data-lucide="activity" class="w-5 h-5 text-brand-palette-03"></i> Progresso
+    </h2>
+    <span class="typography-body-b-lh150 text-brand-palette-03"><%= percentage %>%</span>
+  </div>
+  <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 mb-4 overflow-hidden">
+    <div class="bg-brand-palette-03 h-3 rounded-full transition-all duration-500 relative overflow-hidden" style="width: <%= percentage %>%">
+      <% if campaign.running? %>
+        <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
+      <% end %>
+    </div>
+  </div>
+  <div class="flex justify-between text-xs text-slate-500 font-medium">
+    <span>Processados: <%= campaign.processed_leads.to_i %></span>
+    <span>Restantes: <%= [campaign.total_leads.to_i - campaign.processed_leads.to_i, 0].max %></span>
+    <span>Total: <%= campaign.total_leads.to_i %></span>
+  </div>
+</section>

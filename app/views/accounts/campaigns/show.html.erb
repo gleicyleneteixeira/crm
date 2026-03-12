@@ -5,17 +5,42 @@
       <p class="typography-body-s-lh150 text-slate-500">Resumo da Campanha e Status de Execução</p>
     </div>
     <div class="flex items-center gap-4">
-      <span class="px-3 py-1 rounded-full typography-micro-b-lh150 <%= @campaign.completed? ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' %>">
+      <% status_classes = {
+           'draft' => 'bg-slate-100 text-slate-800',
+           'scheduled' => 'bg-yellow-100 text-yellow-800',
+           'running' => 'bg-blue-100 text-blue-800',
+           'paused' => 'bg-orange-100 text-orange-800',
+           'completed' => 'bg-green-100 text-green-800',
+           'failed' => 'bg-red-100 text-red-800'
+         }
+      %>
+      <span class="px-3 py-1 rounded-full typography-micro-b-lh150 <%= status_classes[@campaign.status] || 'bg-slate-100 text-slate-800' %>">
         <%= @campaign.status.humanize %>
       </span>
       <% if @campaign.draft? %>
-        <%= button_to 'Iniciar Processamento', process_campaign_account_campaign_path(current_user.account, @campaign), method: :post, class: 'btn-primary' %>
+        <%= button_to 'Iniciar Processamento', process_campaign_account_campaign_path(current_user.account, @campaign), method: :post, class: 'btn-primary flex items-center gap-2' do %>
+          <i data-lucide="play" class="w-4 h-4"></i> Iniciar
+        <% end %>
+      <% elsif @campaign.running? %>
+        <%= button_to 'Pausar', pause_account_campaign_path(current_user.account, @campaign), method: :post, class: 'btn-secondary flex items-center gap-2 text-orange-600 border-orange-200 hover:bg-orange-50' do %>
+          <i data-lucide="pause" class="w-4 h-4"></i> Pausar
+        <% end %>
+      <% elsif @campaign.paused? %>
+        <%= button_to 'Retomar', resume_account_campaign_path(current_user.account, @campaign), method: :post, class: 'btn-primary flex items-center gap-2' do %>
+          <i data-lucide="play" class="w-4 h-4"></i> Retomar
+        <% end %>
       <% end %>
     </div>
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
     <div class="md:col-span-2 space-y-8">
+      <!-- Progresso -->
+      <% if !@campaign.draft? %>
+        <%= turbo_stream_from [current_user.account, @campaign, :progress] %>
+        <%= render 'accounts/campaigns/progress', campaign: @campaign %>
+      <% end %>
+
       <!-- Configurações -->
       <section class="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
         <h2 class="typography-title-s-lh150 text-dark-gray-palette-p1 mb-6">Configurações de Envio</h2>
@@ -23,7 +48,7 @@
         <div class="grid grid-cols-2 gap-6">
           <div>
             <p class="typography-micro-b-lh150 text-slate-500 uppercase mb-1">Total de Contatos</p>
-            <p class="typography-body-b-lh150 text-dark-gray-palette-p1"><%= @campaign.spreadsheet_data.count - 1 %> contatos</p>
+            <p class="typography-body-b-lh150 text-dark-gray-palette-p1"><%= @campaign.total_leads.to_i > 0 ? @campaign.total_leads : [(@campaign.spreadsheet_data&.size.to_i - 1), 0].max %> contatos</p>
           </div>
           <div>
             <p class="typography-micro-b-lh150 text-slate-500 uppercase mb-1">Intervalo (Delay)</p>
@@ -58,20 +83,26 @@
 
       <!-- Logs -->
       <section class="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-        <h2 class="typography-title-s-lh150 text-dark-gray-palette-p1 mb-6">Relatório de Execução</h2>
-        <div class="space-y-2">
+        <h2 class="typography-title-s-lh150 text-dark-gray-palette-p1 mb-6 flex items-center justify-between">
+          <span>Relatório de Execução</span>
+          <% if !@campaign.draft? %>
+            <div class="flex items-center gap-2">
+              <span class="relative flex h-3 w-3">
+                <span class="<%= @campaign.running? ? 'animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-palette-03 opacity-75' : '' %>"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 <%= @campaign.running? ? 'bg-brand-palette-03' : 'bg-slate-300' %>"></span>
+              </span>
+              <span class="text-xs text-slate-500 font-medium">Real-Time Logs</span>
+            </div>
+          <% end %>
+        </h2>
+        
+        <%= turbo_stream_from [current_user.account, @campaign, :logs] %>
+        
+        <div class="space-y-2 max-h-[400px] overflow-y-auto pr-2" id="campaign_logs_<%= @campaign.id %>">
           <% if @campaign.campaign_logs.empty? %>
-            <p class="text-slate-500 typography-body-s-lh150 italic">Nenhum log disponível ainda. Inicie o processamento para ver os detalhes.</p>
+            <p class="text-slate-500 typography-body-s-lh150 italic" id="empty_logs_msg">Nenhum log disponível ainda. Inicie o processamento para ver os detalhes.</p>
           <% else %>
-            <% @campaign.campaign_logs.order(created_at: :desc).limit(50).each do |log| %>
-              <div class="flex items-center justify-between p-3 rounded-lg border <%= log.status == 'success' ? 'border-green-100 bg-green-50 dark:bg-green-900/10' : 'border-red-100 bg-red-50 dark:bg-red-900/10' %>">
-                <div class="flex items-center gap-3">
-                  <i data-lucide="<%= log.status == 'success' ? 'check-circle-2' : 'alert-circle' %>" class="w-4 h-4 <%= log.status == 'success' ? 'text-green-500' : 'text-red-500' %>"></i>
-                  <span class="typography-body-s-lh150 text-dark-gray-palette-p1"><%= log.message %></span>
-                </div>
-                <span class="text-[10px] text-slate-400 uppercase font-bold"><%= log.created_at.strftime('%H:%M:%S') %></span>
-              </div>
-            <% end %>
+            <%= render partial: 'accounts/campaigns/log', collection: @campaign.campaign_logs.order(created_at: :desc).limit(50) %>
           <% end %>
         </div>
       </section>
@@ -92,8 +123,11 @@
       </section>
 
       <div class="flex flex-col gap-2">
-        <%= link_to 'Editar Configurações', composition_account_campaign_path(current_user.account, @campaign), class: 'btn-secondary w-full text-center' %>
-        <%= button_to 'Remover Campanha', account_campaign_path(current_user.account, @campaign), method: :delete, data: { confirm: 'Tem certeza?' }, class: 'text-red-500 hover:text-red-700 text-xs font-bold uppercase py-2 w-full' %>
+        <%= link_to 'Editar Configurações', composition_account_campaign_path(current_user.account, @campaign), class: 'btn-secondary w-full text-center' if @campaign.draft? %>
+        <%= button_to 'Duplicar Campanha', duplicate_account_campaign_path(current_user.account, @campaign), method: :post, class: 'bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 w-full text-center py-2 rounded-md font-medium text-sm flex items-center justify-center gap-2' %>
+        <%= button_to 'Remover Campanha', account_campaign_path(current_user.account, @campaign), method: :delete, data: { confirm: 'Tem certeza?' }, class: 'text-red-500 hover:text-red-700 text-xs font-bold uppercase py-2 w-full mt-4 flex items-center justify-center gap-1' do %>
+          <i data-lucide="trash-2" class="w-4 h-4"></i> Excluir
+        <% end %>
       </div>
     </div>
   </div>
