@@ -28,7 +28,23 @@ export default class extends Controller {
         this.rawData = []
         this.ignoredRows = new Set()
         this.loadCurrentMapping()
+        this.rehydrateData()
         this.validateMapping()
+    }
+
+    rehydrateData() {
+        if (!this.hasJsonOutputTarget || !this.jsonOutputTarget.value) return
+
+        try {
+            const data = JSON.parse(this.jsonOutputTarget.value)
+            if (Array.isArray(data) && data.length > 0) {
+                this.rawData = data
+                this.autoMatchHeaders()
+                this.renderizarGrid()
+            }
+        } catch (e) {
+            console.error('Falha ao reidratar dados:', e)
+        }
     }
 
     loadCurrentMapping() {

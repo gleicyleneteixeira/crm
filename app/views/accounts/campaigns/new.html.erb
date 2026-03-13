@@ -6,6 +6,29 @@
     </div>
   </div>
 
+  <div class="w-full px-4 sm:px-6 lg:px-8 mx-auto xl:max-w-[1600px]">
+    <% if @campaign.errors.any? %>
+      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-6">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <i data-lucide="alert-circle" class="h-5 w-5 text-red-400"></i>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
+              Ops! Encontramos <%= pluralize(@campaign.errors.count, "erro") %>:
+            </h3>
+            <div class="mt-2 text-sm text-red-700 dark:text-red-300">
+              <ul class="list-disc pl-5 space-y-1">
+                <% @campaign.errors.full_messages.each do |message| %>
+                  <li><%= message %></li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
   <%= form_with(model: [current_user.account, @campaign], data: { controller: 'campaign-import', 'campaign-import-pipelines-value': @pipelines.to_json(include: :stages), 'campaign-import-crm-fields-value': @crm_fields.to_json }, class: "flex flex-col gap-6") do |f| %>
     
     <!-- TOP SECTION: Configuração de Campanha e Destino -->
