@@ -542,7 +542,9 @@ export default class extends Controller {
     handlePipelineChange() {
         if (!this.hasPipelineSelectTarget || !this.hasStageSelectTarget) return
 
-        const pipelineId = parseInt(this.pipelineSelectTarget.value, 10)
+        const pipelineIdStr = this.pipelineSelectTarget.value
+        const pipelineId = pipelineIdStr ? parseInt(pipelineIdStr, 10) : null
+
         this.stageSelectTarget.innerHTML = '<option value="">Selecione a etapa inicial...</option>'
 
         if (pipelineId && this.hasPipelinesValue) {

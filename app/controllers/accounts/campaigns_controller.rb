@@ -114,7 +114,7 @@ class Accounts::CampaignsController < InternalController
   end
 
   def campaign_params
-    permitted = params.require(:campaign).permit(:name, :spreadsheet_data, :campaign_category_id, :pipeline_id, :stage_id)
+    permitted = params.require(:campaign).permit(:name, :spreadsheet_data, :campaign_category_id, :pipeline_id, :stage_id, :insert_ddi)
     permitted[:mapping] = params[:campaign][:mapping].permit! if params[:campaign][:mapping].present?
     permitted[:spreadsheet_data] = JSON.parse(permitted[:spreadsheet_data]) if permitted[:spreadsheet_data].is_a?(String)
     permitted
