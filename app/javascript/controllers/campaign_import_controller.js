@@ -15,7 +15,8 @@ export default class extends Controller {
         "countInvalid",
         "categorySelect",
         "pipelineSelect",
-        "stageSelect"
+        "stageSelect",
+        "ddiToggle"
     ]
 
     static values = {
@@ -188,8 +189,25 @@ export default class extends Controller {
         this.validateMapping()
     }
 
+    handleDdiToggle() {
+        this.renderizarGrid()
+    }
+
     handleHeaderToggle() {
         this.renderizarGrid()
+    }
+
+    formatPhone(val) {
+        if (!val) return ""
+        let digits = val.toString().replace(/\D/g, "")
+
+        // Add DDI 55 if toggle is on and it doesn't have it
+        if (this.hasDdiToggleTarget && this.ddiToggleTarget.checked) {
+            if (digits.length > 0 && !digits.startsWith("55")) {
+                digits = "55" + digits
+            }
+        }
+        return digits
     }
 
     renderizarGrid() {
@@ -276,7 +294,15 @@ export default class extends Controller {
                 } else {
                     rowHtml += `<tr class="border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${trClass}">`
                     row.forEach((cell, colIndex) => {
-                        rowHtml += `<td class="px-4 py-3 whitespace-nowrap editable-cell cursor-text transition-colors text-sm text-slate-900 dark:text-slate-200 border-r border-slate-200 dark:border-slate-700" data-row="${rowIndex}" data-col="${colIndex}" data-action="click->campaign-import#editCell">${this.escapeHtml(cell)}</td>`
+                        const colIndexStr = colIndex.toString();
+                        const mappedCrmKey = Object.keys(this.currentMapping).find(k => this.currentMapping[k] === colIndexStr);
+                        let displayValue = cell;
+
+                        if (mappedCrmKey && mappedCrmKey.includes('contact.phone')) {
+                            displayValue = this.formatPhone(cell);
+                        }
+
+                        rowHtml += `<td class="px-4 py-3 whitespace-nowrap editable-cell cursor-text transition-colors text-sm text-slate-900 dark:text-slate-200 border-r border-slate-200 dark:border-slate-700" data-row="${rowIndex}" data-col="${colIndex}" data-action="click->campaign-import#editCell">${this.escapeHtml(displayValue)}</td>`
                     })
 
                     if (isIgnored) {
@@ -459,7 +485,16 @@ export default class extends Controller {
 
     updateJsonOutput() {
         if (this.hasJsonOutputTarget) {
-            const finalData = this.rawData.filter((_, index) => !this.ignoredRows.has(index))
+            const finalData = this.rawData.filter((_, index) => !this.ignoredRows.has(index)).map(row => {
+                return row.map((cell, colIndex) => {
+                    const colIndexStr = colIndex.toString();
+                    const mappedCrmKey = Object.keys(this.currentMapping).find(k => this.currentMapping[k] === colIndexStr);
+                    if (mappedCrmKey && mappedCrmKey.includes('contact.phone')) {
+                        return this.formatPhone(cell);
+                    }
+                    return cell;
+                });
+            });
             this.jsonOutputTarget.value = JSON.stringify(finalData)
         }
     }
