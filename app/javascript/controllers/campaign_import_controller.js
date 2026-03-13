@@ -533,7 +533,7 @@ export default class extends Controller {
                 if (key === 'extra_variable') {
                     optionVal = `extra_${headerSlug}`;
                     if (headerName) {
-                        optionLabel = `Variável: {{${headerSlug}}}`;
+                        optionLabel = headerName;
                     }
                 }
                 const isSelected = (mappedCrmKey === optionVal) ? 'selected' : '';
