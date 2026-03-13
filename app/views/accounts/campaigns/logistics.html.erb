@@ -1,0 +1,189 @@
+<div class="h-[calc(100vh-80px)] overflow-hidden w-full bg-[#0B0E14] text-slate-300 flex flex-col font-sans" data-controller="campaign--logistics">
+  <!-- Top Progress Bar / Header -->
+  <header class="bg-[#0B0E14] border-b border-slate-800/60 px-8 py-4 flex items-center justify-between shrink-0 z-30">
+    <div class="flex items-center gap-4">
+      <div class="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center border border-indigo-500/20">
+        <i data-lucide="truck" class="w-5 h-5 text-indigo-500"></i>
+      </div>
+      <div>
+        <h1 class="text-lg font-bold text-white leading-tight">Logística</h1>
+        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Etapa 3: Canais e Tempo</p>
+      </div>
+    </div>
+    
+    <div class="flex items-center gap-6">
+      <nav class="flex items-center gap-1 bg-slate-900/50 p-1 rounded-full border border-slate-800/50">
+         <div class="w-8 h-8 rounded-full flex items-center justify-center text-emerald-500">
+            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+         </div>
+         <div class="w-8 h-8 rounded-full flex items-center justify-center text-emerald-500">
+            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+         </div>
+         <div class="flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
+            <span class="text-[10px] font-bold">3</span>
+            <span class="text-[10px] font-black uppercase tracking-widest">Logística</span>
+         </div>
+         <div class="px-4 py-1.5 rounded-full text-slate-600">
+            <span class="text-[10px] font-bold">4</span>
+         </div>
+      </nav>
+      <div class="h-8 w-px bg-slate-800/60"></div>
+      <%= link_to composition_account_campaign_path(current_user.account, @campaign), class: 'text-[10px] font-black text-slate-500 hover:text-white transition-colors uppercase tracking-widest flex items-center gap-2' do %>
+        <i data-lucide="arrow-left" class="w-3 h-3"></i> Voltar
+      <% end %>
+    </div>
+  </header>
+
+  <%= form_with(model: @campaign, url: update_logistics_account_campaign_path(current_user.account, @campaign), method: :patch, class: "flex-1 overflow-y-auto custom-scrollbar p-12") do |f| %>
+    <div class="max-w-5xl mx-auto space-y-12 pb-24">
+      
+      <!-- Intervalo Entre Envios (Image 1 Pattern) -->
+      <section class="bg-[#161B22] border border-slate-800/60 rounded-[2.5rem] p-10 shadow-2xl space-y-8">
+        <div class="flex items-center gap-4">
+           <div class="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center border border-emerald-500/20">
+              <i data-lucide="clock" class="w-5 h-5 text-emerald-500"></i>
+           </div>
+           <div>
+              <h3 class="text-sm font-black text-white uppercase tracking-wider">Intervalo Entre Envios</h3>
+              <p class="text-[11px] text-slate-500 font-medium leading-relaxed">Tempo de espera entre cada mensagem enviada</p>
+           </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+           <!-- Segemented Control (Fixed/Random) -->
+           <button type="button" 
+                   data-action="campaign--logistics#toggleDelayType" 
+                   data-type="fixed"
+                   data-campaign--logistics-target="fixedDelay"
+                   class="flex flex-col items-center justify-center gap-3 p-8 border-2 border-slate-800 bg-[#0D1117] rounded-3xl transition-all hover:border-slate-700 <%= 'border-emerald-500 bg-emerald-500/10 text-emerald-500 font-bold' if @campaign.inbox_rotation_rule != 'random' %>">
+              <i data-lucide="timer" class="w-6 h-6"></i>
+              <span class="text-xs font-black uppercase tracking-widest">Fixo</span>
+           </button>
+           <button type="button" 
+                   data-action="campaign--logistics#toggleDelayType" 
+                   data-type="random"
+                   data-campaign--logistics-target="randomDelay"
+                   class="flex flex-col items-center justify-center gap-3 p-8 border-2 border-slate-800 bg-[#0D1117] rounded-3xl transition-all hover:border-slate-700 <%= 'border-emerald-500 bg-emerald-500/10 text-emerald-500 font-bold' if @campaign.inbox_rotation_rule == 'random' %>">
+              <i data-lucide="shuffle" class="w-6 h-6"></i>
+              <span class="text-xs font-black uppercase tracking-widest">Aleatório</span>
+           </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-8 pt-4">
+           <div>
+              <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-4">Minimo (segundos)</label>
+              <%= f.number_field :batch_delay, 
+                                data: { campaign__logistics_target: "minInput" },
+                                class: 'w-full bg-[#0D1117] border-2 border-slate-800 rounded-2xl py-4 px-6 text-sm font-black text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all' %>
+           </div>
+           <div class="<%= 'hidden' if @campaign.inbox_rotation_rule != 'random' %>" data-campaign--logistics-target="maxInput">
+              <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-4">Máximo (segundos)</label>
+              <input type="number" value="10" name="campaign[max_delay]" class="w-full bg-[#0D1117] border-2 border-slate-800 rounded-2xl py-4 px-6 text-sm font-black text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all">
+           </div>
+        </div>
+      </section>
+
+      <!-- Randomização de Instâncias (Image 3 Pattern) -->
+      <section class="space-y-6">
+        <div class="bg-[#161B22] border border-slate-800/60 rounded-3xl p-6 flex items-center justify-between shadow-lg">
+           <div class="flex items-center gap-4">
+              <div class="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center">
+                 <i data-lucide="split" class="w-5 h-5 text-emerald-500"></i>
+              </div>
+              <div>
+                 <h3 class="text-xs font-black text-white uppercase tracking-wider">Randomização de Instâncias</h3>
+                 <p class="text-[10px] text-slate-500 font-medium">Alternar automaticamente entre as instâncias selecionadas</p>
+              </div>
+           </div>
+           <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" name="campaign[inbox_rotation_rule]" value="random" class="sr-only peer" <%= 'checked' if @campaign.inbox_rotation_rule == 'random' %>>
+              <div class="w-14 h-8 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-500"></div>
+           </label>
+        </div>
+
+        <div class="flex items-center justify-between px-2">
+           <div class="flex items-center gap-3">
+              <button type="button" class="px-5 py-2.5 bg-slate-800/50 hover:bg-slate-800 text-slate-300 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Selecionar Ativos</button>
+              <button type="button" class="px-5 py-2.5 bg-transparent text-slate-500 hover:text-slate-300 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Limpar Seleção</button>
+           </div>
+           <button type="button" class="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 text-[#0D1117] rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/10">
+              <i data-lucide="plus" class="w-3 h-3"></i> Nova Instância
+           </button>
+        </div>
+
+        <!-- Instance Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+           <% @inboxes.each do |inbox| %>
+             <div role="button" 
+                  data-action="click->campaign--logistics#selectInstance"
+                  class="relative p-6 bg-[#161B22] border-2 border-slate-800 rounded-3xl transition-all group hover:border-slate-700">
+                <input type="checkbox" name="campaign[chatwoot_inbox_ids][]" value="<%= inbox['id'] %>" class="hidden" data-campaign--logistics-target="instanceInput">
+                
+                <!-- Status Check (Absolute) -->
+                <div class="absolute top-4 right-4 w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-[#0D1117] shadow-lg hidden check-icon">
+                   <i data-lucide="check" class="w-3 h-3 font-black"></i>
+                </div>
+
+                <div class="flex items-center gap-4 mb-6">
+                   <div class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-slate-400 group-hover:text-emerald-500 transition-colors">
+                      <i data-lucide="smartphone" class="w-6 h-6"></i>
+                   </div>
+                   <div class="flex-1 min-w-0">
+                      <h4 class="text-xs font-black text-white uppercase tracking-wider truncate"><%= inbox['name'] %></h4>
+                      <p class="text-[10px] text-slate-500 font-medium truncate">+55 00 00000-0000</p>
+                   </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                   <div class="flex items-center gap-2">
+                      <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                      <span class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Ativo</span>
+                   </div>
+                </div>
+             </div>
+           <% end %>
+        </div>
+
+        <div class="bg-[#0D1117] border border-slate-800/60 rounded-2xl p-4 flex items-center gap-3">
+           <div class="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+              <i data-lucide="check" class="w-4 h-4 text-emerald-500"></i>
+           </div>
+           <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest"><span id="selected-count">1</span> instância(s) selecionada(s)</span>
+        </div>
+      </section>
+
+      <!-- Variação com IA (Image 1 Bottom) -->
+      <section class="bg-[#161B22] border border-slate-800/60 rounded-3xl p-10 shadow-2xl relative overflow-hidden group">
+         <div class="flex items-center justify-between relative z-10">
+            <div class="flex items-center gap-6">
+               <div class="w-12 h-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center border border-indigo-500/20">
+                  <i data-lucide="sparkles" class="w-6 h-6 text-indigo-500"></i>
+               </div>
+               <div>
+                  <h3 class="text-sm font-black text-white uppercase tracking-wider">Variação com IA</h3>
+                  <p class="text-[11px] text-slate-500 font-medium leading-relaxed">Usar inteligência artificial para variar o texto das mensagens, mantendo o sentido</p>
+               </div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+               <%= f.check_box :ai_randomization, class: "sr-only peer" %>
+               <div class="w-14 h-8 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-500"></div>
+            </label>
+         </div>
+      </section>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-end gap-4 pt-10">
+         <%= f.submit 'Próximo: Automação', class: 'px-14 py-5 bg-emerald-500 text-[#0D1117] rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-emerald-500/20 hover:scale-[1.02] transition-all active:scale-95' %>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<style>
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  
+  .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: #1F2937; border-radius: 10px; }
+</style>

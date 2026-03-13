@@ -130,6 +130,10 @@ Rails.application.routes.draw do
         patch :update_mapping
         get :composition
         patch :update_composition
+        get :logistics
+        patch :update_logistics
+        get :automation
+        patch :update_automation
         post :process_campaign
       end
     end

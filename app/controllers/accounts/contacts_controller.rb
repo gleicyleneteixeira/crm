@@ -125,12 +125,16 @@ class Accounts::ContactsController < InternalController
 
   def chatwoot_conversation_link
     @display_format = params[:display_format].presence || 'icon'
-    chatwoot_contact_id = @contact.additional_attributes['chatwoot_id']
-
-    return if chatwoot_contact_id.blank?
-
     chatwoot = chatwoot_integration_for_contact
-    return unless chatwoot
+    
+    if @contact.additional_attributes['chatwoot_id'].blank? && chatwoot.present?
+      # Try to sync on-demand if clicked or accessed
+      Accounts::Apps::Chatwoots::ExportContact.call(chatwoot, @contact)
+      @contact.reload
+    end
+
+    chatwoot_contact_id = @contact.additional_attributes['chatwoot_id']
+    return if chatwoot_contact_id.blank?
 
     @chatwoot_conversation_link = build_chatwoot_contact_url(chatwoot, chatwoot_contact_id)
   end

@@ -1,0 +1,163 @@
+<div class="h-[calc(100vh-80px)] overflow-hidden w-full bg-[#0B0E14] text-slate-300 flex flex-col font-sans" data-controller="campaign--automation">
+  <!-- Top Progress Bar / Header -->
+  <header class="bg-[#0B0E14] border-b border-slate-800/60 px-8 py-4 flex items-center justify-between shrink-0 z-30">
+    <div class="flex items-center gap-4">
+      <div class="w-10 h-10 bg-brand-palette-03/10 rounded-xl flex items-center justify-center border border-brand-palette-03/20">
+        <i data-lucide="zap" class="w-5 h-5 text-brand-palette-03"></i>
+      </div>
+      <div>
+        <h1 class="text-lg font-bold text-white leading-tight">Automação e IA</h1>
+        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Etapa 4: Regras Inteligentes</p>
+      </div>
+    </div>
+    
+    <div class="flex items-center gap-6">
+      <nav class="flex items-center gap-1 bg-slate-900/50 p-1 rounded-full border border-slate-800/50">
+         <div class="w-8 h-8 rounded-full flex items-center justify-center text-emerald-500">
+            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+         </div>
+         <div class="w-8 h-8 rounded-full flex items-center justify-center text-emerald-500">
+            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+         </div>
+         <div class="w-8 h-8 rounded-full flex items-center justify-center text-emerald-500">
+            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+         </div>
+         <div class="flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-palette-03/10 text-brand-palette-03 border border-brand-palette-03/20">
+            <span class="text-[10px] font-bold">4</span>
+            <span class="text-[10px] font-black uppercase tracking-widest">Finalizar</span>
+         </div>
+      </nav>
+      <div class="h-8 w-px bg-slate-800/60"></div>
+      <%= link_to logistics_account_campaign_path(current_user.account, @campaign), class: 'text-[10px] font-black text-slate-500 hover:text-white transition-colors uppercase tracking-widest flex items-center gap-2' do %>
+        <i data-lucide="arrow-left" class="w-3 h-3"></i> Voltar
+      <% end %>
+    </div>
+  </header>
+
+  <%= form_with(model: @campaign, url: update_automation_account_campaign_path(current_user.account, @campaign), method: :patch, class: "flex-1 overflow-y-auto custom-scrollbar p-12") do |f| %>
+    <div class="max-w-4xl mx-auto space-y-10 pb-24">
+      
+      <!-- Section: Humanity Lock & Stop Words -->
+      <section class="grid grid-cols-1 md:grid-cols-2 gap-8">
+         <div class="bg-[#161B22] border border-slate-800/60 rounded-[2.5rem] p-10 shadow-2xl space-y-6">
+            <div class="flex items-center gap-4">
+               <div class="w-10 h-10 bg-brand-palette-03/10 rounded-xl flex items-center justify-center">
+                  <i data-lucide="lock" class="w-5 h-5 text-brand-palette-03"></i>
+               </div>
+               <h3 class="text-xs font-black text-white uppercase tracking-wider">Human Intervention Lock</h3>
+            </div>
+            <p class="text-[10px] text-slate-500 font-medium leading-relaxed">Pausar envios para o contato se um agente humano responder manualmente no chat.</p>
+            
+            <label class="relative inline-flex items-center cursor-pointer pt-2">
+               <%= f.check_box :human_intervention_lock, class: "sr-only peer" %>
+               <div class="w-14 h-8 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-brand-palette-03"></div>
+               <span class="ml-4 text-[10px] font-bold uppercase tracking-widest text-slate-400 peer-checked:text-white">Ativado</span>
+            </label>
+         </div>
+
+         <div class="bg-[#161B22] border border-slate-800/60 rounded-[2.5rem] p-10 shadow-2xl space-y-6">
+            <div class="flex items-center gap-4">
+               <div class="w-10 h-10 bg-red-500/10 rounded-xl flex items-center justify-center">
+                  <i data-lucide="stop-circle" class="w-5 h-5 text-red-500"></i>
+               </div>
+               <h3 class="text-xs font-black text-white uppercase tracking-wider">Stop Words / Gatilhos</h3>
+            </div>
+            <p class="text-[10px] text-slate-500 font-medium leading-relaxed">Cancele a sequência se o cliente digitar termos como "parar", "cancelar" ou similar.</p>
+            
+            <%= f.text_area :stop_words, class: 'w-full bg-[#0D1117] border-slate-800 rounded-2xl p-4 text-xs font-bold text-white placeholder-slate-700 min-h-[60px] focus:ring-red-500/50', placeholder: 'Ex: parar, cancelar, não quero, sair' %>
+         </div>
+      </section>
+
+      <!-- Section: Failover Safety -->
+      <section class="bg-[#161B22] border border-slate-800/60 rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden group">
+         <i data-lucide="shield-check" class="absolute -right-8 -bottom-8 w-40 h-40 text-white/5 opacity-20 rotate-12 group-hover:scale-110 transition-transform duration-700"></i>
+         <div class="relative z-10 space-y-8">
+            <div class="flex items-center gap-4">
+               <div class="w-12 h-12 bg-emerald-500 text-[#0D1117] rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                  <i data-lucide="life-buoy" class="w-6 h-6"></i>
+               </div>
+               <div>
+                  <h3 class="text-sm font-black text-white uppercase tracking-wider">Channel Failover automático</h3>
+                  <p class="text-[11px] text-slate-500 font-medium">Se o número principal falhar (block/offline), a campanha continua via backup</p>
+               </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+               <div>
+                  <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-4">Inbox de Segurança (Failover)</label>
+                  <%= f.select :failover_inbox_id, options_from_collection_for_select(@inboxes, 'id', 'name'), { include_blank: 'Nenhum fallback selecionado' }, class: 'w-full bg-[#0D1117] border-slate-800 rounded-2xl py-4 px-6 text-xs font-bold text-white appearance-none focus:ring-emerald-500' %>
+               </div>
+               <div class="p-5 bg-[#0D1117] rounded-3xl border border-dashed border-slate-800 flex items-center gap-4">
+                  <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center shrink-0">
+                     <i data-lucide="activity" class="w-4 h-4 text-emerald-500"></i>
+                  </div>
+                  <p class="text-[10px] text-slate-500 leading-relaxed font-medium">Recomendamos usar uma instância de alta reputação como failover para garantir a entrega.</p>
+               </div>
+            </div>
+         </div>
+      </section>
+
+      <!-- Section: ROI & Conversão -->
+      <section class="bg-gradient-to-br from-[#161B22] to-[#1F2937] border border-slate-800/60 rounded-[2.5rem] p-10 shadow-2xl">
+         <div class="flex items-center gap-4 mb-10">
+            <div class="w-12 h-12 bg-brand-palette-03/10 rounded-2xl flex items-center justify-center border border-brand-palette-03/20">
+               <i data-lucide="bar-chart-3" class="w-6 h-6 text-brand-palette-03"></i>
+            </div>
+            <div>
+               <h3 class="text-sm font-black text-white uppercase tracking-wider">Cálculo de ROI e Conversão</h3>
+               <p class="text-[11px] text-slate-500 font-medium">Defina métricas financeiras para medir o sucesso da campanha</p>
+            </div>
+         </div>
+
+         <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div class="p-8 bg-[#0D1117] rounded-3xl border border-slate-800/50 shadow-inner">
+               <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-4 text-center">Valor da Conversão (ROI)</label>
+               <div class="flex items-center justify-center gap-3">
+                  <span class="text-lg font-black text-brand-palette-03">R$</span>
+                  <%= f.number_field :roi_conversion_value, class: 'bg-transparent border-none p-0 text-3xl font-black text-white focus:ring-0 w-40 text-center', placeholder: '0.00' %>
+               </div>
+               <p class="text-[9px] text-slate-600 text-center mt-6 font-bold uppercase tracking-widest italic">Calculado quando um card vira "Ganhado"</p>
+            </div>
+
+            <div class="space-y-6">
+               <div class="flex items-center justify-between text-[11px] font-bold">
+                  <span class="text-slate-500">Contatos Estimados</span>
+                  <span class="text-white"><%= @campaign.total_leads || 0 %></span>
+               </div>
+               <div class="h-1 w-full bg-slate-800 rounded-full">
+                  <div class="h-full bg-brand-palette-03 w-2/3 rounded-full"></div>
+               </div>
+               <p class="text-[10px] text-slate-500 leading-relaxed">Considerando a média de custo por mensagem gerada via IA, seu custo operacional base será de <span class="text-white font-bold">R$ 0,15</span> por contato.</p>
+            </div>
+         </div>
+      </section>
+
+      <!-- Bottom Actions -->
+      <div class="pt-8 flex flex-col items-center gap-6">
+         <div class="flex items-center gap-4 text-slate-500 mb-4 animate-bounce">
+            <i data-lucide="mouse-pointer-2" class="w-4 h-4"></i>
+            <span class="text-[10px] font-black uppercase tracking-widest">Tudo pronto para disparar?</span>
+         </div>
+         
+         <div class="flex w-full gap-4">
+            <button type="submit" name="campaign[status]" value="draft" class="flex-1 py-5 bg-slate-900 border border-slate-800 text-slate-400 rounded-3xl font-black text-xs uppercase tracking-[0.2em] hover:bg-slate-800 hover:text-white transition-all">Salvar como Rascunho</button>
+            <button type="submit" name="campaign[status]" value="running" class="flex-[2] py-5 bg-brand-palette-03 text-white rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-brand-palette-03/30 hover:scale-[1.02] hover:bg-brand-palette-04 transition-all active:scale-95 flex items-center justify-center gap-3">
+               <i data-lucide="rocket" class="w-5 h-5"></i>
+               Iniciar Campanha Agora
+            </button>
+         </div>
+      </div>
+
+    </div>
+  <% end %>
+
+  <footer class="h-16 bg-[#0B0E14]/80 backdrop-blur-md border-t border-slate-800/40 px-8 flex items-center justify-center">
+     <p class="text-[9px] font-black text-slate-700 uppercase tracking-[0.3em]">Woofed CRM - Campaign Manager v3.0 PROFISSIONAL</p>
+  </footer>
+</div>
+
+<style>
+  .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: #1F2937; border-radius: 10px; }
+</style>

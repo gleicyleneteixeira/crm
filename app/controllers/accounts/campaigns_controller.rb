@@ -53,7 +53,9 @@ class Accounts::CampaignsController < InternalController
 
   def update_mapping
     if @campaign.update(mapping: params[:campaign][:mapping])
-      redirect_to composition_account_campaign_path(current_user.account, @campaign), notice: 'Mapeamento salvo com sucesso.'
+      Accounts::Campaigns::InitializeContactsService.call(@campaign)
+      
+      redirect_to composition_account_campaign_path(current_user.account, @campaign), notice: 'Mapeamento e contatos salvos com sucesso!'
     else
       render :mapping, status: :unprocessable_entity
     end
@@ -66,14 +68,41 @@ class Accounts::CampaignsController < InternalController
 
   def update_composition
     if @campaign.update(composition_params)
-      redirect_to account_campaign_path(current_user.account, @campaign), notice: 'Composição da campanha salva com sucesso.'
+      redirect_to logistics_account_campaign_path(current_user.account, @campaign), notice: 'Mensagens salvas com sucesso! Agora configure a logística.'
     else
       render :composition, status: :unprocessable_entity
     end
   end
 
+  def logistics
+    @inboxes = current_user.account.apps_chatwoots.first&.inboxes || []
+  end
+
+  def update_logistics
+    if @campaign.update(campaign_params.merge(status: 'draft'))
+      redirect_to automation_account_campaign_path(current_user.account, @campaign)
+    else
+      render :logistics, status: :unprocessable_entity
+    end
+  end
+
+  def automation
+    @inboxes = current_user.account.apps_chatwoots.first&.inboxes || []
+  end
+
+  def update_automation
+    if @campaign.update(campaign_params)
+      if @campaign.status == 'running'
+        Accounts::CampaignWorker.perform_async(@campaign.id) 
+      end
+      redirect_to account_campaigns_path(current_user.account), notice: 'Campanha finalizada com sucesso!'
+    else
+      render :automation, status: :unprocessable_entity
+    end
+  end
+
   def process_campaign
-    if @campaign.draft?
+    if @campaign.draft? || @campaign.failed?
       @campaign.processing!
       Accounts::CampaignWorker.perform_async(@campaign.id)
       redirect_to account_campaign_path(current_user.account, @campaign), notice: 'Processamento da campanha iniciado.'
@@ -96,7 +125,7 @@ class Accounts::CampaignsController < InternalController
       ]
     }
 
-    # Custom Attributes (All lumped into Negócio per user request for CRM tributos)
+    # Custom Attributes
     current_user.account.custom_attribute_definitions.each do |definition|
       prefix = definition.contact_attribute? ? 'contact.' : 'deal.'
       fields['Negócio'] << [definition.attribute_display_name, "#{prefix}#{definition.attribute_key}"]
@@ -114,18 +143,34 @@ class Accounts::CampaignsController < InternalController
   end
 
   def campaign_params
-    permitted = params.require(:campaign).permit(:name, :spreadsheet_data, :campaign_category_id, :pipeline_id, :stage_id, :insert_ddi)
-    permitted[:mapping] = params[:campaign][:mapping].permit! if params[:campaign][:mapping].present?
-    permitted[:spreadsheet_data] = JSON.parse(permitted[:spreadsheet_data]) if permitted[:spreadsheet_data].is_a?(String)
+    permitted = params.require(:campaign).permit(
+      :name, :spreadsheet_data, :campaign_category_id, :pipeline_id, :stage_id, :insert_ddi,
+      :status, :batch_delay, :inbox_rotation_rule, :inbox_rotation_value,
+      :scheduling_start_time, :scheduling_end_time, :fallback_number,
+      :human_intervention_lock, :stop_words, :failover_inbox_id,
+      :warmup_enabled, :warmup_initial_volume, :warmup_daily_increment,
+      :roi_conversion_value,
+      chatwoot_inbox_ids: [],
+      scheduling_days: []
+    )
+    
+    if params[:campaign][:mapping].present?
+      permitted[:mapping] = params[:campaign][:mapping].permit!
+    end
+
+    if permitted[:spreadsheet_data].is_a?(String) && permitted[:spreadsheet_data].present?
+      begin
+        permitted[:spreadsheet_data] = JSON.parse(permitted[:spreadsheet_data])
+      rescue JSON::ParserError
+        # Handle invalid JSON if necessary
+      end
+    end
+
     permitted
   end
 
   def composition_params
     params.require(:campaign).permit(
-      :batch_delay,
-      :pipeline_id,
-      :stage_id,
-      chatwoot_inbox_ids: [],
       message_sequence: [:type, :content]
     )
   end
