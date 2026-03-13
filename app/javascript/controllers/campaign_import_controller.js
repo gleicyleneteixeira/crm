@@ -288,7 +288,27 @@ export default class extends Controller {
                         rowHtml += `<div class="flex items-center text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider truncate" title="${this.escapeHtml(cell)}">${iconHtml}<span>${this.escapeHtml(cell)}</span></div>`
                         rowHtml += `</th>`
                     })
-                    rowHtml += `<th class="px-4 py-3 text-right text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider min-w-[210px] bg-slate-100 dark:bg-slate-800">Status</th>`
+                    rowHtml += `<th class="px-4 py-3 text-right bg-slate-100 dark:bg-slate-800 sticky right-0 z-10 w-10">
+                        <div class="relative group inline-block text-left">
+                            <button type="button" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                                <i data-lucide="more-vertical" class="w-4 h-4 text-slate-600 dark:text-slate-400"></i>
+                            </button>
+                            <div class="hidden absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-slate-800 ring-1 ring-black ring-opacity-5 z-20 overflow-hidden">
+                                <div class="py-1">
+                                    <button type="button" data-action="click->campaign-import#removeInvalidRows" class="flex items-center w-full px-4 py-2 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+                                        <i data-lucide="filter-x" class="w-3 h-3 mr-2"></i> Remover Inválidas
+                                    </button>
+                                    <button type="button" data-action="click->campaign-import#removeDuplicates" class="flex items-center w-full px-4 py-2 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+                                        <i data-lucide="copy-minus" class="w-3 h-3 mr-2"></i> Remover Duplicados
+                                    </button>
+                                    <div class="border-t border-slate-200 dark:border-slate-700"></div>
+                                    <button type="button" data-action="click->campaign-import#exportInvalidRows" class="flex items-center w-full px-4 py-2 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+                                        <i data-lucide="download" class="w-3 h-3 mr-2"></i> Exportar Inválidas
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </th>`
                     rowHtml += '</tr></thead>'
                     rowHtml += '<tbody>'
                 } else {
@@ -305,28 +325,24 @@ export default class extends Controller {
                         rowHtml += `<td class="px-4 py-3 whitespace-nowrap editable-cell cursor-text transition-colors text-sm text-slate-900 dark:text-slate-200 border-r border-slate-200 dark:border-slate-700" data-row="${rowIndex}" data-col="${colIndex}" data-action="click->campaign-import#editCell">${this.escapeHtml(displayValue)}</td>`
                     })
 
-                    if (isIgnored) {
-                        rowHtml += `<td class="px-4 py-3 text-right text-slate-500 text-xs font-medium">
-                        Ignorado
-                        <button type="button" class="ml-2 text-brand-palette-03 hover:underline text-xs" data-action="click->campaign-import#restoreRow" data-row="${rowIndex}">Restaurar</button>
-                    </td>`
-                    } else if (isValid) {
-                        rowHtml += `<td class="px-4 py-3 text-right">
-                        <span class="inline-flex items-center gap-1 text-green-600 dark:text-green-400 font-semibold text-xs tracking-tight bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full mr-2"><i data-lucide="check-circle" class="w-3 h-3"></i> Válido</span>
-                        <div class="inline-flex gap-2">
-                           <button type="button" class="text-slate-500 hover:text-red-500 hover:underline text-xs" data-action="click->campaign-import#deleteRow" data-row="${rowIndex}">Excluir</button>
+                    rowHtml += `<td class="px-4 py-3 text-right sticky right-0 z-10 bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-800/50">
+                        <div class="relative inline-block text-left">
+                            <button type="button" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                                <i data-lucide="more-horizontal" class="w-4 h-4 text-slate-500"></i>
+                            </button>
+                            <div class="hidden absolute right-0 mt-1 w-32 rounded-md shadow-lg bg-white dark:bg-slate-800 ring-1 ring-black ring-opacity-5 z-20 overflow-hidden">
+                                <div class="py-1">
+                                    ${isIgnored ?
+                            `<button type="button" data-action="click->campaign-import#restoreRow" data-row="${rowIndex}" class="flex items-center w-full px-4 py-2 text-xs text-brand-palette-03 hover:bg-slate-100 dark:hover:bg-slate-700">Restaurar</button>` :
+                            `<button type="button" data-action="click->campaign-import#editRow" data-row="${rowIndex}" class="flex items-center w-full px-4 py-2 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">Editar</button>
+                                         <button type="button" data-action="click->campaign-import#ignoreRow" data-row="${rowIndex}" class="flex items-center w-full px-4 py-2 text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700">Ignorar</button>`
+                        }
+                                    <button type="button" data-action="click->campaign-import#deleteRow" data-row="${rowIndex}" class="flex items-center w-full px-4 py-2 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">Excluir</button>
+                                </div>
+                            </div>
                         </div>
+                        ${!isHeaderRow && !isIgnored && !isValid ? `<i data-lucide="alert-circle" class="w-3 h-3 text-red-500 ml-1 inline-block" title="Dados inválidos"></i>` : ''}
                     </td>`
-                    } else {
-                        rowHtml += `<td class="px-4 py-3 text-right">
-                        <span class="inline-flex items-center gap-1 text-red-600 dark:text-red-400 font-bold text-xs tracking-tight bg-red-100 dark:bg-red-900/30 px-2 py-0.5 rounded-full block sm:inline-block mb-1 sm:mb-0 mr-2"><i data-lucide="alert-circle" class="w-3 h-3"></i> Erro</span>
-                        <div class="inline-flex gap-2">
-                           <button type="button" class="text-brand-palette-03 font-medium hover:underline text-xs" data-action="click->campaign-import#editRow" data-row="${rowIndex}">Editar</button>
-                           <button type="button" class="text-slate-500 hover:underline text-xs" data-action="click->campaign-import#ignoreRow" data-row="${rowIndex}">Ignorar</button>
-                           <button type="button" class="text-red-600 hover:underline text-xs font-medium" data-action="click->campaign-import#deleteRow" data-row="${rowIndex}">Excluir</button>
-                        </div>
-                    </td>`
-                    }
                     rowHtml += '</tr>'
                 }
                 html += rowHtml
@@ -630,6 +646,70 @@ export default class extends Controller {
         }
 
         this.generateHiddenMappingInputs();
+    }
+
+    removeDuplicates() {
+        if (!this.rawData || this.rawData.length <= 1) return
+
+        const isHeader = this.hasHeaderToggleTarget ? this.headerToggleTarget.checked : true
+        const startIndex = isHeader ? 1 : 0
+        const seen = new Set()
+        const newRawData = isHeader ? [this.rawData[0]] : []
+
+        for (let i = startIndex; i < this.rawData.length; i++) {
+            const rowStr = JSON.stringify(this.rawData[i])
+            if (!seen.has(rowStr)) {
+                seen.add(rowStr)
+                newRawData.push(this.rawData[i])
+            }
+        }
+
+        this.rawData = newRawData
+        this.ignoredRows.clear()
+        this.renderizarGrid()
+    }
+
+    removeInvalidRows() {
+        if (!this.rawData || this.rawData.length === 0) return
+
+        const isHeader = this.hasHeaderToggleTarget ? this.headerToggleTarget.checked : true
+        const phoneIndex = isHeader ? this.rawData[0].findIndex(col =>
+            col && col.toString().toLowerCase().match(/telefone|whatsapp|celular|phone|fone/i)
+        ) : -1
+
+        const newRawData = this.rawData.filter((row, rowIndex) => {
+            if (isHeader && rowIndex === 0) return true
+            return this.validarLinha(row, phoneIndex)
+        })
+
+        this.rawData = newRawData
+        this.ignoredRows.clear()
+        this.renderizarGrid()
+    }
+
+    exportInvalidRows() {
+        if (!this.rawData || this.rawData.length === 0) return
+
+        const isHeader = this.hasHeaderToggleTarget ? this.headerToggleTarget.checked : true
+        const phoneIndex = isHeader ? this.rawData[0].findIndex(col =>
+            col && col.toString().toLowerCase().match(/telefone|whatsapp|celular|phone|fone/i)
+        ) : -1
+
+        const invalidRows = this.rawData.filter((row, rowIndex) => {
+            if (isHeader && rowIndex === 0) return false
+            return !this.validarLinha(row, phoneIndex)
+        })
+
+        if (invalidRows.length === 0) {
+            alert('Nenhuma linha inválida encontrada.')
+            return
+        }
+
+        const exportData = isHeader ? [this.rawData[0], ...invalidRows] : invalidRows
+        const wb = XLSX.utils.book_new()
+        const ws = XLSX.utils.aoa_to_sheet(exportData)
+        XLSX.utils.book_append_sheet(wb, ws, "Invalid Rows")
+        XLSX.writeFile(wb, "linhas_invalidas.csv")
     }
 
     generateHiddenMappingInputs() {
