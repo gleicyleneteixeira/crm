@@ -23,16 +23,16 @@ class Accounts::CampaignsController < InternalController
   def create
     puts "DEBUG: Recebendo parâmetros da campanha: #{campaign_params.inspect}"
     @campaign = current_user.account.campaigns.new(campaign_params)
-    @campaign.account = current_user.account # Força a associação para evitar erros de validação
+    @campaign.account_id = current_user.account.id # Força explicitamente o ID da conta
 
     if @campaign.save
       puts "DEBUG: Campanha salva com sucesso: #{@campaign.id}"
-      redirect_to composition_account_campaign_path(current_user.account, @campaign), notice: 'Campanha importada e mapeada! Agora, configure o texto a ser enviado.', status: :see_other
+      redirect_to mapping_account_campaign_path(current_user.account, @campaign), status: :see_other, notice: 'Campanha criada! Agora mapeie os campos.'
     else
       puts "DEBUG: Falha ao salvar campanha: #{@campaign.errors.full_messages}"
-      @campaign_categories = CampaignCategory.all
-      @pipelines = current_user.account.pipelines.includes(:stages)
-      @crm_fields = fetch_crm_fields
+      @campaign_categories = current_user.account.campaign_categories
+      @pipelines = current_user.account.pipelines
+      @crm_fields = fetch_crm_fields # Changed from contact_custom_attributes to fetch_crm_fields to match existing method
       render :new, status: :unprocessable_entity
     end
   end
@@ -148,18 +148,11 @@ class Accounts::CampaignsController < InternalController
 
   def campaign_params
     permitted = params.require(:campaign).permit(
-      :name, :spreadsheet_data, :campaign_category_id, :pipeline_id, :stage_id, :insert_ddi,
-      :status, :batch_delay, :inbox_rotation_rule, :inbox_rotation_value,
-      :scheduling_start_time, :scheduling_end_time, :fallback_number,
-      :human_intervention_lock, :stop_words, :failover_inbox_id,
-      :warmup_enabled, :warmup_initial_volume, :warmup_daily_increment,
-      :roi_conversion_value,
-      chatwoot_inbox_ids: [],
-      scheduling_days: [],
-      mapping: {}
-    ).to_h
+      :name, :campaign_category_id, :pipeline_id, :stage_id, :spreadsheet_data, :insert_ddi, :ai_randomization, chatwoot_inbox_ids: []
+    )
 
-    if permitted[:spreadsheet_data].is_a?(String) && permitted[:spreadsheet_data].present?
+    # Converte spreadsheet_data de String para JSON se necessário
+    if permitted[:spreadsheet_data].is_a?(String)
       begin
         permitted[:spreadsheet_data] = JSON.parse(permitted[:spreadsheet_data])
       rescue JSON::ParserError => e
@@ -167,7 +160,6 @@ class Accounts::CampaignsController < InternalController
       end
     end
 
-    # Handle mapping more explicitly if it was sent as a nested permit! call
     # Handle mapping more explicitly
     if params[:campaign][:mapping].present?
       permitted[:mapping] = params[:campaign][:mapping].permit!.to_h

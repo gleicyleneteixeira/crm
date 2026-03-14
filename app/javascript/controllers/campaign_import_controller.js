@@ -25,11 +25,13 @@ export default class extends Controller {
     }
 
     connect() {
-        this.rawData = []
-        this.ignoredRows = new Set()
-        this.loadCurrentMapping()
-        this.rehydrateData()
-        this.validateMapping()
+        console.log("Campaign Import Controller Connected");
+        this.rehydrateData();
+    }
+
+    handleFormSubmit(event) {
+        console.log("Syncing JSON before submit...");
+        this.updateJsonOutput();
     }
 
     loadCurrentMapping() {
@@ -242,11 +244,13 @@ export default class extends Controller {
     }
 
     handleDdiToggle() {
-        this.renderizarGrid()
+        this.renderizarGrid();
+        this.updateJsonOutput();
     }
 
     handleHeaderToggle() {
-        this.renderizarGrid()
+        this.renderizarGrid();
+        this.updateJsonOutput();
     }
 
     formatPhone(val) {
@@ -622,6 +626,7 @@ export default class extends Controller {
 
         this.saveCurrentMapping();
         this.renderizarGrid();
+        this.updateJsonOutput();
     }
 
     stringMatch(crm, col) {
