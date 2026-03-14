@@ -25,10 +25,13 @@ export default class extends Controller {
     }
 
     connect() {
-        this.rawData = []
-        this.ignoredRows = new Set()
-        this.loadCurrentMapping()
-        this.validateMapping()
+        console.log("Campaign Import Controller Connected");
+        this.rehydrateData();
+    }
+
+    handleFormSubmit(event) {
+        console.log("Syncing JSON before submit...");
+        this.updateJsonOutput();
     }
 
     loadCurrentMapping() {
@@ -122,6 +125,60 @@ export default class extends Controller {
         reader.readAsArrayBuffer(file)
     }
 
+    rehydrateData() {
+        if (!this.hasJsonOutputTarget || !this.jsonOutputTarget.value) return
+
+        console.log("Tentando reidratar dados...")
+        try {
+            const data = JSON.parse(this.jsonOutputTarget.value)
+            // Sometimes it's double escaped or comes as a literal string "[...] "
+            const finalData = typeof data === 'string' ? JSON.parse(data) : data
+
+            if (Array.isArray(finalData) && finalData.length > 0) {
+                this.rawData = finalData
+                console.log(`Reidratado: ${finalData.length} linhas.`)
+                this.autoMatchHeaders()
+                this.renderizarGrid()
+            }
+        } catch (e) {
+            console.error('Falha ao reidratar dados:', e)
+        }
+    }
+
+    exportInvalidRows() {
+        console.log("Exportando linhas inválidas...");
+        if (!this.rawData || this.rawData.length === 0) {
+            console.log("Nenhum dado para exportar.");
+            return;
+        }
+
+        const isHeader = this.hasHeaderToggleTarget ? this.headerToggleTarget.checked : true;
+        const phoneIndex = isHeader ? this.rawData[0].findIndex(col =>
+            col && col.toString().toLowerCase().match(/telefone|whatsapp|celular|phone|fone/i)
+        ) : -1;
+
+        const invalidRows = this.rawData.filter((row, rowIndex) => {
+            if (isHeader && rowIndex === 0) return false;
+            const isValid = this.validarLinha(row, phoneIndex);
+            console.log(`Linha ${rowIndex}: ${isValid ? 'válida' : 'inválida'}`);
+            return !isValid;
+        });
+
+        if (invalidRows.length === 0) {
+            alert('Nenhuma linha inválida encontrada.');
+            console.log("Nenhuma linha inválida encontrada.");
+            return;
+        }
+
+        const exportData = isHeader ? [this.rawData[0], ...invalidRows] : invalidRows;
+        console.log(`Exportando ${invalidRows.length} linhas inválidas.`);
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(exportData);
+        XLSX.utils.book_append_sheet(wb, ws, "Invalid Rows");
+        XLSX.writeFile(wb, "linhas_invalidas.csv");
+        console.log("Arquivo 'linhas_invalidas.csv' gerado.");
+    }
+
     handlePaste() {
         if (!this.hasPasteAreaTarget) return
         const raw = this.pasteAreaTarget.value
@@ -190,16 +247,23 @@ export default class extends Controller {
     }
 
     handleDdiToggle() {
-        this.renderizarGrid()
+        this.renderizarGrid();
+        this.updateJsonOutput();
     }
 
     handleHeaderToggle() {
-        this.renderizarGrid()
+        this.renderizarGrid();
+        this.updateJsonOutput();
     }
 
     formatPhone(val) {
         if (!val) return ""
         let digits = val.toString().replace(/\D/g, "")
+
+        // Remove leading 0 if present (common in some formats)
+        if (digits.startsWith("0")) {
+            digits = digits.substring(1)
+        }
 
         // Add DDI 55 if toggle is on and it doesn't have it
         if (this.hasDdiToggleTarget && this.ddiToggleTarget.checked) {
@@ -318,7 +382,10 @@ export default class extends Controller {
                         const mappedCrmKey = Object.keys(this.currentMapping).find(k => this.currentMapping[k] === colIndexStr);
                         let displayValue = cell;
 
-                        if (mappedCrmKey && mappedCrmKey.includes('contact.phone')) {
+                        const isPhoneCol = (mappedCrmKey && mappedCrmKey.includes('contact.phone')) ||
+                            (cell && cell.toString().toLowerCase().match(/telefone|whatsapp|celular|phone|fone/i));
+
+                        if (isPhoneCol) {
                             displayValue = this.formatPhone(cell);
                         }
 
@@ -505,7 +572,11 @@ export default class extends Controller {
                 return row.map((cell, colIndex) => {
                     const colIndexStr = colIndex.toString();
                     const mappedCrmKey = Object.keys(this.currentMapping).find(k => this.currentMapping[k] === colIndexStr);
-                    if (mappedCrmKey && mappedCrmKey.includes('contact.phone')) {
+                    const isPhoneCol = (mappedCrmKey && mappedCrmKey.includes('contact.phone')) ||
+                        (this.rawData[0] && this.rawData[0][colIndex] &&
+                            this.rawData[0][colIndex].toString().toLowerCase().match(/telefone|whatsapp|celular|phone|fone/i));
+
+                    if (isPhoneCol) {
                         return this.formatPhone(cell);
                     }
                     return cell;
@@ -563,6 +634,7 @@ export default class extends Controller {
 
         this.saveCurrentMapping();
         this.renderizarGrid();
+        this.updateJsonOutput();
     }
 
     stringMatch(crm, col) {
@@ -646,6 +718,7 @@ export default class extends Controller {
         }
 
         this.generateHiddenMappingInputs();
+        this.updateJsonOutput(); // Garante que o JSON está sempre sincronizado e limpo
     }
 
     removeDuplicates() {
