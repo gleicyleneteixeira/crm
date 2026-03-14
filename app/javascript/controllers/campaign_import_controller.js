@@ -26,7 +26,11 @@ export default class extends Controller {
 
     connect() {
         console.log("Campaign Import Controller Connected");
-        this.rehydrateData();
+        this.rawData = []
+        this.ignoredRows = new Set()
+        this.loadCurrentMapping()
+        this.rehydrateData()
+        this.validateMapping()
     }
 
     handleFormSubmit(event) {
