@@ -1,5 +1,6 @@
 class Campaign < ApplicationRecord
   belongs_to :account
+  validates :name, presence: true
   belongs_to :pipeline, optional: true
   belongs_to :stage, optional: true
   belongs_to :campaign_category, optional: true

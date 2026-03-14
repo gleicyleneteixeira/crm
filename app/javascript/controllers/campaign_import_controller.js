@@ -122,6 +122,57 @@ export default class extends Controller {
         reader.readAsArrayBuffer(file)
     }
 
+    rehydrateData() {
+        if (!this.hasJsonOutputTarget || !this.jsonOutputTarget.value) return
+
+        console.log("Tentando reidratar dados...", this.jsonOutputTarget.value.substring(0, 100))
+        try {
+            const data = JSON.parse(this.jsonOutputTarget.value)
+            if (Array.isArray(data) && data.length > 0) {
+                this.rawData = data
+                console.log(`Reidratado: ${data.length} linhas.`)
+                this.autoMatchHeaders()
+                this.renderizarGrid()
+            }
+        } catch (e) {
+            console.error('Falha ao reidratar dados:', e)
+        }
+    }
+
+    exportInvalidRows() {
+        console.log("Exportando linhas inválidas...");
+        if (!this.rawData || this.rawData.length === 0) {
+            console.log("Nenhum dado para exportar.");
+            return;
+        }
+
+        const isHeader = this.hasHeaderToggleTarget ? this.headerToggleTarget.checked : true;
+        const phoneIndex = isHeader ? this.rawData[0].findIndex(col =>
+            col && col.toString().toLowerCase().match(/telefone|whatsapp|celular|phone|fone/i)
+        ) : -1;
+
+        const invalidRows = this.rawData.filter((row, rowIndex) => {
+            if (isHeader && rowIndex === 0) return false;
+            const isValid = this.validarLinha(row, phoneIndex);
+            console.log(`Linha ${rowIndex}: ${isValid ? 'válida' : 'inválida'}`);
+            return !isValid;
+        });
+
+        if (invalidRows.length === 0) {
+            alert('Nenhuma linha inválida encontrada.');
+            console.log("Nenhuma linha inválida encontrada.");
+            return;
+        }
+
+        const exportData = isHeader ? [this.rawData[0], ...invalidRows] : invalidRows;
+        console.log(`Exportando ${invalidRows.length} linhas inválidas.`);
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(exportData);
+        XLSX.utils.book_append_sheet(wb, ws, "Invalid Rows");
+        XLSX.writeFile(wb, "linhas_invalidas.csv");
+        console.log("Arquivo 'linhas_invalidas.csv' gerado.");
+    }
+
     handlePaste() {
         if (!this.hasPasteAreaTarget) return
         const raw = this.pasteAreaTarget.value
