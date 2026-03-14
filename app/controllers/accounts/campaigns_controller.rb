@@ -1,5 +1,5 @@
 class Accounts::CampaignsController < InternalController
-  before_action :set_campaign, only: %i[show edit update destroy mapping update_mapping composition update_composition process_campaign]
+  before_action :set_campaign, only: %i[show edit update destroy mapping update_mapping composition update_composition logistics update_logistics automation update_automation process_campaign]
 
   def index
     @campaigns = current_user.account.campaigns.order(created_at: :desc)
@@ -26,13 +26,17 @@ class Accounts::CampaignsController < InternalController
     @campaign.account_id = current_user.account.id # Força explicitamente o ID da conta
 
     if @campaign.save
-      puts "DEBUG: Campanha salva com sucesso: #{@campaign.id}"
       redirect_to mapping_account_campaign_path(current_user.account, @campaign), status: :see_other, notice: 'Campanha criada! Agora mapeie os campos.'
     else
-      puts "DEBUG: Falha ao salvar campanha: #{@campaign.errors.full_messages}"
-      @campaign_categories = current_user.account.campaign_categories
-      @pipelines = current_user.account.pipelines
-      @crm_fields = fetch_crm_fields # Changed from contact_custom_attributes to fetch_crm_fields to match existing method
+      @campaign_categories = CampaignCategory.all
+      @pipelines = current_user.account.pipelines.includes(:stages)
+      @crm_fields = fetch_crm_fields
+      
+      # Garante que os dados da planilha voltem como JSON string para o Stimulus reidratar
+      if @campaign.spreadsheet_data.present? && !@campaign.spreadsheet_data.is_a?(String)
+        @campaign.spreadsheet_data = @campaign.spreadsheet_data.to_json
+      end
+      
       render :new, status: :unprocessable_entity
     end
   end
