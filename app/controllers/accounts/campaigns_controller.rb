@@ -21,11 +21,14 @@ class Accounts::CampaignsController < InternalController
   end
 
   def create
+    puts "DEBUG: Recebendo parâmetros da campanha: #{campaign_params.inspect}"
     @campaign = current_user.account.campaigns.new(campaign_params)
 
     if @campaign.save
-      redirect_to composition_account_campaign_path(current_user.account, @campaign), notice: 'Campanha importada e mapeada! Agora, configure o texto a ser enviado.'
+      puts "DEBUG: Campanha salva com sucesso: #{@campaign.id}"
+      redirect_to composition_account_campaign_path(current_user.account, @campaign), notice: 'Campanha importada e mapeada! Agora, configure o texto a ser enviado.', status: :see_other
     else
+      puts "DEBUG: Falha ao salvar campanha: #{@campaign.errors.full_messages}"
       @campaign_categories = CampaignCategory.all
       @pipelines = current_user.account.pipelines.includes(:stages)
       @crm_fields = fetch_crm_fields
@@ -151,19 +154,21 @@ class Accounts::CampaignsController < InternalController
       :warmup_enabled, :warmup_initial_volume, :warmup_daily_increment,
       :roi_conversion_value,
       chatwoot_inbox_ids: [],
-      scheduling_days: []
-    )
-    
-    if params[:campaign][:mapping].present?
-      permitted[:mapping] = params[:campaign][:mapping].permit!
-    end
+      scheduling_days: [],
+      mapping: {}
+    ).to_h
 
     if permitted[:spreadsheet_data].is_a?(String) && permitted[:spreadsheet_data].present?
       begin
         permitted[:spreadsheet_data] = JSON.parse(permitted[:spreadsheet_data])
-      rescue JSON::ParserError
-        # Handle invalid JSON if necessary
+      rescue JSON::ParserError => e
+        puts "DEBUG: Erro ao parsear spreadsheet_data: #{e.message}"
       end
+    end
+
+    # Handle mapping more explicitly if it was sent as a nested permit! call
+    if params[:campaign][:mapping].present? && permitted[:mapping].blank?
+      permitted[:mapping] = params[:campaign][:mapping].permit!.to_h
     end
 
     permitted
