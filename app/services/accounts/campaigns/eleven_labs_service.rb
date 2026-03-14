@@ -1,3 +1,5 @@
+require 'httparty'
+
 module Accounts
   module Campaigns
     class ElevenLabsService
