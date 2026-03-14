@@ -28,6 +28,7 @@ export default class extends Controller {
         this.rawData = []
         this.ignoredRows = new Set()
         this.loadCurrentMapping()
+        this.rehydrateData()
         this.validateMapping()
     }
 
