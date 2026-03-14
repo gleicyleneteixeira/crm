@@ -23,6 +23,7 @@ class Accounts::CampaignsController < InternalController
   def create
     puts "DEBUG: Recebendo parâmetros da campanha: #{campaign_params.inspect}"
     @campaign = current_user.account.campaigns.new(campaign_params)
+    @campaign.account = current_user.account # Força a associação para evitar erros de validação
 
     if @campaign.save
       puts "DEBUG: Campanha salva com sucesso: #{@campaign.id}"
@@ -167,11 +168,12 @@ class Accounts::CampaignsController < InternalController
     end
 
     # Handle mapping more explicitly if it was sent as a nested permit! call
-    if params[:campaign][:mapping].present? && permitted[:mapping].blank?
+    # Handle mapping more explicitly
+    if params[:campaign][:mapping].present?
       permitted[:mapping] = params[:campaign][:mapping].permit!.to_h
     end
 
-    permitted
+    permitted.to_h
   end
 
   def composition_params

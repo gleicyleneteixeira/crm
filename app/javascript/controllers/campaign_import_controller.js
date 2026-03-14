@@ -370,7 +370,10 @@ export default class extends Controller {
                         const mappedCrmKey = Object.keys(this.currentMapping).find(k => this.currentMapping[k] === colIndexStr);
                         let displayValue = cell;
 
-                        if (mappedCrmKey && mappedCrmKey.includes('contact.phone')) {
+                        const isPhoneCol = (mappedCrmKey && mappedCrmKey.includes('contact.phone')) ||
+                            (cell && cell.toString().toLowerCase().match(/telefone|whatsapp|celular|phone|fone/i));
+
+                        if (isPhoneCol) {
                             displayValue = this.formatPhone(cell);
                         }
 
@@ -557,7 +560,11 @@ export default class extends Controller {
                 return row.map((cell, colIndex) => {
                     const colIndexStr = colIndex.toString();
                     const mappedCrmKey = Object.keys(this.currentMapping).find(k => this.currentMapping[k] === colIndexStr);
-                    if (mappedCrmKey && mappedCrmKey.includes('contact.phone')) {
+                    const isPhoneCol = (mappedCrmKey && mappedCrmKey.includes('contact.phone')) ||
+                        (this.rawData[0] && this.rawData[0][colIndex] &&
+                            this.rawData[0][colIndex].toString().toLowerCase().match(/telefone|whatsapp|celular|phone|fone/i));
+
+                    if (isPhoneCol) {
                         return this.formatPhone(cell);
                     }
                     return cell;
@@ -698,6 +705,7 @@ export default class extends Controller {
         }
 
         this.generateHiddenMappingInputs();
+        this.updateJsonOutput(); // Garante que o JSON está sempre sincronizado e limpo
     }
 
     removeDuplicates() {
