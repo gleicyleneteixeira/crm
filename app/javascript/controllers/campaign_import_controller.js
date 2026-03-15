@@ -29,15 +29,22 @@ export default class extends Controller {
         console.log("Campaign Import Controller Connected");
         this.rawData = []
         this.ignoredRows = new Set()
-        this.currentMapping = this.hasInitialMappingValue ? this.initialMappingValue : {};
-        // Normalize mapping values to strings for consistent comparison
+        
+        const initial = (this.hasInitialMappingValue && this.initialMappingValue) ? this.initialMappingValue : {};
+        this.currentMapping = typeof initial === 'object' ? { ...initial } : {};
+        
+        // Normalize mapping values to strings safely for consistent comparison
         Object.keys(this.currentMapping).forEach(key => {
-            this.currentMapping[key] = this.currentMapping[key].toString();
+            const val = this.currentMapping[key];
+            if (val !== null && val !== undefined) {
+                this.currentMapping[key] = val.toString();
+            }
         });
 
         if (Object.keys(this.currentMapping).length === 0) {
             this.loadCurrentMapping();
         }
+        
         this.rehydrateData()
         this.validateMapping()
     }
@@ -153,9 +160,31 @@ export default class extends Controller {
                 this.autoMatchHeaders()
                 this.renderizarGrid()
                 this.validateMapping()
+            } else if (Array.isArray(finalData)) {
+                this.rawData = []
+                this.renderizarGrid()
+                this.validateMapping()
+                console.log("Dados reidratados como array vazio.")
             }
         } catch (e) {
             console.error('Falha ao reidratar dados:', e)
+        }
+    }
+
+    updateJsonOutput() {
+        if (this.hasJsonOutputTarget) {
+            const currentVal = this.jsonOutputTarget.value;
+            const newVal = JSON.stringify(this.rawData);
+            
+            // Safety: Don't overwrite with empty if we had data and rawData is empty (could mean init failed)
+            if (this.rawData.length === 0 && currentVal && currentVal !== '[]' && currentVal !== 'null') {
+                console.warn("Safety trigger: Attempted to save empty data over existing data. Sync aborted.");
+                return;
+            }
+
+            this.jsonOutputTarget.value = newVal;
+            console.log(`JSON synced: ${this.rawData.length} rows.`);
+            this.generateHiddenMappingInputs()
         }
     }
 
