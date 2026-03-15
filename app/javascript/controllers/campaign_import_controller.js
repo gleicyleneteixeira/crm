@@ -152,6 +152,7 @@ export default class extends Controller {
                 console.log(`Reidratado: ${finalData.length} linhas.`)
                 this.autoMatchHeaders()
                 this.renderizarGrid()
+                this.validateMapping()
             }
         } catch (e) {
             console.error('Falha ao reidratar dados:', e)
@@ -734,6 +735,15 @@ export default class extends Controller {
         }
 
         const isValid = hasData && mappingsValid && categoryParams && pipelineParams && stageParams
+
+        console.log("Validation State:", { 
+            hasData, 
+            mappingsValid, 
+            categoryParams, 
+            pipelineParams, 
+            stageParams,
+            currentMapping: this.currentMapping 
+        });
 
         if (this.hasSubmitButtonTarget) {
             this.submitButtonTarget.disabled = !isValid

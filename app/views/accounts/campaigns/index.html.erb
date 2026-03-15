@@ -31,9 +31,14 @@
                             else edit_account_campaign_path(current_user.account, draft)
                             end
             %>
-            <%= link_to resume_path, class: 'p-2 bg-brand-palette-03 text-white rounded-lg hover:bg-brand-palette-04 transition-all group' do %>
-              <i data-lucide="play" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
-            <% end %>
+            <div class="flex gap-2">
+              <%= button_to account_campaign_path(current_user.account, draft), method: :delete, data: { confirm: 'Tem certeza que deseja excluir este rascunho?' }, class: 'p-2 bg-slate-100 dark:bg-slate-800 text-red-500 rounded-lg hover:bg-red-50 transition-all group border-none cursor-pointer' do %>
+                <i data-lucide="trash-2" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
+              <% end %>
+              <%= link_to resume_path, class: 'p-2 bg-brand-palette-03 text-white rounded-lg hover:bg-brand-palette-04 transition-all group' do %>
+                <i data-lucide="play" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
+              <% end %>
+            </div>
           </div>
         <% end %>
       </div>
