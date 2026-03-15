@@ -21,15 +21,18 @@ export default class extends Controller {
 
     static values = {
         pipelines: Array,
-        crmFields: Object
+        crmFields: Object,
+        initialMapping: Object
     }
 
     connect() {
         console.log("Campaign Import Controller Connected");
         this.rawData = []
         this.ignoredRows = new Set()
-        this.currentMapping = {}
-        this.loadCurrentMapping()
+        this.currentMapping = this.hasInitialMappingValue ? this.initialMappingValue : {};
+        if (Object.keys(this.currentMapping).length === 0) {
+            this.loadCurrentMapping();
+        }
         this.rehydrateData()
         this.validateMapping()
     }
