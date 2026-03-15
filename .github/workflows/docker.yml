@@ -2,10 +2,16 @@ name: Build and Push Docker Image
 
 on:
   push:
+    # Monitora QUALQUER branch que você criar ou atualizar
     branches:
-      - main
-      - master
-      - development
+      - '**'
+    # Economia de recursos: não roda se mudar apenas texto ou docs
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+      - 'LICENSE'
+  
   workflow_dispatch:
 
 permissions:
@@ -20,8 +26,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Transforma o nome do dono e do repositório em minúsculas
-      - name: Inject Slug/Lowercase Variables
+      # A vacina para o erro de letras maiúsculas e nomes dinâmicos
+      - name: Inject Dynamic Variables
         run: |
           echo "REPO_OWNER=${GITHUB_REPOSITORY_OWNER,,}" >> ${GITHUB_ENV}
           echo "REPO_NAME=${GITHUB_REPOSITORY#*/}" >> ${GITHUB_ENV}
@@ -42,7 +48,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          # Agora tudo é baseado em variáveis dinâmicas do GitHub
+          # Usando variáveis dinâmicas para valer em qualquer fork ou conta
           tags: |
             ghcr.io/${{ env.REPO_OWNER }}/${{ env.REPO_NAME }}:latest
             ghcr.io/${{ env.REPO_OWNER }}/${{ env.REPO_NAME }}:${{ github.sha }}
