@@ -126,8 +126,6 @@ Rails.application.routes.draw do
     resources :campaign_categories, except: [:show]
     resources :campaigns do
       member do
-        get :mapping
-        patch :update_mapping
         get :composition
         patch :update_composition
         post :generate_variations

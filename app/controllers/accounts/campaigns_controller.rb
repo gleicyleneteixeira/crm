@@ -1,5 +1,5 @@
 class Accounts::CampaignsController < InternalController
-  before_action :set_campaign, only: %i[show edit update destroy mapping update_mapping composition update_composition process_campaign]
+  before_action :set_campaign, only: %i[show edit update destroy composition update_composition process_campaign]
 
   def index
     @campaigns = current_user.account.campaigns.where.not(status: :draft).order(created_at: :desc)
@@ -125,13 +125,6 @@ class Accounts::CampaignsController < InternalController
     redirect_to account_campaigns_path(current_user.account), notice: 'Campanha removida com sucesso.'
   end
 
-  def mapping
-    redirect_to edit_account_campaign_path(current_user.account, @campaign)
-  end
-
-  def update_mapping
-    update
-  end
 
   def composition
     @inboxes = current_user.account.apps_chatwoots.active.first&.inboxes || []
