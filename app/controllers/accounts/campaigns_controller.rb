@@ -2,22 +2,22 @@ class Accounts::CampaignsController < InternalController
   before_action :set_campaign, only: %i[show edit update destroy composition update_composition process_campaign]
 
   def index
-    @campaigns = current_user.account.campaigns.where.not(status: :draft).order(created_at: :desc)
-    @draft_campaigns = current_user.account.campaigns.where(status: :draft).order(updated_at: :desc)
+    @campaigns = @account.campaigns.where.not(status: :draft).order(created_at: :desc)
+    @draft_campaigns = @account.campaigns.where(status: :draft).order(updated_at: :desc)
   end
 
   def show; end
 
   def new
-    @campaign = current_user.account.campaigns.new(current_step: 1)
+    @campaign = Campaign.new(account: @account, current_step: 1)
     @campaign_categories = CampaignCategory.all
-    @pipelines = current_user.account.pipelines.includes(:stages)
+    @pipelines = @account.pipelines.includes(:stages)
     @crm_fields = fetch_crm_fields
   end
 
   def edit
     @campaign_categories = CampaignCategory.all
-    @pipelines = current_user.account.pipelines.includes(:stages)
+    @pipelines = @account.pipelines.includes(:stages)
     @crm_fields = fetch_crm_fields
     
     # Ao editar um rascunho, garantimos que ele volte para o Passo 1
@@ -27,16 +27,15 @@ class Accounts::CampaignsController < InternalController
   end
 
   def create
-    @campaign = current_user.account.campaigns.new(campaign_params.merge(status: :draft, current_step: 3))
-    @campaign.account = current_user.account # Vinculo explicito solicitado
+    @campaign = Campaign.new(campaign_params.merge(account: @account, status: :draft, current_step: 3))
 
     if @campaign.save
       Accounts::Campaigns::InitializeContactsService.call(@campaign) if @campaign.spreadsheet_data.present? && @campaign.mapping.present?
       # Redireciona direto para a Tela 3 (Composição), pulando o mapeamento antigo
-      redirect_to composition_account_campaign_path(current_user.account, @campaign), notice: 'Rascunho salvo! Agora configure suas mensagens.'
+      redirect_to composition_account_campaign_path(@account, @campaign), notice: 'Rascunho salvo! Agora configure suas mensagens.'
     else
       @campaign_categories = CampaignCategory.all
-      @pipelines = current_user.account.pipelines.includes(:stages)
+      @pipelines = @account.pipelines.includes(:stages)
       @crm_fields = fetch_crm_fields
       render :new, status: :unprocessable_entity
     end
@@ -49,10 +48,10 @@ class Accounts::CampaignsController < InternalController
     if @campaign.update(updated_params)
       # Re-inicializa contatos se os dados/mapeamento foram revisados
       Accounts::Campaigns::InitializeContactsService.call(@campaign) if @campaign.spreadsheet_data.present? && @campaign.mapping.present?
-      redirect_to composition_account_campaign_path(current_user.account, @campaign), notice: 'Configurações atualizadas!'
+      redirect_to composition_account_campaign_path(@account, @campaign), notice: 'Configurações atualizadas!'
     else
       @campaign_categories = CampaignCategory.all
-      @pipelines = current_user.account.pipelines.includes(:stages)
+      @pipelines = @account.pipelines.includes(:stages)
       @crm_fields = fetch_crm_fields
       render :edit, status: :unprocessable_entity
     end
@@ -60,7 +59,7 @@ class Accounts::CampaignsController < InternalController
 
   def generate_variations
     message = params[:message]
-    provider = current_user.account.ai_providers.groq.active.first
+    provider = @account.ai_providers.groq.active.first
     
     if provider.nil?
       return render json: { error: 'Provedor Groq não configurado ou inativo.' }, status: :unpackable_entity
@@ -91,7 +90,7 @@ class Accounts::CampaignsController < InternalController
   def generate_audio
     text = params[:text]
     api_key = ENV['ELEVENLABS_API_KEY']
-    voice_id = current_user.account.settings['elevenlabs_voice_id'] || '21m00Tcm4TlvDq8ikWAM' # Default Bella
+    voice_id = @account.settings['elevenlabs_voice_id'] || '21m00Tcm4TlvDq8ikWAM' # Default Bella
 
     if api_key.blank?
       return render json: { error: 'Chave ElevenLabs não configurada.' }, status: :unprocessable_entity
@@ -117,13 +116,13 @@ class Accounts::CampaignsController < InternalController
 
   def destroy
     @campaign.destroy
-    redirect_to account_campaigns_path(current_user.account), notice: 'Campanha removida com sucesso.'
+    redirect_to account_campaigns_path(@account), notice: 'Campanha removida com sucesso.'
   end
 
 
   def composition
-    @inboxes = current_user.account.apps_chatwoots.active.first&.inboxes || []
-    @pipelines = current_user.account.pipelines
+    @inboxes = @account.apps_chatwoots.active.first&.inboxes || []
+    @pipelines = @account.pipelines
   end
 
   def update_composition
@@ -131,14 +130,14 @@ class Accounts::CampaignsController < InternalController
     step_params = @campaign.draft? ? { current_step: 3 } : {}
     
     if @campaign.update(composition_params.merge(step_params))
-      redirect_to logistics_account_campaign_path(current_user.account, @campaign), notice: 'Mensagens salvas com sucesso! Agora configure a logística.'
+      redirect_to logistics_account_campaign_path(@account, @campaign), notice: 'Mensagens salvas com sucesso! Agora configure a logística.'
     else
       render :composition, status: :unprocessable_entity
     end
   end
 
   def logistics
-    @inboxes = current_user.account.apps_chatwoots.first&.inboxes || []
+    @inboxes = @account.apps_chatwoots.first&.inboxes || []
   end
 
   def update_logistics
@@ -146,14 +145,14 @@ class Accounts::CampaignsController < InternalController
     step_params = @campaign.draft? ? { current_step: 4 } : {}
 
     if @campaign.update(campaign_params.merge(step_params))
-      redirect_to automation_account_campaign_path(current_user.account, @campaign)
+      redirect_to automation_account_campaign_path(@account, @campaign)
     else
       render :logistics, status: :unprocessable_entity
     end
   end
 
   def automation
-    @inboxes = current_user.account.apps_chatwoots.first&.inboxes || []
+    @inboxes = @account.apps_chatwoots.first&.inboxes || []
   end
 
   def update_automation
@@ -161,7 +160,7 @@ class Accounts::CampaignsController < InternalController
       if @campaign.status == 'running'
         Accounts::CampaignWorker.perform_async(@campaign.id) 
       end
-      redirect_to account_campaigns_path(current_user.account), notice: 'Campanha finalizada com sucesso!'
+      redirect_to account_campaigns_path(@account), notice: 'Campanha finalizada com sucesso!'
     else
       render :automation, status: :unprocessable_entity
     end
@@ -171,9 +170,9 @@ class Accounts::CampaignsController < InternalController
     if @campaign.draft? || @campaign.failed?
       @campaign.processing!
       Accounts::CampaignWorker.perform_async(@campaign.id)
-      redirect_to account_campaign_path(current_user.account, @campaign), notice: 'Processamento da campanha iniciado.'
+      redirect_to account_campaign_path(@account, @campaign), notice: 'Processamento da campanha iniciado.'
     else
-      redirect_to account_campaign_path(current_user.account, @campaign), alert: 'Esta campanha já está em processamento ou concluída.'
+      redirect_to account_campaign_path(@account, @campaign), alert: 'Esta campanha já está em processamento ou concluída.'
     end
   end
 
@@ -192,7 +191,7 @@ class Accounts::CampaignsController < InternalController
     }
 
     # Custom Attributes
-    current_user.account.custom_attribute_definitions.each do |definition|
+    @account.custom_attribute_definitions.each do |definition|
       prefix = definition.contact_attribute? ? 'contact.' : 'deal.'
       fields['Negócio'] << [definition.attribute_display_name, "#{prefix}#{definition.attribute_key}"]
     end
@@ -205,7 +204,7 @@ class Accounts::CampaignsController < InternalController
   end
 
   def set_campaign
-    @campaign = current_user.account.campaigns.find(params[:id])
+    @campaign = @account.campaigns.find(params[:id])
   end
 
   def campaign_params
