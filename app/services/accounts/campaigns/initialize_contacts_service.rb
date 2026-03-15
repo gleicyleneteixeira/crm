@@ -70,11 +70,20 @@ module Accounts
       end
 
       def format_phone(phone)
-        # Assuming the DDI logic was already applied in the controller/frontend
-        # But as a fallback, ensure it starts with + as expected by the model
-        phone = phone.to_s.gsub(/\D/, '')
-        phone = "55#{phone}" if @campaign.insert_ddi && !phone.start_with?('55')
-        "+#{phone}" unless phone.start_with?('+')
+        return nil if phone.blank?
+
+        # Remove all non-digits
+        digits = phone.to_s.gsub(/\D/, '')
+        
+        return nil if digits.blank?
+
+        # Fallback DDI logic if not already handled or if data is raw
+        if @campaign.insert_ddi && !digits.start_with?('55')
+          digits = "55#{digits}"
+        end
+
+        # Ensure it starts with '+' as expected by the Contact model / Chatwoot integration
+        "+#{digits}"
       end
     end
   end

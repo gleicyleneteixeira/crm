@@ -263,15 +263,19 @@ export default class extends Controller {
 
     formatPhone(val) {
         if (!val) return ""
+        
+        // Strictly remove all non-numeric characters first
         let digits = val.toString().replace(/\D/g, "")
 
-        // Remove leading 0 if present (common in some formats)
-        if (digits.startsWith("0")) {
+        // Remove leading 0 if present (common in Br Brazilian formats)
+        // Some users might paste 065... instead of 65...
+        if (digits.length > 10 && digits.startsWith("0")) {
             digits = digits.substring(1)
         }
 
-        // Add DDI 55 if toggle is on and it doesn't have it
+        // Add DDI 55 if toggle is on and it doesn't already have it
         if (this.hasDdiToggleTarget && this.ddiToggleTarget.checked) {
+            // If it doesn't start with 55 and seems to be a local number (10 or 11 digits)
             if (digits.length > 0 && !digits.startsWith("55")) {
                 digits = "55" + digits
             }
