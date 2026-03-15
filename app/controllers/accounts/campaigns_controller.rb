@@ -27,7 +27,10 @@ class Accounts::CampaignsController < InternalController
   end
 
   def create
+    puts "DEBUG: Creating campaign for account #{current_user.account.id}"
+    puts "DEBUG: Params: #{campaign_params.inspect}"
     @campaign = current_user.account.campaigns.new(campaign_params.merge(status: :draft, current_step: 2))
+    puts "DEBUG: Campaign Account: #{@campaign.account_id}"
     
     if @campaign.save
       Accounts::Campaigns::InitializeContactsService.call(@campaign) if @campaign.spreadsheet_data.present? && @campaign.mapping.present?
@@ -215,24 +218,24 @@ class Accounts::CampaignsController < InternalController
 
   def campaign_params
     permitted = params.require(:campaign).permit(
-      :name, :campaign_category_id, :pipeline_id, :stage_id, :spreadsheet_data, :insert_ddi, :ai_randomization, chatwoot_inbox_ids: []
+      :name, :campaign_category_id, :pipeline_id, :stage_id, :spreadsheet_data, :insert_ddi, :ai_randomization, chatwoot_inbox_ids: [], mapping: {}
     )
 
-    # Converte spreadsheet_data de String para JSON se necessário
-    if permitted[:spreadsheet_data].is_a?(String)
-      begin
-        permitted[:spreadsheet_data] = JSON.parse(permitted[:spreadsheet_data])
-      rescue JSON::ParserError => e
-        puts "DEBUG: Erro ao parsear spreadsheet_data: #{e.message}"
+    # Permite que mapping receba qualquer chave interna
+    permitted[:mapping] = params[:campaign][:mapping].to_unsafe_h if params[:campaign][:mapping].present?
+
+    # Converte strings JSON para Hash/Array se necessário
+    [:spreadsheet_data, :mapping].each do |field|
+      if permitted[field].is_a?(String) && permitted[field].present?
+        begin
+          permitted[field] = JSON.parse(permitted[field])
+        rescue JSON::ParserError
+          # Mantém como está se falhar
+        end
       end
     end
 
-    # Handle mapping more explicitly
-    if params[:campaign][:mapping].present?
-      permitted[:mapping] = params[:campaign][:mapping].permit!.to_h
-    end
-
-    permitted.to_h
+    permitted
   end
 
   def composition_params

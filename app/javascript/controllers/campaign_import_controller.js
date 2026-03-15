@@ -868,4 +868,14 @@ export default class extends Controller {
             container.appendChild(input);
         }
     }
+    
+    normalizeMatrix(data) {
+        if (!data || data.length === 0) return []
+        const maxCols = Math.max(...data.map(row => row.length))
+        return data.map(row => {
+            const newRow = [...row]
+            while (newRow.length < maxCols) newRow.push('')
+            return newRow
+        })
+    }
 }
