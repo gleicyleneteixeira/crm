@@ -32,7 +32,7 @@ class Accounts::CampaignsController < InternalController
     if @campaign.save
       Accounts::Campaigns::InitializeContactsService.call(@campaign) if @campaign.spreadsheet_data.present? && @campaign.mapping.present?
       # Redireciona direto para a Tela 3 (Composição), pulando o mapeamento antigo
-      redirect_to composition_account_campaign_path(@account, @campaign), notice: 'Rascunho salvo! Agora configure suas mensagens.'
+      redirect_to composition_campaign_path(@campaign), notice: 'Rascunho salvo! Agora configure suas mensagens.'
     else
       @campaign_categories = CampaignCategory.all
       @pipelines = @account.pipelines.includes(:stages)
@@ -48,7 +48,7 @@ class Accounts::CampaignsController < InternalController
     if @campaign.update(updated_params)
       # Re-inicializa contatos se os dados/mapeamento foram revisados
       Accounts::Campaigns::InitializeContactsService.call(@campaign) if @campaign.spreadsheet_data.present? && @campaign.mapping.present?
-      redirect_to composition_account_campaign_path(@account, @campaign), notice: 'Configurações atualizadas!'
+      redirect_to composition_campaign_path(@campaign), notice: 'Configurações atualizadas!'
     else
       @campaign_categories = CampaignCategory.all
       @pipelines = @account.pipelines.includes(:stages)
@@ -130,7 +130,7 @@ class Accounts::CampaignsController < InternalController
     step_params = @campaign.draft? ? { current_step: 3 } : {}
     
     if @campaign.update(composition_params.merge(step_params))
-      redirect_to logistics_account_campaign_path(@account, @campaign), notice: 'Mensagens salvas com sucesso! Agora configure a logística.'
+      redirect_to logistics_campaign_path(@campaign), notice: 'Mensagens salvas com sucesso! Agora configure a logística.'
     else
       render :composition, status: :unprocessable_entity
     end
@@ -145,7 +145,7 @@ class Accounts::CampaignsController < InternalController
     step_params = @campaign.draft? ? { current_step: 4 } : {}
 
     if @campaign.update(campaign_params.merge(step_params))
-      redirect_to automation_account_campaign_path(@account, @campaign)
+      redirect_to automation_campaign_path(@campaign)
     else
       render :logistics, status: :unprocessable_entity
     end
