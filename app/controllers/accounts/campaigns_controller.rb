@@ -208,14 +208,29 @@ class Accounts::CampaignsController < InternalController
   end
 
   def campaign_params
+    # Primeiro permitimos campos simples e convertemos para Hash puro
+    # Removemos complexos (mapping, spreadsheet_data) do permit inicial
     permitted = params.require(:campaign).permit(
-      :name, :campaign_category_id, :pipeline_id, :stage_id, :spreadsheet_data, :insert_ddi, :ai_randomization, chatwoot_inbox_ids: [], mapping: {}
-    )
+      :name, :campaign_category_id, :pipeline_id, :stage_id, 
+      :insert_ddi, :ai_randomization, :current_step,
+      chatwoot_inbox_ids: []
+    ).to_h
 
-    # Permite que mapping receba qualquer chave interna
-    permitted[:mapping] = params[:campaign][:mapping].to_unsafe_h if params[:campaign][:mapping].present?
+    # Adicionamos os dados complexos manualmente
+    if params[:campaign][:mapping].present?
+      permitted[:mapping] = params[:campaign][:mapping].respond_to?(:to_unsafe_h) ? params[:campaign][:mapping].to_unsafe_h : params[:campaign][:mapping]
+    end
 
-    # Converte strings JSON para Hash/Array se necessário
+    if params[:campaign][:spreadsheet_data].present?
+      # spreadsheet_data pode ser String (JSON) ou Array (enviado via formulário)
+      if params[:campaign][:spreadsheet_data].is_a?(String)
+        permitted[:spreadsheet_data] = params[:campaign][:spreadsheet_data]
+      else
+        permitted[:spreadsheet_data] = params[:campaign][:spreadsheet_data].respond_to?(:to_unsafe_h) ? params[:campaign][:spreadsheet_data].to_unsafe_h : params[:campaign][:spreadsheet_data]
+      end
+    end
+
+    # Converte strings JSON para Hash/Array se necessário (caso venham como string)
     [:spreadsheet_data, :mapping].each do |field|
       if permitted[field].is_a?(String) && permitted[field].present?
         begin
