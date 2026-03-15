@@ -47,9 +47,24 @@ module Accounts
       def prepare_contact_params(row)
         params = { custom_attributes: {} }
         
-        @mapping.each do |header, field|
-          val = row[@data.first.index(header)]
-          next if val.blank?
+        @mapping.each do |key, value|
+          # Detect if mapping is new format (field -> col_index) or old (header -> field)
+          # New format: key is CRM field, value is index
+          # Old format: key is Spreadsheet Header, value is CRM field
+          
+          if value.to_s.match?(/^\d+$/)
+            # New format (field -> col_index)
+            field = key
+            col_index = value.to_i
+          else
+            # Old format (header -> field)
+            field = value
+            header_name = key
+            col_index = @data.first.index(header_name)
+          end
+
+          next if col_index.nil? || row[col_index].blank?
+          val = row[col_index]
 
           if field.start_with?('contact.')
             attr = field.split('.').last
@@ -58,8 +73,10 @@ module Accounts
             else
               params[:custom_attributes][attr] = val
             end
-          elsif field == 'extra_variable'
-            params[:custom_attributes][header.parameterize.underscore] = val
+          elsif field == 'extra_variable' || field.start_with?('extra_')
+            # Handle both old generic and new slug-based extra variables
+            attr = field.start_with?('extra_') ? field.sub('extra_', '') : key.parameterize.underscore
+            params[:custom_attributes][attr] = val
           end
         end
 

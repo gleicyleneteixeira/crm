@@ -65,8 +65,8 @@
               <%= campaign.created_at.strftime('%d/%m/%Y %H:%M') %>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right">
-              <%= link_to 'Mapeamento', mapping_account_campaign_path(current_user.account, campaign), class: 'text-brand-palette-03 hover:underline mr-4' %>
-              <%= link_to 'Composição', composition_account_campaign_path(current_user.account, campaign), class: 'text-brand-palette-03 hover:underline' %>
+              <%= link_to 'Revisar Contatos', edit_account_campaign_path(current_user.account, campaign), class: 'text-brand-palette-03 hover:underline mr-4' %>
+              <%= link_to 'Mensagens', composition_account_campaign_path(current_user.account, campaign), class: 'text-brand-palette-03 hover:underline' %>
             </td>
           </tr>
         <% end %>

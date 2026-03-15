@@ -19,36 +19,43 @@ class Accounts::CampaignsController < InternalController
     @campaign_categories = CampaignCategory.all
     @pipelines = current_user.account.pipelines.includes(:stages)
     @crm_fields = fetch_crm_fields
-    @campaign.update(current_step: 1) if @campaign.draft?
+    
+    # Ao editar um rascunho, garantimos que ele volte para o Passo 1
+    if @campaign.draft?
+      @campaign.update(current_step: 1)
+    end
   end
 
   def create
-    puts "DEBUG: Recebendo parâmetros da campanha: #{campaign_params.inspect}"
     @campaign = current_user.account.campaigns.new(campaign_params.merge(status: :draft, current_step: 2))
-    @campaign.account_id = current_user.account.id 
-
+    
     if @campaign.save
-      puts "DEBUG: Campanha salva com sucesso: #{@campaign.id}"
       Accounts::Campaigns::InitializeContactsService.call(@campaign) if @campaign.spreadsheet_data.present? && @campaign.mapping.present?
-      redirect_to composition_account_campaign_path(current_user.account, @campaign), status: :see_other, notice: 'Rascunho salvo! Agora configure suas mensagens.'
+      redirect_to composition_account_campaign_path(current_user.account, @campaign), notice: 'Rascunho salvo! Agora configure suas mensagens.'
     else
-      puts "DEBUG: Falha ao salvar campanha: #{@campaign.errors.full_messages}"
-      @campaign_categories = current_user.account.campaign_categories
-      @pipelines = current_user.account.pipelines
+      @campaign_categories = CampaignCategory.all
+      @pipelines = current_user.account.pipelines.includes(:stages)
       @crm_fields = fetch_crm_fields
       render :new, status: :unprocessable_entity
     end
   end
 
   def update
-    if @campaign.update(campaign_params)
-      # Se estiver no modo rascunho, redireciona para a próxima etapa lógica
+    # Se avançar da Tela 1 (Edit), vai para a Tela 2 (Composition)
+    next_step = @campaign.draft? ? 2 : @campaign.current_step
+    
+    if @campaign.update(campaign_params.merge(current_step: next_step))
       if @campaign.draft?
-        redirect_to composition_account_campaign_path(current_user.account, @campaign), notice: 'Progresso salvo!'
+        # Re-inicializa contatos se os dados/mapeamento foram revisados
+        Accounts::Campaigns::InitializeContactsService.call(@campaign) if @campaign.spreadsheet_data.present? && @campaign.mapping.present?
+        redirect_to composition_account_campaign_path(current_user.account, @campaign), notice: 'Contatos revisados com sucesso!'
       else
         redirect_to account_campaign_path(current_user.account, @campaign), notice: 'Campanha atualizada.'
       end
     else
+      @campaign_categories = CampaignCategory.all
+      @pipelines = current_user.account.pipelines.includes(:stages)
+      @crm_fields = fetch_crm_fields
       render :edit, status: :unprocessable_entity
     end
   end
@@ -119,18 +126,11 @@ class Accounts::CampaignsController < InternalController
   end
 
   def mapping
-    @headers = @campaign.spreadsheet_data.first || []
-    @crm_fields = fetch_crm_fields
+    redirect_to edit_account_campaign_path(current_user.account, @campaign)
   end
 
   def update_mapping
-    if @campaign.update(mapping: params[:campaign][:mapping])
-      Accounts::Campaigns::InitializeContactsService.call(@campaign)
-      
-      redirect_to composition_account_campaign_path(current_user.account, @campaign), notice: 'Mapeamento e contatos salvos com sucesso!'
-    else
-      render :mapping, status: :unprocessable_entity
-    end
+    update
   end
 
   def composition
