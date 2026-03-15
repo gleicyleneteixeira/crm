@@ -1,17 +1,14 @@
-name: Build and Push Docker Image
+name: Docker Build Universal
 
 on:
   push:
-    # Monitora QUALQUER branch que você criar ou atualizar
     branches:
       - '**'
-    # Economia de recursos: não roda se mudar apenas texto ou docs
     paths-ignore:
       - '**.md'
       - 'docs/**'
       - '.gitignore'
       - 'LICENSE'
-  
   workflow_dispatch:
 
 permissions:
@@ -21,12 +18,10 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # A vacina para o erro de letras maiúsculas e nomes dinâmicos
       - name: Inject Dynamic Variables
         run: |
           echo "REPO_OWNER=${GITHUB_REPOSITORY_OWNER,,}" >> ${GITHUB_ENV}
@@ -48,7 +43,6 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          # Usando variáveis dinâmicas para valer em qualquer fork ou conta
           tags: |
             ghcr.io/${{ env.REPO_OWNER }}/${{ env.REPO_NAME }}:latest
             ghcr.io/${{ env.REPO_OWNER }}/${{ env.REPO_NAME }}:${{ github.sha }}
