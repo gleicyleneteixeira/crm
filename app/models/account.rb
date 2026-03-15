@@ -61,72 +61,19 @@ class Account < ApplicationRecord
     App.all
   end
 
-  def users
-    User.all
-  end
+  has_many :users, dependent: :destroy
+  has_many :contacts, dependent: :destroy
+  has_many :deals, dependent: :destroy
+  has_many :pipelines, dependent: :destroy
+  has_many :stages, through: :pipelines
+  has_many :campaigns, dependent: :destroy
+  has_many :products, dependent: :destroy
+  has_many :custom_attribute_definitions, dependent: :destroy
+  has_many :webhooks, dependent: :destroy
 
-  def contacts
-    Contact.all
-  end
-
-  def deals
-    Deal.all
-  end
-
-  def pipelines
-    Pipeline.all
-  end
-
-  def campaigns
-    Campaign.all
-  end
-
-  def custom_attribute_definitions
-    CustomAttributeDefinition.all
-  end
-
+  # Mantendo compatibilidade com métodos auxiliares se necessário
   def custom_attributes_definitions
     custom_attribute_definitions
-  end
-
-  def apps_wpp_connects
-    Apps::WppConnect.all
-  end
-
-  def apps_chatwoots
-    Apps::Chatwoot.all
-  end
-
-  def apps_evolution_apis
-    Apps::EvolutionApi.all
-  end
-
-  def webhooks
-    Webhook.all
-  end
-
-  def stages
-    Stage.all
-  end
-
-  def products
-    Product.all
-  end
-
-  def embedding_documments
-    EmbeddingDocumment.all
-  end
-
-  def deal_products
-    DealProduct.all
-  end
-
-  def apps_ai_assistents
-    Apps::AiAssistent.all
-  end
-
-  def ai_prompts
-    AiPrompt.all
   end
 
   def site_url=(url)

@@ -12,6 +12,7 @@
   </div>
 
   <%= form_with(model: [current_user.account, @campaign], data: { controller: 'campaign-import', 'campaign-import-pipelines-value': @pipelines.to_json(include: :stages), 'campaign-import-crm-fields-value': @crm_fields.to_json, 'campaign-import-initial-mapping-value': @campaign.mapping.to_json, action: 'submit->campaign-import#handleFormSubmit' }, class: "flex flex-col gap-6") do |f| %>
+    <%= f.hidden_field :account_id, value: current_user.account_id %>
     
     <!-- TOP SECTION: Configuração de Campanha e Destino -->
     <div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">

@@ -27,13 +27,12 @@ class Accounts::CampaignsController < InternalController
   end
 
   def create
-    puts "DEBUG: Creating campaign for account #{current_user.account.id}"
-    puts "DEBUG: Params: #{campaign_params.inspect}"
-    @campaign = current_user.account.campaigns.new(campaign_params.merge(status: :draft, current_step: 2))
-    puts "DEBUG: Campaign Account: #{@campaign.account_id}"
-    
+    @campaign = current_user.account.campaigns.new(campaign_params.merge(status: :draft, current_step: 3))
+    @campaign.account = current_user.account # Vinculo explicito solicitado
+
     if @campaign.save
       Accounts::Campaigns::InitializeContactsService.call(@campaign) if @campaign.spreadsheet_data.present? && @campaign.mapping.present?
+      # Redireciona direto para a Tela 3 (Composição), pulando o mapeamento antigo
       redirect_to composition_account_campaign_path(current_user.account, @campaign), notice: 'Rascunho salvo! Agora configure suas mensagens.'
     else
       @campaign_categories = CampaignCategory.all
@@ -44,17 +43,13 @@ class Accounts::CampaignsController < InternalController
   end
 
   def update
-    # Se avançar da Tela 1 (Edit), vai para a Tela 2 (Composition)
-    next_step = @campaign.draft? ? 2 : @campaign.current_step
+    # Se editado na Tela 1, avançamos para a Tela 3 (Composition)
+    updated_params = campaign_params.merge(current_step: 3)
     
-    if @campaign.update(campaign_params.merge(current_step: next_step))
-      if @campaign.draft?
-        # Re-inicializa contatos se os dados/mapeamento foram revisados
-        Accounts::Campaigns::InitializeContactsService.call(@campaign) if @campaign.spreadsheet_data.present? && @campaign.mapping.present?
-        redirect_to composition_account_campaign_path(current_user.account, @campaign), notice: 'Contatos revisados com sucesso!'
-      else
-        redirect_to account_campaign_path(current_user.account, @campaign), notice: 'Campanha atualizada.'
-      end
+    if @campaign.update(updated_params)
+      # Re-inicializa contatos se os dados/mapeamento foram revisados
+      Accounts::Campaigns::InitializeContactsService.call(@campaign) if @campaign.spreadsheet_data.present? && @campaign.mapping.present?
+      redirect_to composition_account_campaign_path(current_user.account, @campaign), notice: 'Configurações atualizadas!'
     else
       @campaign_categories = CampaignCategory.all
       @pipelines = current_user.account.pipelines.includes(:stages)
@@ -110,9 +105,6 @@ class Accounts::CampaignsController < InternalController
       )
 
       if response.success?
-        # Salva temporariamente ou retorna como base64/blob
-        # Para simplificar no MVP, vamos retornar o áudio binário ou salvar no ActiveStorage
-        # Aqui vamos retornar como base64 para o preview imediato
         audio_base64 = Base64.strict_encode64(response.body)
         render json: { audio: "data:audio/mpeg;base64,#{audio_base64}" }
       else

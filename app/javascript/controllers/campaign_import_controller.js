@@ -174,19 +174,34 @@ export default class extends Controller {
     }
 
     updateJsonOutput() {
-        if (this.hasJsonOutputTarget) {
-            const currentVal = this.jsonOutputTarget.value;
-            const newVal = JSON.stringify(this.rawData);
-            
-            // Safety: Don't overwrite with empty if we had data and rawData is empty (could mean init failed)
-            if (this.rawData.length === 0 && currentVal && currentVal !== '[]' && currentVal !== 'null') {
-                console.warn("Safety trigger: Attempted to save empty data over existing data. Sync aborted.");
-                return;
-            }
+        if (!this.hasJsonOutputTarget) return;
 
+        // Se rawData estiver vazio, mas tínhamos dados antes, pode ser um erro de inicialização.
+        // Bloqueamos a limpeza total se houver suspeita de falha.
+        if (this.rawData.length === 0 && this.jsonOutputTarget.value && this.jsonOutputTarget.value !== '[]') {
+            console.warn("Safety trigger: Sync abortado para evitar perda de dados.");
+            return;
+        }
+
+        // Filtramos as linhas ignoradas para o envio final
+        const finalData = this.rawData.filter((_, index) => !this.ignoredRows.has(index)).map(row => {
+            return row.map((cell, colIndex) => {
+                const colIndexStr = colIndex.toString();
+                const mappedCrmKey = Object.keys(this.currentMapping).find(k => this.currentMapping[k]?.toString() === colIndexStr);
+                
+                // Limpeza básica de telefone se for uma coluna de telefone mapeada
+                if (mappedCrmKey && mappedCrmKey.includes('contact.phone')) {
+                    return this.formatPhone(cell);
+                }
+                return cell;
+            });
+        });
+
+        const newVal = JSON.stringify(finalData);
+        if (this.jsonOutputTarget.value !== newVal) {
             this.jsonOutputTarget.value = newVal;
-            console.log(`JSON synced: ${this.rawData.length} rows.`);
-            this.generateHiddenMappingInputs()
+            console.log(`JSON synced: ${finalData.length} rows.`);
+            this.generateHiddenMappingInputs();
         }
     }
 
@@ -478,7 +493,6 @@ export default class extends Controller {
             if (window.lucide) window.lucide.createIcons();
 
             this.updateCounters(totalRecords, validRecords, invalidRecords)
-            this.updateJsonOutput()
             this.validateMapping()
         } catch (error) {
             console.error('Erro ao renderizar a grid (DOM Builder):', error);
@@ -615,25 +629,7 @@ export default class extends Controller {
             .replace(/'/g, "&#039;");
     }
 
-    updateJsonOutput() {
-        if (this.hasJsonOutputTarget) {
-            const finalData = this.rawData.filter((_, index) => !this.ignoredRows.has(index)).map(row => {
-                return row.map((cell, colIndex) => {
-                    const colIndexStr = colIndex.toString();
-                    const mappedCrmKey = Object.keys(this.currentMapping).find(k => this.currentMapping[k]?.toString() === colIndexStr);
-                    const isPhoneCol = (mappedCrmKey && mappedCrmKey.includes('contact.phone')) ||
-                        (this.rawData[0] && this.rawData[0][colIndex] &&
-                            this.rawData[0][colIndex].toString().toLowerCase().match(/telefone|whatsapp|celular|phone|fone/i));
-
-                    if (isPhoneCol) {
-                        return this.formatPhone(cell);
-                    }
-                    return cell;
-                });
-            });
-            this.jsonOutputTarget.value = JSON.stringify(finalData)
-        }
-    }
+    // Metodo duplicado removido para evitar conflitos
 
     generateHeaderMappingSelect(colIndex, headerName) {
         if (!this.hasCrmFieldsValue) return '';
