@@ -31,7 +31,7 @@
               <span class="text-xs text-slate-600 dark:text-slate-400 font-medium">Mapear?</span>
             </label>
             <div data-name-mapping-select-container class="hidden">
-              <select name="campaign[mapping][__campaign_name_target__]" class="w-full text-xs py-1.5 px-2 rounded-md border-slate-300 dark:border-slate-600 dark:bg-slate-800 focus:border-brand-palette-03 text-slate-700 dark:text-slate-300">
+              <select name="campaign[mapping][__campaign_name_target__]" class="w-full text-xs py-1.5 px-2 rounded-md border-slate-300 dark:border-slate-600 dark:bg-slate-800 focus:border-brand-palette-03 text-slate-700 dark:text-slate-300" data-action="change->campaign-import#handleHeaderMappingChange" data-col="__fixed_name__">
                 <option value="">Selecione o tributo...</option>
                 <% if @crm_fields['Negócio'] %>
                   <% @crm_fields['Negócio'].each do |label, key| %>
@@ -181,7 +181,7 @@
       </div>
       <div class="flex gap-3">
         <%= link_to 'Cancelar', account_campaigns_path(current_user.account), class: 'btn-secondary font-semibold' %>
-        <%= f.button 'Próximo <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>'.html_safe, type: 'submit', class: 'btn-primary font-semibold opacity-50 cursor-not-allowed flex items-center shadow-lg hover:shadow-xl transition-all', disabled: true, data: { 'campaign-import-target': 'submitButton' } %>
+        <%= f.button 'Próximo <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>'.html_safe, type: 'submit', class: 'btn-primary font-semibold flex items-center shadow-lg hover:shadow-xl transition-all', data: { 'campaign-import-target': 'submitButton' } %>
       </div>
     </div>
   <% end %>

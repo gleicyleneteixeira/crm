@@ -30,6 +30,11 @@ export default class extends Controller {
         this.rawData = []
         this.ignoredRows = new Set()
         this.currentMapping = this.hasInitialMappingValue ? this.initialMappingValue : {};
+        // Normalize mapping values to strings for consistent comparison
+        Object.keys(this.currentMapping).forEach(key => {
+            this.currentMapping[key] = this.currentMapping[key].toString();
+        });
+
         if (Object.keys(this.currentMapping).length === 0) {
             this.loadCurrentMapping();
         }
@@ -583,7 +588,7 @@ export default class extends Controller {
             const finalData = this.rawData.filter((_, index) => !this.ignoredRows.has(index)).map(row => {
                 return row.map((cell, colIndex) => {
                     const colIndexStr = colIndex.toString();
-                    const mappedCrmKey = Object.keys(this.currentMapping).find(k => this.currentMapping[k] === colIndexStr);
+                    const mappedCrmKey = Object.keys(this.currentMapping).find(k => this.currentMapping[k]?.toString() === colIndexStr);
                     const isPhoneCol = (mappedCrmKey && mappedCrmKey.includes('contact.phone')) ||
                         (this.rawData[0] && this.rawData[0][colIndex] &&
                             this.rawData[0][colIndex].toString().toLowerCase().match(/telefone|whatsapp|celular|phone|fone/i));
@@ -602,7 +607,7 @@ export default class extends Controller {
         if (!this.hasCrmFieldsValue) return '';
 
         const colIndexStr = colIndex.toString();
-        let mappedCrmKey = Object.keys(this.currentMapping).find(k => this.currentMapping[k] === colIndexStr);
+        let mappedCrmKey = Object.keys(this.currentMapping).find(k => this.currentMapping[k]?.toString() === colIndexStr);
         let headerSlug = headerName ? headerName.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "_") : `col_${colIndex}`;
 
         let selectHtml = `<select class="w-full text-xs py-1 px-1 rounded border-slate-300 dark:border-slate-600 dark:bg-slate-800 focus:border-brand-palette-03 focus:ring-brand-palette-03 mb-2 font-normal" data-action="change->campaign-import#handleHeaderMappingChange" data-col="${colIndex}">`;
@@ -703,7 +708,7 @@ export default class extends Controller {
 
         let mappingsValid = true
         if (hasData) {
-            const hasName = this.currentMapping['contact.full_name'] !== undefined;
+            const hasName = this.currentMapping['contact.full_name'] !== undefined || this.currentMapping['__campaign_name_target__'] !== undefined;
             const hasPhone = this.currentMapping['contact.phone'] !== undefined ||
                 this.currentMapping['contact.phone_2'] !== undefined ||
                 this.currentMapping['contact.phone_3'] !== undefined;
@@ -718,7 +723,17 @@ export default class extends Controller {
             categoryParams = false;
         }
 
-        const isValid = hasData && mappingsValid && categoryParams
+        let pipelineParams = true;
+        if (this.hasPipelineSelectTarget && !this.pipelineSelectTarget.value) {
+            pipelineParams = false;
+        }
+
+        let stageParams = true;
+        if (this.hasStageSelectTarget && !this.stageSelectTarget.value) {
+            stageParams = false;
+        }
+
+        const isValid = hasData && mappingsValid && categoryParams && pipelineParams && stageParams
 
         if (this.hasSubmitButtonTarget) {
             this.submitButtonTarget.disabled = !isValid
