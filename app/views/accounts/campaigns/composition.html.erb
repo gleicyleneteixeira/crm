@@ -1,4 +1,7 @@
-<div class="h-[calc(100vh-80px)] overflow-hidden w-full bg-[#0B0E14] text-slate-300 flex flex-col font-sans" data-controller="campaign--composition">
+<div class="h-[calc(100vh-80px)] overflow-hidden w-full bg-[#0B0E14] text-slate-300 flex flex-col font-sans" 
+     data-controller="campaign--composition"
+     data-campaign--composition-headers-value="<%= (@campaign.spreadsheet_data&.first || []).to_json %>"
+     data-campaign--composition-sample-row-value="<%= (@campaign.spreadsheet_data&.second || []).to_json %>">
   <!-- Top Progress Bar / Header -->
   <header class="bg-[#0B0E14] border-b border-slate-800/60 px-8 py-4 flex items-center justify-between shrink-0 z-30">
     <div class="flex items-center gap-4">
@@ -28,7 +31,7 @@
          </div>
       </nav>
       <div class="h-8 w-px bg-slate-800/60"></div>
-      <%= link_to mapping_account_campaign_path(current_user.account, @campaign), class: 'text-[10px] font-black text-slate-500 hover:text-white transition-colors uppercase tracking-widest flex items-center gap-2' do %>
+      <%= link_to edit_account_campaign_path(current_user.account, @campaign), class: 'text-[10px] font-black text-slate-500 hover:text-white transition-colors uppercase tracking-widest flex items-center gap-2' do %>
         <i data-lucide="arrow-left" class="w-3 h-3"></i> Voltar
       <% end %>
     </div>
@@ -42,13 +45,13 @@
       <section class="bg-[#161B22] border border-slate-800/60 rounded-2xl p-4 flex items-center gap-4">
         <div class="flex items-center gap-2 shrink-0">
           <i data-lucide="hash" class="w-4 h-4 text-emerald-500"></i>
-          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Variáveis disponíveis:</span>
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Variáveis:</span>
         </div>
         <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
           <% headers = @campaign.spreadsheet_data&.first || [] %>
           <% headers.each do |header| %>
             <button type="button" 
-                    onclick="navigator.clipboard.writeText('{{<%= header %>}}')" 
+                    onclick="document.getElementById('message-editor').value += ' {{<%= header.parameterize.underscore %>}}'; document.getElementById('message-editor').dispatchEvent(new Event('input'))"
                     class="px-3 py-1.5 bg-[#0D1117] border border-slate-800 rounded-lg text-[10px] font-bold text-emerald-500 hover:border-emerald-500/50 transition-all shrink-0">
               {{<%= header.parameterize.underscore %>}}
             </button>
@@ -59,53 +62,72 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
         <!-- New Message Creator -->
         <section class="space-y-6">
-          <div class="flex items-center gap-3">
-             <i data-lucide="message-square-plus" class="w-5 h-5 text-emerald-500"></i>
-             <h3 class="text-sm font-black text-white uppercase tracking-wider">Criar Nova Mensagem</h3>
+          <div class="flex items-center justify-between">
+             <div class="flex items-center gap-3">
+               <i data-lucide="message-square-plus" class="w-5 h-5 text-emerald-500"></i>
+               <h3 class="text-sm font-black text-white uppercase tracking-wider">Editor de Mensagem</h3>
+             </div>
+             
+             <!-- Toggles AI/Audio Dashboard Look -->
+             <div class="flex items-center gap-3">
+               <div class="flex items-center gap-2 px-2 py-1 bg-slate-900 border border-slate-800 rounded-lg">
+                 <span class="text-[8px] font-black uppercase text-slate-500">Anti-Ban</span>
+                 <label class="relative inline-flex items-center cursor-pointer">
+                   <input type="checkbox" id="toggle-ai" class="sr-only peer" data-action="change->campaign--composition#toggleAI">
+                   <div class="w-6 h-3 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-2 after:w-2 after:transition-all peer-checked:bg-emerald-500"></div>
+                 </label>
+               </div>
+               <div class="flex items-center gap-2 px-2 py-1 bg-slate-900 border border-slate-800 rounded-lg">
+                 <span class="text-[8px] font-black uppercase text-slate-500">Áudio</span>
+                 <label class="relative inline-flex items-center cursor-pointer">
+                   <input type="checkbox" id="toggle-audio" class="sr-only peer" data-action="change->campaign--composition#toggleAudio">
+                   <div class="w-6 h-3 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-2 after:w-2 after:transition-all peer-checked:bg-amber-500"></div>
+                 </label>
+               </div>
+             </div>
           </div>
 
           <div class="bg-[#161B22] border border-slate-800/60 rounded-[2rem] p-8 shadow-2xl relative">
              <div class="space-y-6">
-                <!-- Message Type Tabs -->
-                <div>
-                   <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-4">Tipo de mensagem</label>
-                   <div class="flex flex-wrap gap-2">
-                      <button type="button" class="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-[#0D1117] rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/20">
-                         <i data-lucide="type" class="w-4 h-4"></i> Texto
-                      </button>
-                      <button type="button" class="flex items-center gap-2 px-4 py-2 bg-[#0D1117] border border-slate-800 text-slate-400 rounded-xl text-[10px] font-black uppercase tracking-wider hover:text-white hover:border-slate-600 transition-all">
-                         <i data-lucide="image" class="w-4 h-4"></i> Imagem
-                      </button>
-                      <button type="button" class="flex items-center gap-2 px-4 py-2 bg-[#0D1117] border border-slate-800 text-slate-400 rounded-xl text-[10px] font-black uppercase tracking-wider hover:text-white hover:border-slate-600 transition-all">
-                         <i data-lucide="headphones" class="w-4 h-4"></i> Áudio
-                      </button>
-                      <button type="button" class="flex items-center gap-2 px-4 py-2 bg-[#0D1117] border border-slate-800 text-slate-400 rounded-xl text-[10px] font-black uppercase tracking-wider hover:text-white hover:border-slate-600 transition-all">
-                         <i data-lucide="video" class="w-4 h-4"></i> Vídeo
-                      </button>
-                      <button type="button" class="flex items-center gap-2 px-4 py-2 bg-[#0D1117] border border-slate-800 text-slate-400 rounded-xl text-[10px] font-black uppercase tracking-wider hover:text-white hover:border-slate-600 transition-all">
-                         <i data-lucide="file-text" class="w-4 h-4"></i> Documento
-                      </button>
-                   </div>
-                </div>
-
                 <!-- Textarea Area -->
                 <div class="bg-[#0D1117] rounded-2xl border border-slate-800 p-5 focus-within:border-emerald-500/50 transition-all group">
                    <textarea id="message-editor" class="w-full bg-transparent border-none p-0 text-sm text-white placeholder-slate-600 min-h-[180px] focus:ring-0 resize-none leading-relaxed" placeholder="Olá {{nome}}! Digite sua mensagem aqui..."></textarea>
-                   <div class="flex items-center justify-end mt-4 border-t border-slate-800 pt-4 gap-4">
-                      <button type="button" class="p-2 text-slate-500 hover:text-emerald-500 transition-colors">
-                         <i data-lucide="smile" class="w-5 h-5"></i>
-                      </button>
-                      <button type="button" class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center hover:bg-emerald-500 hover:text-[#0D1117] transition-all">
-                         <i data-lucide="arrow-up" class="w-4 h-4"></i>
-                      </button>
+                   
+                   <div class="flex items-center justify-between mt-4 border-t border-slate-800 pt-4">
+                      <div class="flex items-center gap-2">
+                         <button type="button" 
+                                 id="btn-generate-ai"
+                                 class="hidden px-3 py-1.5 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-lg hover:bg-emerald-500/20 transition-all text-[10px] font-bold flex items-center gap-2"
+                                 data-action="click->campaign--composition#generateAIVariations"
+                                 data-campaign--composition-target="aiButton">
+                           <i data-lucide="sparkles" class="w-3 h-3"></i> Variações Anti-Ban
+                         </button>
+                         <button type="button" 
+                                 id="btn-generate-audio"
+                                 class="hidden px-3 py-1.5 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-lg hover:bg-amber-500/20 transition-all text-[10px] font-bold flex items-center gap-2"
+                                 data-action="click->campaign--composition#generateAudioPreview"
+                                 data-campaign--composition-target="audioButton">
+                           <i data-lucide="mic" class="w-3 h-3"></i> Gerar Áudio
+                         </button>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <button type="button" class="p-2 text-slate-500 hover:text-emerald-500 transition-colors">
+                           <i data-lucide="smile" class="w-5 h-5"></i>
+                        </button>
+                        <button type="button" data-action="click->campaign--composition#addBlock" class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center hover:bg-emerald-500 hover:text-[#0D1117] transition-all">
+                           <i data-lucide="arrow-up" class="w-4 h-4"></i>
+                        </button>
+                      </div>
                    </div>
                 </div>
 
-                <!-- Add Button -->
-                <button type="button" data-action="campaign--composition#addBlock" class="w-full py-4 bg-[#232931] border border-slate-700 text-slate-300 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-[#2d353f] hover:text-white transition-all active:scale-95 group">
-                   <i data-lucide="plus" class="w-4 h-4 text-emerald-500 group-hover:scale-110 transition-transform"></i>
-                   Adicionar Mensagem
-                </button>
+                <!-- AI Variations Display -->
+                <div id="ai-variations-container" class="hidden space-y-3" data-campaign--composition-target="aiVariationsContainer">
+                   <h4 class="text-[9px] font-black text-slate-500 uppercase tracking-widest pl-2">Sugestões IA (Groq)</h4>
+                   <div class="grid grid-cols-1 gap-2" data-campaign--composition-target="aiVariationsList">
+                      <!-- Variation cards will be injected here -->
+                   </div>
+                </div>
              </div>
           </div>
         </section>
@@ -114,27 +136,34 @@
         <section class="space-y-6">
           <div class="flex items-center gap-3">
              <i data-lucide="eye" class="w-5 h-5 text-emerald-500"></i>
-             <h3 class="text-sm font-black text-white uppercase tracking-wider">Prévia da Mensagem</h3>
+             <h3 class="text-sm font-black text-white uppercase tracking-wider">Simulador WhatsApp</h3>
           </div>
 
-          <div class="bg-[#161B22] border border-slate-800/60 rounded-[2rem] p-8 min-h-[460px] flex flex-col relative group">
+          <div class="bg-[#161B22] border border-slate-800/60 rounded-[2rem] p-8 min-h-[500px] flex flex-col relative group">
              <div class="absolute inset-0 bg-grid-slate-700/[0.1] [mask-image:linear-gradient(to_bottom,white,transparent)] -z-10"></div>
              
              <div class="flex-1 flex flex-col gap-4">
-                <div class="self-start text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-4">Mensagem 1</div>
+                <div class="self-start text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-4">Prévia em Tempo Real</div>
                 
                 <!-- Mock Message Bubble -->
                 <div class="bg-[#0D1117] border border-slate-800 p-6 rounded-2xl rounded-tl-none shadow-xl max-w-[90%] animate-in fade-in slide-in-from-left-2">
-                   <p id="preview-text" class="text-sm text-slate-300 leading-relaxed italic opacity-50">Sua prévia aparecerá aqui conforme você digita...</p>
-                </div>
-             </div>
-
-             <div class="mt-8 pt-6 border-t border-slate-800/60 flex items-center gap-4">
-                <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center">
-                   <i data-lucide="user" class="w-5 h-5 text-slate-500"></i>
-                </div>
-                <div class="flex-1 h-3 bg-slate-900 rounded-full overflow-hidden">
-                   <div class="h-full bg-emerald-500 w-[40%]"></div>
+                   <p id="preview-text" class="text-sm text-slate-300 leading-relaxed" data-campaign--composition-target="previewText">
+                     Sua prévia aparecerá aqui conforme você digita...
+                   </p>
+                   
+                   <!-- Audio Player Preview -->
+                   <div id="audio-preview-container" class="mt-4 pt-4 border-t border-slate-800 hidden" data-campaign--composition-target="audioPreviewContainer">
+                      <div class="flex items-center gap-3">
+                         <div class="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                            <i data-lucide="play" class="w-4 h-4 text-emerald-500"></i>
+                         </div>
+                         <div class="flex-1">
+                            <div class="h-1 bg-slate-800 rounded-full w-full mb-1"></div>
+                            <span class="text-[9px] text-slate-500 uppercase font-black tracking-widest">Áudio Gerado</span>
+                         </div>
+                         <audio id="audio-player" class="hidden" data-campaign--composition-target="audioPlayer" controls></audio>
+                      </div>
+                   </div>
                 </div>
              </div>
           </div>
@@ -146,21 +175,20 @@
         <div class="flex items-center justify-between">
            <div class="flex items-center gap-3">
               <i data-lucide="list-checks" class="w-5 h-5 text-emerald-500"></i>
-              <h3 class="text-sm font-black text-white uppercase tracking-wider">Mensagens Configuradas (<span id="count">0</span>)</h3>
+              <h3 class="text-sm font-black text-white uppercase tracking-wider">Sequência de Envio (<span id="count">0</span>)</h3>
            </div>
         </div>
 
-        <div id="messages-list" class="space-y-4">
+        <div id="messages-list" class="space-y-4" data-campaign--composition-target="messagesList">
            <!-- Items will be injected here via Stimulus -->
-           <div class="flex items-center justify-center p-12 bg-slate-900/20 border-2 border-dashed border-slate-800 rounded-[2rem]">
-              <div class="text-center">
-                 <i data-lucide="inbox" class="w-12 h-12 text-slate-700 mx-auto mb-4"></i>
-                 <p class="text-xs font-bold text-slate-600 uppercase tracking-widest">Nenhuma mensagem adicionada</p>
+           <div class="no-messages-placeholder flex items-center justify-center p-12 bg-slate-900/20 border-2 border-dashed border-slate-800 rounded-[2rem]">
+              <div class="text-center text-slate-600">
+                 <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-4 opacity-20"></i>
+                 <p class="text-xs font-bold uppercase tracking-widest">Nenhuma mensagem adicionada</p>
               </div>
            </div>
         </div>
       </section>
-
     </div>
   </main>
 
@@ -168,32 +196,37 @@
   <footer class="h-24 bg-[#0B0E14] border-t border-slate-800/60 px-12 flex items-center justify-between shrink-0 z-40">
      <div class="flex items-center gap-6">
         <div class="flex flex-col">
-           <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Tempo Total Estimado</span>
-           <span class="text-xs font-bold text-white">---</span>
+           <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Estado da Campanha</span>
+           <span class="text-xs font-bold text-emerald-500">Rascunho Salvo Automatizado</span>
         </div>
      </div>
 
-     <%= form_with(model: @campaign, url: update_composition_account_campaign_path(current_user.account, @campaign), method: :patch) do |f| %>
+     <%= form_with(model: @campaign, url: update_composition_account_campaign_path(current_user.account, @campaign), method: :patch, id: 'campaign-form') do |f| %>
        <div data-campaign--composition-target="blocksContainer" class="hidden">
           <!-- Hidden inputs for actual persistence -->
        </div>
        <div class="flex items-center gap-4">
-          <%= f.submit 'Salvar e Ver Logística', class: 'px-12 py-4 bg-emerald-500 text-[#0D1117] rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-emerald-500/20 hover:bg-emerald-400 transition-all active:scale-95' %>
+          <%= f.submit 'Salvar e Ver Logística', class: 'px-12 py-4 bg-[#161B22] border border-slate-700 text-slate-300 rounded-2xl font-black text-xs uppercase tracking-[0.15em] hover:bg-[#232931] transition-all' %>
+          <button type="submit" class="px-12 py-4 bg-emerald-500 text-[#0D1117] rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-emerald-500/20 hover:bg-emerald-400 transition-all active:scale-95 flex items-center gap-2">
+             Concluir e Agendar
+             <i data-lucide="send" class="w-4 h-4"></i>
+          </button>
        </div>
      <% end %>
   </footer>
 </div>
 
 <template data-campaign--composition-target="blockTemplate">
-  <div class="message-item bg-[#161B22] border border-slate-800 rounded-2xl p-4 flex items-center gap-6 group hover:border-emerald-500/30 transition-all animate-in zoom-in-95">
-     <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-black text-[10px] index-tag">1</div>
+  <div class="message-item bg-[#161B22] border border-slate-800 rounded-2xl p-4 flex items-center gap-6 group hover:border-emerald-500/30 transition-all animate-in zoom-in-95" data-index="INDEX">
+     <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-black text-[10px] index-tag">INDEX</div>
      <div class="flex-1">
-        <p class="text-xs text-white font-bold truncate message-preview-line"></p>
+        <p class="text-xs text-white font-bold truncate message-preview-line">CONTENT</p>
         <span class="text-[9px] text-slate-500 font-bold uppercase type-tag">TEXTO</span>
      </div>
      <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button type="button" class="p-2 bg-[#0D1117] text-slate-400 hover:text-white rounded-lg"><i data-lucide="copy" class="w-4 h-4"></i></button>
-        <button type="button" data-action="campaign--composition#removeBlock" class="p-2 bg-[#0D1117] text-slate-400 hover:text-red-500 rounded-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+        <button type="button" data-action="campaign--composition#removeBlock" class="p-2 bg-[#0D1117] text-slate-400 hover:text-red-500 rounded-lg transition-colors">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+        </button>
      </div>
   </div>
 </template>

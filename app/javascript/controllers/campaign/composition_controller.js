@@ -1,124 +1,218 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-    static targets = ["blocksContainer", "blockTemplate", "list"]
+    static targets = ["previewText", "blocksContainer", "messagesList", "blockTemplate", "aiButton", "audioButton", "aiVariationsContainer", "aiVariationsList", "audioPreviewContainer", "audioPlayer"]
+    static values = {
+        headers: Array,
+        sampleRow: Array
+    }
 
     connect() {
-        this.renderIcons()
+        this.messageBlocks = []
         this.setupEditor()
+        if (window.lucide) window.lucide.createIcons()
     }
 
     setupEditor() {
         const editor = document.getElementById('message-editor')
-        const preview = document.getElementById('preview-text')
-
-        if (editor && preview) {
-            editor.addEventListener('input', () => {
-                preview.textContent = editor.value || "Sua prévia aparecerá aqui conforme você digita..."
-                preview.classList.toggle('opacity-50', !editor.value)
-                preview.classList.toggle('italic', !editor.value)
+        if (editor) {
+            editor.addEventListener('input', (e) => {
+                const text = e.target.value
+                this.previewTextTarget.innerText = this.processVariables(text)
             })
         }
     }
 
-    addBlock(event) {
-        if (event) event.preventDefault()
+    processVariables(text) {
+        let processedText = text
+        if (!this.headersValue || !this.sampleRowValue) return processedText
 
+        this.headersValue.forEach((header, index) => {
+            const variable = `{{${header.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "_")}}}`
+            const value = this.sampleRowValue[index] || `[${header}]`
+            const regex = new RegExp(variable.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi')
+            processedText = processedText.replace(regex, value)
+        })
+        return processedText
+    }
+
+    toggleAI(e) {
+        const active = e.target.checked
+        this.aiButtonTarget.classList.toggle('hidden', !active)
+        if (!active) this.aiVariationsContainerTarget.classList.add('hidden')
+    }
+
+    toggleAudio(e) {
+        const active = e.target.checked
+        this.audioButtonTarget.classList.toggle('hidden', !active)
+        if (!active) this.audioPreviewContainerTarget.classList.add('hidden')
+    }
+
+    async generateAIVariations() {
         const editor = document.getElementById('message-editor')
-        if (!editor || !editor.value.trim()) return
+        const message = editor.value
+        if (!message) return
 
-        const content = editor.value
-        const index = this.listTarget.querySelectorAll('.message-item').length
+        this.aiButtonTarget.innerHTML = '<i class="w-3 h-3 animate-spin"></i> Gerando...'
+        this.aiButtonTarget.disabled = true
 
-        // Add to the visual list
-        const listTemplate = this.blockTemplateTarget.innerHTML
-            .replace(/INDEX_LABEL/g, index + 1)
-            .replace(/message-preview-line/g, `message-preview-line">${this.escapeHtml(content)}`)
+        try {
+            const response = await fetch(`/accounts/${this.getAccountId()}/campaigns/${this.getId()}/generate_variations`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({ message })
+            })
 
-        const div = document.createElement("div")
-        div.innerHTML = listTemplate
+            const data = await response.json()
+            if (data.variations) {
+                this.renderVariations(data.variations)
+            } else {
+                alert(data.error || 'Erro ao gerar variações')
+            }
+        } catch (e) {
+            alert('Falha na conexão com Groq')
+        } finally {
+            this.aiButtonTarget.innerHTML = '<i class="w-3 h-3" data-lucide="sparkles"></i> Variações Anti-Ban'
+            this.aiButtonTarget.disabled = false
+            if (window.lucide) window.lucide.createIcons()
+        }
+    }
 
-        // Remove empty state if present
-        const emptyState = this.listTarget.querySelector('.bg-slate-900\\/20')
-        if (emptyState) emptyState.remove()
+    renderVariations(variations) {
+        this.aiVariationsContainerTarget.classList.remove('hidden')
+        this.aiVariationsListTarget.innerHTML = ''
 
-        this.listTarget.appendChild(div.firstElementChild)
+        variations.forEach(v => {
+            const card = document.createElement('div')
+            card.className = "bg-[#0D1117] border border-slate-800 p-3 rounded-xl cursor-pointer hover:border-emerald-500/50 transition-all text-xs text-slate-300 mb-2"
+            card.innerText = v
+            card.onclick = () => {
+                document.getElementById('message-editor').value = v
+                document.getElementById('message-editor').dispatchEvent(new Event('input'))
+            }
+            this.aiVariationsListTarget.appendChild(card)
+        })
+    }
 
-        // Add hidden input to the form
-        this.addHiddenInput(index, content)
+    async generateAudioPreview() {
+        const editor = document.getElementById('message-editor')
+        const text = editor.value
+        if (!text) return
 
-        // Reset editor
-        editor.value = ""
-        const preview = document.getElementById('preview-text')
-        if (preview) {
-            preview.textContent = "Sua prévia aparecerá aqui conforme você digita..."
-            preview.classList.add('opacity-50', 'italic')
+        this.audioButtonTarget.innerHTML = '<i class="w-3 h-3 animate-spin"></i> Gravando...'
+        this.audioButtonTarget.disabled = true
+
+        try {
+            const response = await fetch(`/accounts/${this.getAccountId()}/campaigns/${this.getId()}/generate_audio`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({ text })
+            })
+
+            const data = await response.json()
+            if (data.audio) {
+                this.audioPreviewContainerTarget.classList.remove('hidden')
+                this.audioPlayerTarget.src = data.audio
+                this.audioPlayerTarget.play()
+            } else {
+                alert(data.error || 'Erro no áudio. A campanha seguirá apenas com texto.')
+            }
+        } catch (e) {
+            alert('Falha ao conectar com ElevenLabs. Prosseguindo em modo texto.')
+        } finally {
+            this.audioButtonTarget.innerHTML = '<i class="w-3 h-3" data-lucide="mic"></i> Gerar Áudio'
+            this.audioButtonTarget.disabled = false
+            if (window.lucide) window.lucide.createIcons()
+        }
+    }
+
+    addBlock() {
+        const editor = document.getElementById('message-editor')
+        const message = editor.value.trim()
+        if (!message) return
+
+        const block = {
+            content: message,
+            kind: 'texto'
         }
 
-        this.updateCount()
-        this.renderIcons()
+        this.messageBlocks.push(block)
+        this.updateUI()
+        editor.value = ''
+        this.previewTextTarget.innerText = 'Sua prévia aparecerá aqui conforme você digita...'
+        if (this.hasAudioPreviewContainerTarget) this.audioPreviewContainerTarget.classList.add('hidden')
     }
 
-    addHiddenInput(index, content) {
-        const container = this.blocksContainerTarget
-
-        const typeInput = document.createElement('input')
-        typeInput.type = 'hidden'
-        typeInput.name = `campaign[message_sequence][${index}][type]`
-        typeInput.value = 'text' // Default for now
-
-        const contentInput = document.createElement('input')
-        contentInput.type = 'hidden'
-        contentInput.name = `campaign[message_sequence][${index}][content]`
-        contentInput.value = content
-
-        container.appendChild(typeInput)
-        container.appendChild(contentInput)
+    removeBlock(e) {
+        const index = parseInt(e.currentTarget.closest('.message-item').dataset.index) - 1
+        this.messageBlocks.splice(index, 1)
+        this.updateUI()
     }
 
-    removeBlock(event) {
-        event.preventDefault()
-        const block = event.target.closest(".message-item")
-        if (!block) return
+    updateUI() {
+        const list = this.messagesListTarget
+        list.querySelectorAll('.message-item').forEach(el => el.remove())
 
-        block.classList.add('animate-out', 'fade-out', 'zoom-out-95')
-        setTimeout(() => {
-            block.remove()
-            this.reindexBlocks()
-            this.updateCount()
-        }, 150)
-    }
+        const placeholder = list.querySelector('.no-messages-placeholder')
+        if (this.messageBlocks.length > 0 && placeholder) placeholder.remove()
 
-    reindexBlocks() {
-        // Re-index visual list
-        this.listTarget.querySelectorAll(".message-item").forEach((block, index) => {
-            const indexTag = block.querySelector('.index-tag')
-            if (indexTag) indexTag.textContent = index + 1
-        })
+        if (this.messageBlocks.length === 0) {
+            if (!placeholder) {
+                list.innerHTML = `
+          <div class="no-messages-placeholder flex items-center justify-center p-12 bg-slate-900/20 border-2 border-dashed border-slate-800 rounded-[2rem]">
+            <div class="text-center text-slate-600">
+               <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-4 opacity-20"></i>
+               <p class="text-xs font-bold uppercase tracking-widest">Nenhuma mensagem adicionada</p>
+            </div>
+          </div>
+        `
+            }
+        } else {
+            this.messageBlocks.forEach((block, idx) => {
+                const tpl = this.blockTemplateTarget.content.cloneNode(true)
+                const item = tpl.querySelector('.message-item')
 
-        // Re-generate hidden inputs
-        this.blocksContainerTarget.innerHTML = ""
-        this.listTarget.querySelectorAll(".message-item").forEach((block, index) => {
-            const content = block.querySelector('.message-preview-line').textContent
-            this.addHiddenInput(index, content)
-        })
-    }
+                item.dataset.index = idx + 1
+                item.querySelector('.index-tag').innerText = idx + 1
+                item.querySelector('.message-preview-line').innerText = block.content
 
-    updateCount() {
-        const count = this.listTarget.querySelectorAll('.message-item').length
+                list.appendChild(item)
+            })
+        }
+
+        this.persist()
+        if (window.lucide) window.lucide.createIcons()
         const countEl = document.getElementById('count')
-        if (countEl) countEl.textContent = count
+        if (countEl) countEl.innerText = this.messageBlocks.length
     }
 
-    renderIcons() {
-        if (window.lucide) {
-            window.lucide.createIcons();
-        }
+    persist() {
+        this.blocksContainerTarget.innerHTML = ''
+        this.messageBlocks.forEach((block, idx) => {
+            this.addHiddenInput(`campaign[message_sequence][${idx}][content]`, block.content)
+            this.addHiddenInput(`campaign[message_sequence][${idx}][kind]`, block.kind)
+        })
     }
 
-    escapeHtml(text) {
-        const div = document.createElement('div')
-        div.textContent = text
-        return div.innerHTML
+    addHiddenInput(name, value) {
+        const input = document.createElement('input')
+        input.type = 'hidden'
+        input.name = name
+        input.value = value
+        this.blocksContainerTarget.appendChild(input)
+    }
+
+    getAccountId() {
+        return window.location.pathname.split('/')[2]
+    }
+
+    getId() {
+        return window.location.pathname.split('/')[4]
     }
 }

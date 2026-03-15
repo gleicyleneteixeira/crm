@@ -4,6 +4,42 @@
     <%= link_to 'Nova Campanha', new_account_campaign_path(current_user.account), class: 'btn-primary' %>
   </div>
 
+  <% if @draft_campaigns.any? %>
+    <!-- Dashboard de Retomada -->
+    <div class="bg-brand-palette-03/5 border border-brand-palette-03/20 rounded-xl p-6 mb-4">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 bg-brand-palette-03/10 rounded-lg flex items-center justify-center">
+          <i data-lucide="history" class="w-5 h-5 text-brand-palette-03"></i>
+        </div>
+        <div>
+          <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">Retomar Rascunhos</h2>
+          <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest">Você tem <%= pluralize(@draft_campaigns.count, 'campanha', 'campanhas') %> incompletas</p>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <% @draft_campaigns.limit(3).each do |draft| %>
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-sm">
+            <div>
+              <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate max-w-[150px]"><%= draft.name %></p>
+              <p class="text-[9px] text-slate-400">Salvo em <%= draft.updated_at.strftime('%d/%m %H:%M') %></p>
+            </div>
+            <% 
+              resume_path = case draft.current_step
+                            when 1 then edit_account_campaign_path(current_user.account, draft)
+                            when 2 then composition_account_campaign_path(current_user.account, draft)
+                            else edit_account_campaign_path(current_user.account, draft)
+                            end
+            %>
+            <%= link_to resume_path, class: 'p-2 bg-brand-palette-03 text-white rounded-lg hover:bg-brand-palette-04 transition-all group' do %>
+              <i data-lucide="play" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
   <div class="overflow-x-auto shadow-sm rounded-lg border border-slate-200 dark:border-slate-700">
     <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
       <thead class="bg-slate-50 dark:bg-slate-800">

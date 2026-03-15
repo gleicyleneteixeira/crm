@@ -11,44 +11,20 @@ RSpec.describe "Accounts::CampaignsFlow", type: :request do
 
   describe "Campaign Creation and Mapping" do
     it "creates a campaign and cleans phone numbers during mapping" do
-      # 1. Create Campaign
       post account_campaigns_path(account), params: {
         campaign: {
           name: "Test Campaign",
-          campaign_category_id: campaign_category.id
+          campaign_category_id: campaign_category.id,
+          spreadsheet_data: [
+            ["Nome", "Telefone"],
+            ["John Doe", "(65) 99617-0176"],
+            ["Jane Smith", "65988887777"]
+          ].to_json,
+          mapping: { "0" => "contact.full_name", "1" => "contact.phone" }
         }
       }
-      expect(response).to redirect_to(mapping_account_campaign_path(account, Campaign.last))
+      expect(response).to redirect_to(composition_account_campaign_path(account, Campaign.last))
       campaign = Campaign.last
-
-      # 2. Update with spreadsheet data (simulating frontend JSON output)
-      # Data contains special characters in phone
-      spreadsheet_data = [
-        ["Nome", "Telefone"],
-        ["John Doe", "(65) 99617-0176"],
-        ["Jane Smith", "65988887777"]
-      ]
-      
-      # The controller expects spreadsheet_data as JSON or Array
-      patch account_campaign_path(account, campaign), params: {
-        campaign: {
-          spreadsheet_data: spreadsheet_data.to_json
-        }
-      }
-      
-      # 3. Update Mapping
-      mapping = {
-        "Nome" => "contact.full_name",
-        "Telefone" => "contact.phone"
-      }
-      
-      patch update_mapping_account_campaign_path(account, campaign), params: {
-        campaign: {
-          mapping: mapping
-        }
-      }
-      
-      expect(response).to redirect_to(composition_account_campaign_path(account, campaign))
       
       # 4. Verify Contacts were created with cleaned phones
       # InitializeContactsService is called in update_mapping

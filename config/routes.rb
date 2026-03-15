@@ -130,6 +130,8 @@ Rails.application.routes.draw do
         patch :update_mapping
         get :composition
         patch :update_composition
+        post :generate_variations
+        post :generate_audio
         get :logistics
         patch :update_logistics
         get :automation
