@@ -388,7 +388,7 @@ export default class extends Controller {
                         let displayValue = cell;
 
                         const isPhoneCol = (mappedCrmKey && mappedCrmKey.includes('contact.phone')) ||
-                            (cell && cell.toString().toLowerCase().match(/telefone|whatsapp|celular|phone|fone/i));
+                            (phoneIndex === colIndex);
 
                         if (isPhoneCol) {
                             displayValue = this.formatPhone(cell);
