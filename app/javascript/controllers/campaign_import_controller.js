@@ -155,13 +155,15 @@ export default class extends Controller {
             const finalData = typeof data === 'string' ? JSON.parse(data) : data
 
             if (Array.isArray(finalData) && finalData.length > 0) {
-                this.rawData = finalData
-                console.log(`Reidratado: ${finalData.length} linhas.`)
+                this.ignoredRows.clear()
+                this.rawData = this.normalizeMatrix(finalData)
+                console.log(`Reidratado: ${this.rawData.length} linhas (após limpeza).`)
                 this.autoMatchHeaders()
                 this.renderizarGrid()
                 this.validateMapping()
             } else if (Array.isArray(finalData)) {
                 this.rawData = []
+                this.ignoredRows.clear()
                 this.renderizarGrid()
                 this.validateMapping()
                 console.log("Dados reidratados como array vazio.")
@@ -869,13 +871,25 @@ export default class extends Controller {
         }
     }
     
-    normalizeMatrix(data) {
-        if (!data || data.length === 0) return []
-        const maxCols = Math.max(...data.map(row => row.length))
-        return data.map(row => {
+    normalizeMatrix(matrix) {
+        if (!matrix || matrix.length === 0) return []
+        
+        // Remove completamente linhas vazias
+        const cleanMatrix = matrix.filter(row => {
+            if (!Array.isArray(row)) return false;
+            return row.some(cell => cell !== null && cell !== undefined && cell.toString().trim() !== '');
+        });
+
+        if (cleanMatrix.length === 0) return []
+
+        // Calcula o número máximo de colunas
+        const maxCols = Math.max(...cleanMatrix.map(row => row.length))
+
+        // Normaliza o tamanho de todas as linhas
+        return cleanMatrix.map(row => {
             const newRow = [...row]
             while (newRow.length < maxCols) newRow.push('')
-            return newRow
+            return newRow.map(cell => (cell === null || cell === undefined) ? '' : cell.toString().trim())
         })
     }
 }
