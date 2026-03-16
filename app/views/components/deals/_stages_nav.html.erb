@@ -1,5 +1,10 @@
 <%= stylesheet_link_tag 'stages_nav', media: 'all' %>
-<nav aria-label="breadcrumb" id='stages_nav' data-controller='load-flowbite' class="stage-bar">
+<nav aria-label="breadcrumb" id='stages_nav' data-controller='load-flowbite deal--stage-update' class="stage-bar relative">
+  <%# Loading Spinner Overlay %>
+  <div data-deal--stage-update-target="spinner" class="hidden absolute inset-0 z-[100] flex items-center justify-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-[1px] rounded-lg">
+    <div class="animate-spin rounded-full h-4 w-4 border-2 border-emerald-500 border-t-transparent"></div>
+  </div>
+
   <div class="flex space-x-1 items-start">
     <% stages = deal.stage.pipeline.stages.order(:position) %>
     <% stages.each_with_index do | stage, index | %>

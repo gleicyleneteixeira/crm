@@ -20,6 +20,10 @@
   <%= render 'accounts/pipelines/deal', deal: @deal %>
 <% end %>
 
+<%= turbo_stream.replace dom_id(@deal, :drawer_row) do %>
+  <%= render 'accounts/deals/deal_row', deal: @deal %>
+<% end %>
+
 <%= turbo_stream.replace dom_id(@deal, :chatwoot_embed), partial: 'accounts/contacts/chatwoot_embed/deal', locals: { deal: @deal } %>
 
 <%# Scripts de reinicialização (essencial para o DOM local) %>
