@@ -28,13 +28,13 @@
          </div>
       </nav>
       <div class="h-8 w-px bg-slate-800/60"></div>
-      <%= link_to composition_campaign_path(@campaign), class: 'text-[10px] font-black text-slate-500 hover:text-white transition-colors uppercase tracking-widest flex items-center gap-2' do %>
+      <%= link_to composition_account_campaign_path(@account, @campaign), class: 'text-[10px] font-black text-slate-500 hover:text-white transition-colors uppercase tracking-widest flex items-center gap-2' do %>
         <i data-lucide="arrow-left" class="w-3 h-3"></i> Voltar
       <% end %>
     </div>
   </header>
 
-  <%= form_with(model: @campaign, url: update_logistics_campaign_path(@campaign), method: :patch, class: "flex-1 overflow-y-auto custom-scrollbar p-12") do |f| %>
+  <%= form_with(model: [@account, @campaign], url: update_logistics_account_campaign_path(@account, @campaign), method: :patch, class: "flex-1 overflow-y-auto custom-scrollbar p-12") do |f| %>
     <div class="max-w-5xl mx-auto space-y-12 pb-24">
       
       <!-- Intervalo Entre Envios (Image 1 Pattern) -->

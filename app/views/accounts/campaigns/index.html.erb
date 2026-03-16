@@ -25,15 +25,15 @@
               <p class="text-[9px] text-slate-400">Salvo em <%= draft.updated_at.strftime('%d/%m %H:%M') %></p>
             </div>
             <% 
-              # Quando shallow: true, ações de membro usam o helper flat sem prefixo account_
+              # Agora que removemos shallow: true, voltamos a usar o prefixo account_
               resume_path = case draft.current_step
-                            when 1 then edit_campaign_path(draft)
-                            when 2 then composition_campaign_path(draft)
-                            else edit_campaign_path(draft)
+                            when 1 then edit_account_campaign_path(@account, draft)
+                            when 2 then composition_account_campaign_path(@account, draft)
+                            else edit_account_campaign_path(@account, draft)
                             end
             %>
             <div class="flex gap-2">
-              <%= button_to campaign_path(draft), method: :delete, data: { confirm: 'Tem certeza que deseja excluir este rascunho?' }, class: 'p-2 bg-slate-100 dark:bg-slate-800 text-red-500 rounded-lg hover:bg-red-50 transition-all group border-none cursor-pointer' do %>
+              <%= button_to account_campaign_path(@account, draft), method: :delete, data: { confirm: 'Tem certeza que deseja excluir este rascunho?' }, class: 'p-2 bg-slate-100 dark:bg-slate-800 text-red-500 rounded-lg hover:bg-red-50 transition-all group border-none cursor-pointer' do %>
                 <i data-lucide="trash-2" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
               <% end %>
               <%= link_to resume_path, class: 'p-2 bg-brand-palette-03 text-white rounded-lg hover:bg-brand-palette-04 transition-all group' do %>
@@ -60,7 +60,7 @@
         <% @campaigns.each do |campaign| %>
           <tr class="hover:bg-slate-50 dark:hover:bg-slate-800">
             <td class="px-6 py-4 whitespace-nowrap typography-body-s-lh150 text-dark-gray-palette-p1">
-              <%= link_to campaign.name, campaign_path(campaign) %>
+              <%= link_to campaign.name, account_campaign_path(@account, campaign) %>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
               <span class="px-2 py-1 rounded-full typography-micro-b-lh150 <%= campaign.completed? ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' %>">
@@ -71,8 +71,8 @@
               <%= campaign.created_at.strftime('%d/%m/%Y %H:%M') %>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-xs">
-              <%= link_to 'Revisar Contatos', edit_campaign_path(campaign), class: 'text-brand-palette-03 hover:underline mr-4 font-bold uppercase tracking-wider' %>
-              <%= link_to 'Mensagens', composition_campaign_path(campaign), class: 'text-brand-palette-03 hover:underline font-bold uppercase tracking-wider' %>
+              <%= link_to 'Revisar Contatos', edit_account_campaign_path(@account, campaign), class: 'text-brand-palette-03 hover:underline mr-4 font-bold uppercase tracking-wider' %>
+              <%= link_to 'Mensagens', composition_account_campaign_path(@account, campaign), class: 'text-brand-palette-03 hover:underline font-bold uppercase tracking-wider' %>
             </td>
           </tr>
         <% end %>

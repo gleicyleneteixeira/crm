@@ -124,7 +124,7 @@ Rails.application.routes.draw do
     end
     resources :workflows
     resources :campaign_categories, except: [:show]
-    resources :campaigns, shallow: true do
+    resources :campaigns do
       member do
         get :composition
         patch :update_composition
