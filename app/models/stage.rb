@@ -28,9 +28,12 @@ class Stage < ApplicationRecord
                                            }
 
   def total_amount_deals(filter_status_deal)
-    return deals.sum(&:total_amount_in_cents) if filter_status_deal == 'all'
-
-    deals.where(status: filter_status_deal).sum(&:total_amount_in_cents)
+    query = deals
+    query = query.where(status: filter_status_deal) unless filter_status_deal == 'all'
+    
+    # Faz o SUM direto no banco usando SQL para ser instantâneo
+    # manual_amount_in_cents é a coluna prioritária no modelo Deal
+    query.sum("COALESCE(NULLIF(manual_amount_in_cents, 0), total_deal_products_amount_in_cents)")
   end
 
   def total_quantity_deals(filter_status_deal)

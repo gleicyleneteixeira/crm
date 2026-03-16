@@ -36,7 +36,7 @@
           <% end %>
         </div>
 
-        <div class="flex items-center gap-2 mt-1 px-1">
+        <div class="flex items-center gap-2 mt-1 px-1" id="<%= dom_id(deal, :drawer_stage_name) %>">
           <i data-lucide="layers" class="w-3 h-3 text-slate-400"></i>
           <span class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
             Etapa: <span class="text-slate-700 dark:text-slate-200"><%= deal.stage&.name %></span>
@@ -44,7 +44,7 @@
         </div>
 
         <%# Progress Bar (Visual Pipeline) %>
-        <div class="mt-3">
+        <div class="mt-3" id="<%= dom_id(deal, :drawer_stage_nav) %>">
           <%= render 'components/deals/stages_nav', deal: deal %>
         </div>
 
