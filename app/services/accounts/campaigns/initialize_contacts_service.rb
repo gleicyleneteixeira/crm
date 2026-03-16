@@ -69,7 +69,7 @@ module Accounts
           if field.start_with?('contact.')
             attr = field.split('.').last
             if attr == 'full_name' || attr == 'email' || attr == 'phone'
-              params[attr.to_sym] = val
+              params[attr.to_sym] = attr == 'full_name' ? val.to_s.split(' ').map(&:capitalize).join(' ') : val
             else
               params[:custom_attributes][attr] = val
             end

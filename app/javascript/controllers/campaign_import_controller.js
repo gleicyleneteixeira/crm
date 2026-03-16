@@ -73,8 +73,16 @@ export default class extends Controller {
         this.validateMapping();
     }
 
-    autoMatchHeaders() {
+    autoMatchHeaders(force = false) {
         if (!this.rawData || this.rawData.length === 0) return;
+        
+        // Se já temos mapeamento e não é forçado (ex: reidratação de rascunho), 
+        // mantemos o que existe para não apagar o trabalho do usuário.
+        if (Object.keys(this.currentMapping).length > 0 && !force) {
+            console.log("Mapeamento existente preservado. Ignorando auto-match.");
+            return;
+        }
+
         const headers = this.rawData[0];
 
         this.currentMapping = {};
@@ -137,7 +145,7 @@ export default class extends Controller {
             this.ignoredRows.clear()
             this.rawData = this.normalizeMatrix(processedJson)
             console.log('Dados carregados:', this.rawData);
-            this.autoMatchHeaders()
+            this.autoMatchHeaders(true) // Forçamos o match em upload de novo arquivo
             this.renderizarGrid()
 
             event.target.value = ''
@@ -158,7 +166,7 @@ export default class extends Controller {
                 this.ignoredRows.clear()
                 this.rawData = this.normalizeMatrix(finalData)
                 console.log(`Reidratado: ${this.rawData.length} linhas (após limpeza).`)
-                this.autoMatchHeaders()
+                this.autoMatchHeaders(false) // Não força, preservando o initialMappingValue
                 this.renderizarGrid()
                 this.validateMapping()
             } else if (Array.isArray(finalData)) {
