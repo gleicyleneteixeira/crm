@@ -27,33 +27,64 @@ class Accounts::CampaignsController < InternalController
   end
 
   def create
-    @campaign = Campaign.new(campaign_params.merge(account: @account, status: :draft, current_step: 3))
+    begin
+      # Usa to_unsafe_h para evitar UnfilteredParameters com dados complexos de planilha
+      @campaign = Campaign.new(campaign_params.merge(account: @account, status: :draft, current_step: 3))
 
-    if @campaign.save
-      Accounts::Campaigns::InitializeContactsService.call(@campaign) if @campaign.spreadsheet_data.present? && @campaign.mapping.present?
-      # Redireciona direto para a Tela 3 (Composição), pulando o mapeamento antigo
-      redirect_to composition_campaign_path(@campaign), notice: 'Rascunho salvo! Agora configure suas mensagens.'
-    else
+      if @campaign.save
+        puts "CAMPAIGN SAVED SUCCESSFULLY: #{@campaign.id}"
+        begin
+          Accounts::Campaigns::InitializeContactsService.call(@campaign) if @campaign.spreadsheet_data.present? && @campaign.mapping.present?
+          puts "CONTACTS INITIALIZED"
+        rescue => e
+          puts "ERROR IN InitializeContactsService: #{e.message}"
+          puts e.backtrace.join("\n")
+          # Não trava o fluxo, mas loga o erro
+        end
+        
+        url = composition_campaign_path(@campaign)
+        puts "REDIRECTING TO: #{url}"
+        redirect_to url, notice: 'Rascunho salvo! Agora configure suas mensagens.'
+      else
+        puts "CAMPAIGN SAVE FAILED: #{@campaign.errors.full_messages}"
+        @campaign_categories = CampaignCategory.all
+        @pipelines = @account.pipelines.includes(:stages)
+        @crm_fields = fetch_crm_fields
+        render :new, status: :unprocessable_entity
+      end
+    rescue => e
+      puts "CRITICAL ERROR IN CREATE: #{e.class} - #{e.message}"
+      puts e.backtrace.first(10).join("\n")
+      flash.now[:alert] = "Erro crítico ao salvar: #{e.message}"
       @campaign_categories = CampaignCategory.all
       @pipelines = @account.pipelines.includes(:stages)
       @crm_fields = fetch_crm_fields
-      render :new, status: :unprocessable_entity
+      render :new, status: :internal_server_error
     end
   end
 
   def update
-    # Se editado na Tela 1, avançamos para a Tela 3 (Composition)
-    updated_params = campaign_params.merge(current_step: 3)
-    
-    if @campaign.update(updated_params)
-      # Re-inicializa contatos se os dados/mapeamento foram revisados
-      Accounts::Campaigns::InitializeContactsService.call(@campaign) if @campaign.spreadsheet_data.present? && @campaign.mapping.present?
-      redirect_to composition_campaign_path(@campaign), notice: 'Configurações atualizadas!'
-    else
+    begin
+      # Se editado na Tela 1, avançamos para a Tela 3 (Composition)
+      updated_params = campaign_params.merge(current_step: 3)
+      
+      if @campaign.update(updated_params)
+        # Re-inicializa contatos se os dados/mapeamento foram revisados
+        Accounts::Campaigns::InitializeContactsService.call(@campaign) if @campaign.spreadsheet_data.present? && @campaign.mapping.present?
+        redirect_to composition_campaign_path(@campaign), notice: 'Configurações atualizadas!'
+      else
+        @campaign_categories = CampaignCategory.all
+        @pipelines = @account.pipelines.includes(:stages)
+        @crm_fields = fetch_crm_fields
+        render :edit, status: :unprocessable_entity
+      end
+    rescue => e
+      puts "CRITICAL ERROR IN UPDATE: #{e.message}"
+      flash.now[:alert] = "Erro crítico ao atualizar: #{e.message}"
       @campaign_categories = CampaignCategory.all
       @pipelines = @account.pipelines.includes(:stages)
       @crm_fields = fetch_crm_fields
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :internal_server_error
     end
   end
 
@@ -121,6 +152,7 @@ class Accounts::CampaignsController < InternalController
 
 
   def composition
+    @campaign = @account.campaigns.find(params[:id])
     @inboxes = @account.apps_chatwoots.active.first&.inboxes || []
     @pipelines = @account.pipelines
   end
@@ -208,35 +240,27 @@ class Accounts::CampaignsController < InternalController
   end
 
   def campaign_params
-    # Primeiro permitimos campos simples e convertemos para Hash puro
-    # Removemos complexos (mapping, spreadsheet_data) do permit inicial
-    permitted = params.require(:campaign).permit(
-      :name, :campaign_category_id, :pipeline_id, :stage_id, 
-      :insert_ddi, :ai_randomization, :current_step,
-      chatwoot_inbox_ids: []
-    ).to_h
+    # A maneira mais segura de lidar com arrays aninhados dinâmicos e hashes
+    # Converter tudo para um hash comum do Ruby primeiro, ignorando filtros do Rails
+    raw_params = params.require(:campaign).to_unsafe_h
+    
+    # Selecionar apenas o que queremos e converter chaves para símbolos
+    permitted = raw_params.slice(
+      'name', 'campaign_category_id', 'pipeline_id', 'stage_id', 
+      'insert_ddi', 'ai_randomization', 'current_step',
+      'chatwoot_inbox_ids', 'spreadsheet_data', 'mapping'
+    ).symbolize_keys
 
-    # Adicionamos os dados complexos manualmente
-    if params[:campaign][:mapping].present?
-      permitted[:mapping] = params[:campaign][:mapping].respond_to?(:to_unsafe_h) ? params[:campaign][:mapping].to_unsafe_h : params[:campaign][:mapping]
-    end
+    # Garantir que ID de inbox seja array
+    permitted[:chatwoot_inbox_ids] ||= []
 
-    if params[:campaign][:spreadsheet_data].present?
-      # spreadsheet_data pode ser String (JSON) ou Array (enviado via formulário)
-      if params[:campaign][:spreadsheet_data].is_a?(String)
-        permitted[:spreadsheet_data] = params[:campaign][:spreadsheet_data]
-      else
-        permitted[:spreadsheet_data] = params[:campaign][:spreadsheet_data].respond_to?(:to_unsafe_h) ? params[:campaign][:spreadsheet_data].to_unsafe_h : params[:campaign][:spreadsheet_data]
-      end
-    end
-
-    # Converte strings JSON para Hash/Array se necessário (caso venham como string)
+    # Converte strings JSON para Hash/Array se necessário (caso venham via JS/JSON)
     [:spreadsheet_data, :mapping].each do |field|
       if permitted[field].is_a?(String) && permitted[field].present?
         begin
           permitted[field] = JSON.parse(permitted[field])
         rescue JSON::ParserError
-          # Mantém como está se falhar
+          # Mantém como está
         end
       end
     end

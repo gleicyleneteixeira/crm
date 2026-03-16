@@ -113,6 +113,10 @@ class Account < ApplicationRecord
     AiPrompt.all
   end
 
+  def ai_providers
+    AiProvider.all
+  end
+
   def site_url=(url)
     super(normalize_url(url))
   end
