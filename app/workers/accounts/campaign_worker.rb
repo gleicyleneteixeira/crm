@@ -106,7 +106,7 @@ class Accounts::CampaignWorker
   end
 
   def send_message(contact, block)
-    content = block['content']
+    content = render_content(contact, block['content'])
     inbox_id = select_inbox
     
     case block['type']
@@ -146,6 +146,23 @@ class Accounts::CampaignWorker
     
     # Small delay between blocks in sequence
     sleep(2)
+  end
+
+  def render_content(contact, content)
+    return "" if content.blank?
+    
+    processed = content.dup
+    
+    # Process {{first_name}}
+    if processed.downcase.include?('{{first_name}}')
+      first_name = contact.full_name.to_s.split(' ').first.to_s.capitalize
+      processed.gsub!(/\{\{first_name\}\}/i, first_name.presence || "[Nome]")
+    end
+
+    # Process other variables if needed (mapped from contact attributes/custom_attributes)
+    # For now, focus on the smart variable requested
+    
+    processed
   end
 
   def find_or_create_deal_with_conversation(contact, conversation)

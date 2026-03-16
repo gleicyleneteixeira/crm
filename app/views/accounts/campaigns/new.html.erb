@@ -181,7 +181,7 @@
         Mapeie os campos de Nome e Telefone para habilitar o envio.
       </div>
       <div class="flex gap-3">
-        <%= link_to 'Cancelar', account_campaigns_path(current_user.account), class: 'btn-secondary font-semibold' %>
+        <%= link_to 'Cancelar', account_campaigns_path(@account), class: 'btn-secondary font-semibold' %>
         <%= f.button 'Próximo <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>'.html_safe, type: 'submit', class: 'btn-primary font-semibold flex items-center shadow-lg hover:shadow-xl transition-all', data: { 'campaign-import-target': 'submitButton' } %>
       </div>
     </div>

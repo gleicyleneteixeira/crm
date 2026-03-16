@@ -27,6 +27,21 @@ export default class extends Controller {
         let processedText = text
         if (!this.headersValue || !this.sampleRowValue) return processedText
 
+        const nameIndex = this.headersValue.findIndex(h => h.toLowerCase().includes('nome') || h.toLowerCase() === 'name')
+
+        // Process first_name dynamic tag
+        if (processedText.toLowerCase().includes('{{first_name}}')) {
+            let firstName = ""
+            if (nameIndex !== -1 && this.sampleRowValue[nameIndex]) {
+                const full_name = this.sampleRowValue[nameIndex].toString()
+                const rawFirst = full_name.split(' ')[0]
+                firstName = rawFirst.charAt(0).toUpperCase() + rawFirst.slice(1).toLowerCase()
+            }
+            const regex = new RegExp('{{first_name}}', 'gi')
+            processedText = processedText.replace(regex, firstName || '[Nome]')
+        }
+
+        // Process other spreadsheet variables
         this.headersValue.forEach((header, index) => {
             const variable = `{{${header.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "_")}}}`
             const value = this.sampleRowValue[index] || `[${header}]`
