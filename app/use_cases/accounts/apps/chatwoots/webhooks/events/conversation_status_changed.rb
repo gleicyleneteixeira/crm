@@ -1,0 +1,41 @@
+class Accounts::Apps::Chatwoots::Webhooks::Events::ConversationStatusChanged
+  def self.call(chatwoot, webhook)
+    return { ok: 'Automatic deal creation is disabled' } unless chatwoot.chatwoot_push_deals_automatic
+    
+    conversation = webhook
+    # Se a conversa mudou de status, queremos agir se for reaberta (unresolved)
+    # No Chatwoot, reabrir envia 'open' ou 'active' se estava 'resolved'
+    return { ok: 'Status change ignored' } unless conversation['status'] == 'open'
+
+    contact_id = conversation['contact_inbox']['contact_id']
+    contact = Accounts::Apps::Chatwoots::Webhooks::ImportContact.get_or_import_contact(chatwoot, contact_id)
+    
+    # Mesmo lógica do ConversationCreated
+    return { ok: 'Contact already has an open deal in this pipeline' } if contact_has_open_deal?(contact, chatwoot.chatwoot_push_deals_pipeline_id)
+
+    create_deal(chatwoot, contact, conversation)
+  end
+
+  def self.contact_has_open_deal?(contact, pipeline_id)
+    contact.deals.where(pipeline_id: pipeline_id, status: 'open').exists?
+  end
+
+  def self.create_deal(chatwoot, contact, conversation)
+    deal_params = {
+      pipeline_id: chatwoot.chatwoot_push_deals_pipeline_id,
+      stage_id: chatwoot.chatwoot_push_deals_stage_id,
+      account_id: chatwoot.account_id,
+      contact_id: contact.id,
+      name: "Atendimento: #{contact.full_name}",
+      chatwoot_conversation_url: build_conversation_url(chatwoot, conversation['id']),
+      status: 'open'
+    }
+
+    deal = Deal.create!(deal_params)
+    { ok: deal }
+  end
+
+  def self.build_conversation_url(chatwoot, conversation_id)
+    "#{chatwoot.chatwoot_endpoint_url}/app/accounts/#{chatwoot.chatwoot_account_id}/conversations/#{conversation_id}"
+  end
+end

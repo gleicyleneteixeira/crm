@@ -12,10 +12,11 @@ export default class extends Controller {
       getAccountCurrency()
     );
 
-    // Dynamic Badge logic: apply styles only after loading if marked
+    // Adiciona estilização de badge APENAS após carregar o conteúdo, evitando o "risquinho verde" (Option A)
     const badgeContainer = this.element.closest('[data-as-badge="true"]');
     if (badgeContainer) {
       badgeContainer.classList.add('bg-emerald-500/15', 'text-emerald-600', 'border', 'border-emerald-500/40');
+      badgeContainer.classList.remove('opacity-0'); // Garante que fique invisível se começarmos com opacity-0
     }
   }
 

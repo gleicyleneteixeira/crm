@@ -9,7 +9,10 @@ class Accounts::Apps::ChatwootsController < InternalController
     end
   end
 
-  def edit; end
+  def edit
+    @pipelines = current_user.account.pipelines
+    @stages = @chatwoot.chatwoot_push_deals_pipeline&.stages || []
+  end
 
   def create
     result = Accounts::Apps::Chatwoots::Create.call(current_user.account, chatwoot_params)
@@ -32,7 +35,8 @@ class Accounts::Apps::ChatwootsController < InternalController
 
   def update
     @chatwoot.update(chatwoot_params)
-    redirect_to edit_account_apps_chatwoot_path(current_user.account, current_user.account.apps_chatwoots.first)
+    redirect_to edit_account_apps_chatwoot_path(current_user.account, @chatwoot),
+                notice: t('flash_messages.updated', model: Apps::Chatwoot.model_name.human)
   end
 
   private
@@ -42,6 +46,7 @@ class Accounts::Apps::ChatwootsController < InternalController
   end
 
   def chatwoot_params
-    params.require(:apps_chatwoot).permit(:chatwoot_endpoint_url, :chatwoot_account_id, :chatwoot_user_token, :active)
+    params.require(:apps_chatwoot).permit(:chatwoot_endpoint_url, :chatwoot_account_id, :chatwoot_user_token, :active,
+                                          :chatwoot_push_deals_automatic, :chatwoot_push_deals_pipeline_id, :chatwoot_push_deals_stage_id)
   end
 end

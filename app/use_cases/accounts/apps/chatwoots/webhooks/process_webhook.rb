@@ -9,6 +9,14 @@ class Accounts::Apps::Chatwoots::Webhooks::ProcessWebhook
       Accounts::Apps::Chatwoots::Webhooks::Events::Contact.call(
         chatwoot, webhook
       )
+    elsif webhook['event'] == 'conversation_created'
+      Accounts::Apps::Chatwoots::Webhooks::Events::ConversationCreated.call(
+        chatwoot, webhook
+      )
+    elsif webhook['event'] == 'conversation_status_changed'
+      Accounts::Apps::Chatwoots::Webhooks::Events::ConversationStatusChanged.call(
+        chatwoot, webhook
+      )
     elsif webhook['event'] == 'conversation_updated'
       Accounts::Apps::Chatwoots::Webhooks::Events::ConversationUpdated.call(
         chatwoot, webhook

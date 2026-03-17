@@ -1,5 +1,5 @@
 <section class="m-8 p-8 bg-light-palette-p5 border-2 border-light-palette-p3 rounded-md space-y-5">
-  <%= form_with(model: @chatwoot, url: account_apps_chatwoots_path(current_user.account), data: {turbo: false}, id: 'formId', class: 'flex flex-col gap-5') do |form| %>
+  <%= form_with(model: @chatwoot, url: account_apps_chatwoot_path(current_user.account, @chatwoot), method: :patch, data: {turbo: false, controller: 'apps--chatwoot-automation'}, id: 'formId', class: 'flex flex-col gap-5') do |form| %>
     <% if @chatwoot.errors.any? %>
       <div id="error_explanation">
         <ul>
@@ -21,7 +21,31 @@
       <%= form.label :chatwoot_user_token, class: 'typography-text-m-lh150 text-dark-gray-palette-p1' %>
       <%= form.text_field :chatwoot_user_token, class: 'form-input', disabled: true %>
     </div>
-    <%= link_to t('views.accounts.apps.chatwoots.edit.delete'), account_apps_chatwoot_path(current_user.account, @chatwoot),
-        method: :delete, data: {confirm: t('views.accounts.apps.chatwoots.edit.are_you_sure?')}, class: 'btn-primary cursor-pointer self-end' %>
-  <% end %>
+    <%# Automação Section %>
+    <div class="border-t border-light-palette-p3 pt-5 mt-5">
+      <h3 class="typography-text-m-lh150 text-dark-gray-palette-p1 font-bold mb-4">Automação Nativa</h3>
+      
+      <div class="flex items-center gap-3 mb-5">
+        <%= form.check_box :chatwoot_push_deals_automatic, class: 'w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500' %>
+        <%= form.label :chatwoot_push_deals_automatic, 'Criação Automática de Negócio', class: 'typography-text-m-lh150 text-dark-gray-palette-p1' %>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div class="grid gap-2">
+          <%= form.label :chatwoot_push_deals_pipeline_id, 'Pipeline Padrão', class: 'typography-text-m-lh150 text-dark-gray-palette-p1' %>
+          <%= form.collection_select :chatwoot_push_deals_pipeline_id, @pipelines, :id, :name, { include_blank: 'Selecione uma Pipeline' }, { class: 'form-input', data: { action: 'change->apps--chatwoot-automation#updateStages' } } %>
+        </div>
+        <div class="grid gap-2">
+          <%= form.label :chatwoot_push_deals_stage_id, 'Estágio Padrão', class: 'typography-text-m-lh150 text-dark-gray-palette-p1' %>
+          <%= form.collection_select :chatwoot_push_deals_stage_id, @stages, :id, :name, { include_blank: 'Selecione um Estágio' }, { class: 'form-input', id: 'chatwoot_push_deals_stage_id' } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-3 pt-5">
+      <%= link_to t('views.accounts.apps.chatwoots.edit.delete'), account_apps_chatwoot_path(current_user.account, @chatwoot),
+          method: :delete, data: {confirm: t('views.accounts.apps.chatwoots.edit.are_you_sure?')}, class: 'btn-secondary text-red-600 border-red-200 hover:bg-red-50' %>
+      <%= form.submit 'Salvar Configurações', class: 'btn-primary cursor-pointer' %>
+    </div>
+<% end %>
 </section>
