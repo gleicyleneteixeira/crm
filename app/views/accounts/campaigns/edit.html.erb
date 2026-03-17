@@ -11,7 +11,14 @@
     </div>
   </div>
 
-  <%= form_with(model: [@account, @campaign], data: { controller: 'campaign-import', 'campaign-import-pipelines-value': @pipelines.to_json(include: :stages), 'campaign-import-crm-fields-value': @crm_fields.to_json, 'campaign-import-initial-mapping-value': @campaign.mapping.to_json, action: 'submit->campaign-import#handleFormSubmit' }, class: "flex flex-col gap-6") do |f| %>
+  <%= form_with(model: [@account, @campaign], data: { 
+      controller: 'campaign-import', 
+      'campaign-import-pipelines-value': @pipelines.to_json(include: :stages), 
+      'campaign-import-crm-fields-value': @crm_fields.to_json, 
+      'campaign-import-initial-mapping-value': @campaign.mapping.to_json, 
+      'campaign-import-initial-stage-id-value': @campaign.stage_id,
+      action: 'submit->campaign-import#handleFormSubmit' 
+    }, class: "flex flex-col gap-6") do |f| %>
     <%= f.hidden_field :account_id, value: @account.id %>
     
     <!-- TOP SECTION: Configuração de Campanha e Destino -->
@@ -192,32 +199,4 @@
   <% end %>
 </div>
 
-<script type="module">
-  // Garantimos que o script de suporte para pipelines rode, se necessário fora do controller global
-  document.addEventListener('turbo:load', () => {
-    const pipelinesData = <%= raw @pipelines.to_json(include: :stages) %>;
-    const currentStage = "<%= @campaign.stage_id %>";
-    
-    // O controller campaign-import já cuida de muita coisa, mas se precisarmos de patch manual:
-    const pipelineSelect = document.querySelector('[data-campaign-import-target="pipelineSelect"]');
-    const stageSelect = document.querySelector('[data-campaign-import-target="stageSelect"]');
-    
-    if (pipelineSelect && stageSelect && pipelinesData) {
-       const updateStages = () => {
-          const pId = pipelineSelect.value;
-          stageSelect.innerHTML = '<option value="">Selecione...</option>';
-          const pipe = pipelinesData.find(p => p.id.toString() === pId);
-          if (pipe && pipe.stages) {
-             pipe.stages.forEach(s => {
-                const opt = document.createElement('option');
-                opt.value = s.id; opt.textContent = s.name;
-                if (s.id.toString() === currentStage) opt.selected = true;
-                stageSelect.appendChild(opt);
-             });
-          }
-       };
-       pipelineSelect.addEventListener('change', updateStages);
-       if (pipelineSelect.value) updateStages();
-    }
-  });
-</script>
+<%# O controller campaign-import já cuida da reatividade e do mapeamento inicial %>

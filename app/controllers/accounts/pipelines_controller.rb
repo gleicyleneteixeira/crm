@@ -24,6 +24,10 @@ class Accounts::PipelinesController < InternalController
                           else
                             'open'
                           end
+    respond_to do |format|
+      format.html
+      format.json { render json: @pipeline.to_json(include: :stages) }
+    end
   end
 
   # GET /pipelines/new

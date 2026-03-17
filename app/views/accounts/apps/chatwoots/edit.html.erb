@@ -1,5 +1,5 @@
 <section class="m-8 p-8 bg-light-palette-p5 border-2 border-light-palette-p3 rounded-md space-y-5">
-  <%= form_with(model: @chatwoot, url: account_apps_chatwoot_path(current_user.account, @chatwoot), method: :patch, data: {turbo: false, controller: 'apps--chatwoot-automation'}, id: 'formId', class: 'flex flex-col gap-5') do |form| %>
+  <%= form_with(model: @chatwoot, url: account_apps_chatwoot_path(current_user.account, @chatwoot), method: :patch, data: {turbo: false, controller: 'apps--chatwoot-automation', 'apps--chatwoot-automation-account-id-value': current_user.account.id, 'apps--chatwoot-automation-initial-stage-id-value': @chatwoot.chatwoot_push_deals_stage_id}, id: 'formId', class: 'flex flex-col gap-5') do |form| %>
     <% if @chatwoot.errors.any? %>
       <div id="error_explanation">
         <ul>
@@ -33,11 +33,11 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div class="grid gap-2">
           <%= form.label :chatwoot_push_deals_pipeline_id, 'Pipeline Padrão', class: 'typography-text-m-lh150 text-dark-gray-palette-p1' %>
-          <%= form.collection_select :chatwoot_push_deals_pipeline_id, @pipelines, :id, :name, { include_blank: 'Selecione uma Pipeline' }, { class: 'form-input', data: { action: 'change->apps--chatwoot-automation#updateStages' } } %>
+          <%= form.collection_select :chatwoot_push_deals_pipeline_id, @pipelines, :id, :name, { include_blank: 'Selecione uma Pipeline' }, { class: 'form-input', data: { action: 'change->apps--chatwoot-automation#updateStages', 'apps--chatwoot-automation-target': 'pipelineSelect' } } %>
         </div>
         <div class="grid gap-2">
           <%= form.label :chatwoot_push_deals_stage_id, 'Estágio Padrão', class: 'typography-text-m-lh150 text-dark-gray-palette-p1' %>
-          <%= form.collection_select :chatwoot_push_deals_stage_id, @stages, :id, :name, { include_blank: 'Selecione um Estágio' }, { class: 'form-input', id: 'chatwoot_push_deals_stage_id' } %>
+          <%= form.collection_select :chatwoot_push_deals_stage_id, @stages || [], :id, :name, { include_blank: 'Selecione um Estágio' }, { class: 'form-input', id: 'chatwoot_push_deals_stage_id', data: { 'apps--chatwoot-automation-target': 'stageSelect' } } %>
         </div>
       </div>
     </div>

@@ -22,7 +22,8 @@ export default class extends Controller {
     static values = {
         pipelines: Array,
         crmFields: Object,
-        initialMapping: Object
+        initialMapping: Object,
+        initialStageId: String
     }
 
     connect() {
@@ -44,14 +45,40 @@ export default class extends Controller {
         if (Object.keys(this.currentMapping).length === 0) {
             this.loadCurrentMapping();
         }
+
+        // Initialize grid container scroll
+        if (this.hasGridContainerTarget) {
+            this.gridContainerTarget.addEventListener('scroll', this.handleScroll.bind(this));
+        }
         
-        this.rehydrateData()
-        this.validateMapping()
+        this.rehydrateData();
+
+        // Populate stages if pipeline is pre-selected
+        if (this.hasPipelineSelectTarget && this.pipelineSelectTarget.value) {
+            const initialStageId = this.hasInitialStageIdValue ? this.initialStageIdValue : "";
+            this.handlePipelineChange(initialStageId);
+        }
+
+        this.validateMapping();
+
+        // Initialize Lucide icons
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
     }
 
     handleFormSubmit(event) {
-        console.log("Syncing JSON before submit...");
+        console.log("Submit triggered. Syncing JSON...");
         this.updateJsonOutput();
+        this.generateHiddenMappingInputs();
+        
+        // Final sanity check before submission
+        const exportData = this.rawData ? this.rawData.filter((_, index) => !this.ignoredRows.has(index)) : []
+        if (exportData.length === 0) {
+            console.error("Submission blocked: No data to submit.");
+            // We don't preventDefault here to allow the browser validation to work if needed, 
+            // but the button should already be disabled.
+        }
     }
 
     loadCurrentMapping() {
@@ -154,30 +181,35 @@ export default class extends Controller {
     }
 
     rehydrateData() {
-        if (!this.hasJsonOutputTarget || !this.jsonOutputTarget.value) return
+        if (!this.hasJsonOutputTarget || !this.jsonOutputTarget.value) {
+            console.log("No data for rehydration.");
+            return;
+        }
 
-        console.log("Tentando reidratar dados...")
+        console.log("Attempting to rehydrate data...");
         try {
-            const data = JSON.parse(this.jsonOutputTarget.value)
-            // Sometimes it's double escaped or comes as a literal string "[...] "
-            const finalData = typeof data === 'string' ? JSON.parse(data) : data
+            let data = this.jsonOutputTarget.value;
+            // Handle potentially double-serialized JSON
+            if (typeof data === 'string' && data.startsWith('"')) {
+                data = JSON.parse(data);
+            }
+            const finalData = typeof data === 'string' ? JSON.parse(data) : data;
 
             if (Array.isArray(finalData) && finalData.length > 0) {
-                this.ignoredRows.clear()
-                this.rawData = this.normalizeMatrix(finalData)
-                console.log(`Reidratado: ${this.rawData.length} linhas (após limpeza).`)
-                this.autoMatchHeaders(false) // Não força, preservando o initialMappingValue
-                this.renderizarGrid()
-                this.validateMapping()
-            } else if (Array.isArray(finalData)) {
-                this.rawData = []
-                this.ignoredRows.clear()
-                this.renderizarGrid()
-                this.validateMapping()
-                console.log("Dados reidratados como array vazio.")
+                this.ignoredRows.clear();
+                this.rawData = this.normalizeMatrix(finalData);
+                console.log(`Rehydrated: ${this.rawData.length} rows.`);
+                this.autoMatchHeaders(false); 
+                this.renderizarGrid();
+                this.validateMapping();
+            } else {
+                console.log("Rehydrated data is empty or invalid format.");
+                this.rawData = [];
+                this.ignoredRows.clear();
+                this.validateMapping();
             }
         } catch (e) {
-            console.error('Falha ao reidratar dados:', e)
+            console.error('Failed to rehydrate data:', e);
         }
     }
 
@@ -715,11 +747,14 @@ export default class extends Controller {
         this.validateMapping()
     }
 
-    handlePipelineChange() {
+    handlePipelineChange(initialStageId = "") {
         if (!this.hasPipelineSelectTarget || !this.hasStageSelectTarget) return
 
         const pipelineIdStr = this.pipelineSelectTarget.value
         const pipelineId = pipelineIdStr ? parseInt(pipelineIdStr, 10) : null
+        
+        // Use provided initialStageId, or current target value, or empty
+        const currentSelectedStage = initialStageId || this.stageSelectTarget.value
 
         this.stageSelectTarget.innerHTML = '<option value="">Selecione a etapa inicial...</option>'
 
@@ -730,6 +765,9 @@ export default class extends Controller {
                     const opt = document.createElement('option')
                     opt.value = stage.id
                     opt.textContent = stage.name
+                    if (stage.id.toString() === currentSelectedStage.toString()) {
+                        opt.selected = true
+                    }
                     this.stageSelectTarget.appendChild(opt)
                 })
             }
@@ -743,54 +781,64 @@ export default class extends Controller {
         const hasData = exportData && exportData.length > 0;
 
         let mappingsValid = true
+        let mappingError = ""
+        
         if (hasData) {
-            const hasName = this.currentMapping['contact.full_name'] !== undefined || this.currentMapping['__campaign_name_target__'] !== undefined;
-            const hasPhone = this.currentMapping['contact.phone'] !== undefined ||
-                this.currentMapping['contact.phone_2'] !== undefined ||
-                this.currentMapping['contact.phone_3'] !== undefined;
+            const hasFullName = (this.currentMapping['contact.full_name'] !== undefined && this.currentMapping['contact.full_name'] !== "");
+            const hasCampaignNameTarget = (this.currentMapping['__campaign_name_target__'] !== undefined && this.currentMapping['__campaign_name_target__'] !== "");
+            
+            const hasPhone1 = (this.currentMapping['contact.phone'] !== undefined && this.currentMapping['contact.phone'] !== "");
+            const hasPhone2 = (this.currentMapping['contact.phone_2'] !== undefined && this.currentMapping['contact.phone_2'] !== "");
+            const hasPhone3 = (this.currentMapping['contact.phone_3'] !== undefined && this.currentMapping['contact.phone_3'] !== "");
 
+            const hasName = hasFullName || hasCampaignNameTarget;
+            const hasPhone = hasPhone1 || hasPhone2 || hasPhone3;
+
+            console.log("Mapping Detail:", { 
+                hasFullName, hasCampaignNameTarget, hasName,
+                hasPhone1, hasPhone2, hasPhone3, hasPhone,
+                currentMapping: this.currentMapping 
+            });
+
+            if (!hasName) mappingError = "Mapeamento de Nome faltando.";
+            if (!hasPhone) mappingError += " Mapeamento de Telefone faltando.";
+            
             if (!hasName || !hasPhone) {
                 mappingsValid = false;
             }
+        } else {
+            mappingError = "Sem dados na planilha.";
         }
 
-        let categoryParams = true;
-        if (this.hasCategorySelectTarget && !this.categorySelectTarget.value) {
-            categoryParams = false;
-        }
+        const categoryVal = this.hasCategorySelectTarget ? this.categorySelectTarget.value : null;
+        const pipelineVal = this.hasPipelineSelectTarget ? this.pipelineSelectTarget.value : null;
+        const stageVal = this.hasStageSelectTarget ? this.stageSelectTarget.value : null;
 
-        let pipelineParams = true;
-        if (this.hasPipelineSelectTarget && !this.pipelineSelectTarget.value) {
-            pipelineParams = false;
-        }
+        const isValid = hasData && mappingsValid && categoryVal && pipelineVal && stageVal
 
-        let stageParams = true;
-        if (this.hasStageSelectTarget && !this.stageSelectTarget.value) {
-            stageParams = false;
-        }
-
-        const isValid = hasData && mappingsValid && categoryParams && pipelineParams && stageParams
-
-        console.log("Validation State:", { 
+        console.log("Validation Check:", { 
+            isValid,
             hasData, 
             mappingsValid, 
-            categoryParams, 
-            pipelineParams, 
-            stageParams,
-            currentMapping: this.currentMapping 
+            mappingError,
+            category: !!categoryVal, 
+            pipeline: !!pipelineVal, 
+            stage: !!stageVal
         });
 
         if (this.hasSubmitButtonTarget) {
             this.submitButtonTarget.disabled = !isValid
             if (isValid) {
                 this.submitButtonTarget.classList.remove('opacity-50', 'cursor-not-allowed')
+                this.submitButtonTarget.title = "Avançar para a próxima etapa"
             } else {
                 this.submitButtonTarget.classList.add('opacity-50', 'cursor-not-allowed')
+                this.submitButtonTarget.title = `Bloqueado: ${mappingError || "Preencha todos os campos obrigatórios"}`
             }
         }
 
         this.generateHiddenMappingInputs();
-        this.updateJsonOutput(); // Garante que o JSON está sempre sincronizado e limpo
+        this.updateJsonOutput(); 
     }
 
     removeDuplicates() {
