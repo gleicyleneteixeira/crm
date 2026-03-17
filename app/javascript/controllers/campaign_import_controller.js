@@ -186,7 +186,7 @@ export default class extends Controller {
             return;
         }
 
-        console.log("Attempting to rehydrate data...");
+        console.log("Attempting to rehydrate data...", { length: this.jsonOutputTarget.value.length });
         try {
             let data = this.jsonOutputTarget.value;
             // Handle potentially double-serialized JSON
@@ -195,13 +195,24 @@ export default class extends Controller {
             }
             const finalData = typeof data === 'string' ? JSON.parse(data) : data;
 
+            console.log("Parsed finalData:", { 
+                type: Array.isArray(finalData) ? 'Array' : typeof finalData,
+                length: finalData.length,
+                sample: Array.isArray(finalData) ? finalData.slice(0, 1) : finalData
+            });
+
             if (Array.isArray(finalData) && finalData.length > 0) {
                 this.ignoredRows.clear();
                 this.rawData = this.normalizeMatrix(finalData);
                 console.log(`Rehydrated: ${this.rawData.length} rows.`);
-                this.autoMatchHeaders(false); 
-                this.renderizarGrid();
-                this.validateMapping();
+                
+                if (this.rawData.length > 0) {
+                    this.autoMatchHeaders(false); 
+                    this.renderizarGrid();
+                    this.validateMapping();
+                } else {
+                    console.warn("normalizeMatrix returned empty array for finalData.");
+                }
             } else {
                 console.log("Rehydrated data is empty or invalid format.");
                 this.rawData = [];
@@ -314,21 +325,6 @@ export default class extends Controller {
         this.renderizarGrid()
     }
 
-    normalizeMatrix(matrix) {
-        if (!matrix || matrix.length === 0) return []
-        let maxCols = 0;
-        matrix.forEach(row => {
-            if (row.length > maxCols) maxCols = row.length;
-        });
-        return matrix.map(row => {
-            const newRow = [...row];
-            while (newRow.length < maxCols) {
-                newRow.push("");
-            }
-            return newRow;
-        }).filter(row => row.some(cell => cell !== "" && cell !== undefined && cell !== null));
-    }
-
     clearData(event) {
         if (event) event.preventDefault()
         this.rawData = []
@@ -385,6 +381,7 @@ export default class extends Controller {
         }
 
         console.log('Iniciando renderizarGrid com rawData length:', this.rawData.length);
+        if (this.rawData.length > 0) console.log('Amostra rawData:', this.rawData[0]);
 
         try {
             const isHeader = this.hasHeaderToggleTarget ? this.headerToggleTarget.checked : true
@@ -924,15 +921,21 @@ export default class extends Controller {
     }
     
     normalizeMatrix(matrix) {
-        if (!matrix || matrix.length === 0) return []
+        if (!matrix || !Array.isArray(matrix) || matrix.length === 0) {
+            console.log("normalizeMatrix: Received invalid or empty matrix", matrix);
+            return [];
+        }
         
-        // Remove completamente linhas vazias
+        // Remove completely empty rows and handle non-array rows (if accidentally passed)
         const cleanMatrix = matrix.filter(row => {
             if (!Array.isArray(row)) return false;
             return row.some(cell => cell !== null && cell !== undefined && cell.toString().trim() !== '');
         });
 
-        if (cleanMatrix.length === 0) return []
+        if (cleanMatrix.length === 0) {
+            console.warn("normalizeMatrix: All rows filtered out as empty.");
+            return [];
+        }
 
         // Calcula o número máximo de colunas
         const maxCols = Math.max(...cleanMatrix.map(row => row.length))
