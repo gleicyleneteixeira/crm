@@ -201,9 +201,10 @@ export default class extends Controller {
                 sample: Array.isArray(finalData) ? finalData.slice(0, 1) : finalData
             });
 
-            if (Array.isArray(finalData) && finalData.length > 0) {
+            if (finalData && (Array.isArray(finalData) || typeof finalData === 'object')) {
                 this.ignoredRows.clear();
-                this.rawData = this.normalizeMatrix(finalData);
+                const normalized = this.normalizeMatrix(finalData);
+                this.rawData = normalized;
                 console.log(`Rehydrated: ${this.rawData.length} rows.`);
                 
                 if (this.rawData.length > 0) {
@@ -920,27 +921,49 @@ export default class extends Controller {
         }
     }
     
-    normalizeMatrix(matrix) {
-        if (!matrix || !Array.isArray(matrix) || matrix.length === 0) {
-            console.log("normalizeMatrix: Received invalid or empty matrix", matrix);
+    normalizeMatrix(data) {
+        if (!data) return [];
+        
+        let matrix = [];
+        // Converte objeto único ou Array de Objetos para Matriz (Array de Arrays)
+        if (Array.isArray(data)) {
+            if (data.length > 0 && !Array.isArray(data[0]) && typeof data[0] === 'object') {
+                // Array of Objects -> Array of Arrays
+                const headers = Object.keys(data[0]);
+                matrix.push(headers);
+                data.forEach(obj => {
+                    matrix.push(headers.map(h => obj[h]));
+                });
+            } else {
+                matrix = data;
+            }
+        } else if (typeof data === 'object') {
+            // Single object -> wrap in array
+            const headers = Object.keys(data);
+            matrix.push(headers);
+            matrix.push(headers.map(h => data[h]));
+        }
+
+        if (matrix.length === 0) {
+            console.log("normalizeMatrix: Matriz vazia após conversão");
             return [];
         }
         
-        // Remove completely empty rows and handle non-array rows (if accidentally passed)
+        // Remove completely empty rows
         const cleanMatrix = matrix.filter(row => {
             if (!Array.isArray(row)) return false;
             return row.some(cell => cell !== null && cell !== undefined && cell.toString().trim() !== '');
         });
 
         if (cleanMatrix.length === 0) {
-            console.warn("normalizeMatrix: All rows filtered out as empty.");
+            console.warn("normalizeMatrix: Todas as linhas foram filtradas como vazias.");
             return [];
         }
 
         // Calcula o número máximo de colunas
         const maxCols = Math.max(...cleanMatrix.map(row => row.length))
 
-        // Normaliza o tamanho de todas as linhas
+        // Normaliza o tamanho de todas as linhas e limpa valores nulos
         return cleanMatrix.map(row => {
             const newRow = [...row]
             while (newRow.length < maxCols) newRow.push('')
