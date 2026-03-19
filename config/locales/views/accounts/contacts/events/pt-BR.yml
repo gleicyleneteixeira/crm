@@ -7,3 +7,4 @@ pt-BR:
             history: 'Histórico'
             scheduled: 'Agendado'
             completed: 'Concluído'
+            load_more: 'Carregar mais...'

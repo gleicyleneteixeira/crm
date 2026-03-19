@@ -1,15 +1,15 @@
-<%= turbo_stream.append "events_done_#{@deal.contact.id}" do %>
+<%= turbo_stream.append "events_done_list_#{@deal.contact.id}" do %>
   <% @events.each do |event| %>
     <%= render partial: 'accounts/contacts/events/event', locals: {event: event} %>
   <% end %>
-  <% if @pagy.next.present? %>
-    <%= turbo_frame_tag :pagination_events_done, src: events_done_account_deal_path(@deal.account, @deal, page: @pagy.next, format: :turbo_stream), loading: :lazy do  %>
-      <div class='py-5'>
-        <%= render '/components/loading' %>
+<% end %>
+
+<%= turbo_stream.replace "pagination_events_done_#{@deal.contact.id}" do %>
+  <%= turbo_frame_tag "pagination_events_done_#{@deal.contact.id}" do %>
+    <% if @pagy.next.present? %>
+      <div class="flex justify-center p-4">
+        <%= link_to t('views.accounts.contacts.events.load_more'), events_done_account_deal_path(@deal.account, @deal, page: @pagy.next, format: :turbo_stream), class: "btn-load-more text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-brand-palette-03 transition-all", data: { turbo_stream: true } %>
       </div>
     <% end %>
   <% end %>
-<% end %>
-<% unless @pagy.next.present? %>
-  <%= turbo_stream.remove :pagination_events_done %>
 <% end %>

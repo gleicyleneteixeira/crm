@@ -7,3 +7,4 @@ en:
             history: 'History'
             scheduled: 'Scheduled'
             completed: 'Completed'
+            load_more: 'Load more...'
