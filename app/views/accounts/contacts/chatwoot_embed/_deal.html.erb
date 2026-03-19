@@ -1,7 +1,15 @@
-<li id="<%= dom_id(deal, :chatwoot_embed) %>" class="grid grid-cols-[1fr_40px] gap-4 p-4 border-x-2 border-b-2 border-light-palette-p3 odd:bg-light-palette-p4 even:bg-light-palette-p5">
+<%= turbo_stream_from deal %>
+<li id="<%= dom_id(deal) %>" class="grid grid-cols-[1fr_40px] gap-4 p-4 border-x-2 border-b-2 border-light-palette-p3 odd:bg-light-palette-p4 even:bg-light-palette-p5">
   <div class="">
     <div class="flex justify-between items-start mb-2">
       <h5 class="typography-text-m-lh150 text-dark-gray-palette-p1 flex-1 pr-2"><%= deal.name %></h5>
+      <div id="<%= dom_id(deal, :status_badge) %>">
+         <% if deal.won? %>
+           <span class="text-[9px] font-extrabold text-green-700 tracking-tight bg-green-500/30 px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(74,222,128,0.4)] whitespace-nowrap">✓ GANHO</span>
+         <% elsif deal.lost? %>
+           <span class="text-[9px] font-extrabold text-red-700 tracking-tight bg-red-500/30 px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(248,113,113,0.4)] whitespace-nowrap">✕ PERDIDO</span>
+         <% end %>
+      </div>
       <% unless deal.total_amount_in_cents.zero? %>
         <div class='inline-flex items-center px-2 py-0.5 rounded-full font-bold text-[10px] min-w-[60px] min-h-[18px] opacity-0 transition-opacity duration-200' data-as-badge="true">
           <%= render 'components/formatters/currency', value: deal.total_amount_in_cents %>

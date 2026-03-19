@@ -1,8 +1,12 @@
 <%# Lógica de atualização local via formulário (Feedback Imediato) %>
 
 <%# Navbar e Outros elementos de navegação que podem não estar nos canais globais %>
-<%= turbo_stream.replace 'stages_nav' do %>
+<%= turbo_stream.replace dom_id(@deal, :stages_nav) do %>
   <%= render "/components/deals/stages_nav", deal: @deal %>
+<% end %>
+
+<%= turbo_stream.replace dom_id(@deal, :status_badge) do %>
+  <%= render 'accounts/deals/details/status_badge', model: @deal %>
 <% end %>
 
 <%= turbo_stream.replace 'stages_nav_desktop' do %>

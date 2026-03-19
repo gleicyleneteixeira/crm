@@ -91,6 +91,15 @@ class Deal < ApplicationRecord
     data['previous_status'] = status_before_last_save if saved_change_to_status?
     
     Deals::BroadcastJob.perform_async(id, 'update', data)
+    broadcast_deal_updates
+  end
+
+  def broadcast_deal_updates
+    return unless saved_change_to_status? || saved_change_to_stage_id?
+
+    # Surgical updates for real-time reactivity (ActionCable)
+    broadcast_replace_to self, target: "status_badge_deal_#{id}", partial: 'accounts/deals/details/status_badge', locals: { model: self }
+    broadcast_replace_to self, target: "stages_nav_deal_#{id}", partial: 'components/deals/stages_nav', locals: { deal: self }
   end
   # after_update_commit lambda {
   #                       broadcast_updates

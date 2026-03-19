@@ -1,48 +1,10 @@
+<%= turbo_stream_from model %>
 <%= turbo_frame_tag dom_id(model, :deal_show_page_overview) do %>
   <% if model.is_a?(Deal) %>
     <div class="mb-4 flex flex-col gap-2" data-controller="load-lucid-icons">
-      <% if model.open? %>
-        <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] gap-2">
-          <%= link_to mark_as_won_account_deal_path(Current.account, model),
-                      data: { turbo_frame: :modal },
-                      class: "deal-outcome-button-won" do %>
-            <i data-lucide="trophy" class="w-4 h-4"></i>
-            <span>Ganho</span>
-          <% end %>
-          <%= link_to mark_as_lost_account_deal_path(Current.account, model),
-                      data: { turbo_frame: :modal },
-                      class: "deal-outcome-button-lost" do %>
-            <i data-lucide="x-circle" class="w-4 h-4"></i>
-            <span>Perdido</span>
-          <% end %>
-          <details class="relative">
-            <summary class="deal-outcome-menu-button">
-              <i data-lucide="more-vertical" class="w-4 h-4"></i>
-            </summary>
-            <div class="absolute right-0 mt-1 w-40 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg z-30 py-1">
-              <%= button_to account_deal_path(Current.account, model),
-                            method: :delete,
-                            form: { data: { turbo_confirm: t('views.layouts.shared.navbar_deal.are_you_sure?') } },
-                            class: "w-full text-left px-3 py-1.5 text-xs text-red-600 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2" do %>
-                <i data-lucide="trash-2" class="w-3 h-3"></i>
-                <span>Excluir negócio</span>
-              <% end %>
-            </div>
-          </details>
-        </div>
-      <% else %>
-        <div class="rounded-md border border-slate-200 dark:border-slate-700 px-3 py-2 flex items-center justify-between text-xs text-slate-600 dark:text-slate-300">
-          <span>
-            <%= t("views.layouts.shared.navbar_deal.deal_#{model.status}") %>
-          </span>
-          <%= button_to account_deal_path(Current.account, model, deal: { status: 'open'} ),
-                        method: :patch,
-                        form: { data: { turbo_confirm: t('views.layouts.shared.navbar_deal.are_you_sure?') } },
-                        class: "button-default-primary-xs px-2 py-1 text-[11px]" do %>
-            <span>Reabrir</span>
-          <% end %>
-        </div>
-      <% end %>
+    <div id="<%= dom_id(model, :status_badge) %>">
+      <%= render 'accounts/deals/details/status_badge', model: model %>
+    </div>
     </div>
   <% end %>
 
