@@ -1,4 +1,8 @@
-<section class="max-w-4xl p-8 mx-auto flex flex-col gap-8">
+<% content_for :stylesheets do %>
+  <meta name="turbo-cache-control" content="no-cache">
+<% end %>
+
+<section class="max-w-4xl p-8 mx-auto flex flex-col gap-8" data-controller="chatwoot-embed">
   <%= render 'show', contact: @contact %>
   <%= render 'deals', contact: @contact, chatwoot_conversation_url: @chatwoot_conversation_url %>
 </section>
