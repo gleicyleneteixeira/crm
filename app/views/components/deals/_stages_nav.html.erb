@@ -63,7 +63,7 @@
 
         <%# TEXTO DA ETAPA COM CORES AJUSTADAS PARA LEITURA %>
         <% if stage == deal.stage %>
-          <div class="flex flex-col items-center mt-2 pb-1 w-max max-w-[100px]">
+          <div class="flex flex-col items-center mt-2 pb-1 w-full min-w-[80px]">
             <% 
               text_color = case deal.status
                            when 'won' then 'text-green-700'   # Verde Vivo para Ganho
