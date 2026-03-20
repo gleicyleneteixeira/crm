@@ -1,6 +1,6 @@
 <%= turbo_stream.append "events_done_list_#{@deal.contact.id}" do %>
   <% @events.each do |event| %>
-    <%= render partial: 'accounts/contacts/events/event', locals: {event: event} %>
+    <%= render partial: 'accounts/contacts/events/event', locals: {event: event, deal: @deal} %>
   <% end %>
 <% end %>
 

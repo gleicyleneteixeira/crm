@@ -1,13 +1,15 @@
-<div id="events_done_list_<%= deal.contact.id %>">
-  <% events.each do |event| %>
-    <%= render partial: 'accounts/contacts/events/event', data: { target: 'not_planned_or_done' }, locals: { event: event, deal: deal } %>
-  <% end %>
-</div>
+<%= turbo_frame_tag "events_done_#{deal.contact.id}" do %>
+  <div id="events_done_list_<%= deal.contact.id %>">
+    <% events.each do |event| %>
+      <%= render partial: 'accounts/contacts/events/event', data: { target: 'not_planned_or_done' }, locals: { event: event, deal: deal } %>
+    <% end %>
+  </div>
 
-<%= turbo_frame_tag "pagination_events_done_#{deal.contact.id}" do %>
-  <% if defined?(pagy) && pagy.is_a?(Pagy) && pagy.next.present? %>
-    <div class="flex justify-center p-4">
-      <%= link_to t('views.accounts.contacts.events.load_more'), events_done_account_deal_path(deal.account, deal, page: pagy.next, format: :turbo_stream), class: "btn-load-more text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-brand-palette-03 transition-all", data: { turbo_stream: true } %>
-    </div>
+  <%= turbo_frame_tag "pagination_events_done_#{deal.contact.id}" do %>
+    <% if defined?(pagy) && pagy.is_a?(Pagy) && pagy.next.present? %>
+      <div class="flex justify-center p-4">
+        <%= link_to t('views.accounts.contacts.events.load_more'), events_done_account_deal_path(deal.account, deal, page: pagy.next, format: :turbo_stream), class: "btn-load-more text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-brand-palette-03 transition-all", data: { turbo_stream: true } %>
+      </div>
+    <% end %>
   <% end %>
 <% end %>
