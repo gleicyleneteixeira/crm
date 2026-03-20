@@ -25,24 +25,11 @@ class Accounts::CampaignsController < InternalController
       @campaign.update(current_step: 1)
     end
 
-    # [DIAGNOSTICO] Verifica o conteúdo real da coluna spreadsheet_data
-    puts "\n" + "="*50
-    puts "[DEBUG] EDIT CAMPAIGN: #{@campaign.name} (ID: #{@campaign.id})"
-    data = @campaign.spreadsheet_data
-    puts "[DEBUG] Data class: #{data.class}"
-    puts "[DEBUG] Data content blank?: #{data.blank?}"
+    # [TESTE DE LOG SOLICITADO]
+    puts "DADOS DA PLANILHA NA EDIÇÃO: #{@campaign.spreadsheet_data.present?}"
+    puts "DEBUG - @campaign.id: #{@campaign.id}"
+    puts "DEBUG - spreadsheet_data count: #{@campaign.spreadsheet_data.respond_to?(:count) ? @campaign.spreadsheet_data.count : 'N/A'}"
     
-    if data.present?
-      @spreadsheet_size = JSON.generate(data).bytesize
-      puts "[DEBUG] Data size (bytes): #{@spreadsheet_size}"
-      sample = data.is_a?(String) ? data[0..100] : data.to_json[0..100]
-      puts "[DEBUG] Sample (100 chars): #{sample}..."
-    else
-      @spreadsheet_size = 0
-      puts "[DEBUG] ERROR: spreadsheet_data is EMPTY in database for this campaign!"
-    end
-    puts "="*50 + "\n"
-
     @fetch_data_async = @spreadsheet_size > 500.kilobytes
   end
 
