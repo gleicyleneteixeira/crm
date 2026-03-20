@@ -963,12 +963,26 @@ export default class extends Controller {
     
     normalizeMatrix(data) {
         if (!data) return [];
+        if (data === '[]' || data === 'null') return [];
         
         let matrix = [];
-        // Converte objeto único ou Array de Objetos para Matriz (Array de Arrays)
-        if (Array.isArray(data)) {
-            if (data.length > 0 && !Array.isArray(data[0]) && typeof data[0] === 'object') {
-                // Array of Objects -> Array of Arrays
+
+        // Handle string data (CSV or JSON string)
+        if (typeof data === 'string') {
+            try {
+                const parsed = JSON.parse(data);
+                return this.normalizeMatrix(parsed);
+            } catch (e) {
+                // If it's not JSON, treat it as CSV/TSV
+                const rows = data.trim().split(/\r?\n/);
+                if (rows.length === 0) return [];
+                const firstRow = rows[0];
+                const separator = firstRow.includes('\t') ? '\t' : (firstRow.includes(';') ? ';' : ',');
+                matrix = rows.map(row => row.split(separator).map(cell => cell.trim().replace(/^"|"$/g, '')));
+            }
+        } else if (Array.isArray(data)) {
+            // Converte Array de Objetos para Matriz
+            if (data.length > 0 && !Array.isArray(data[0]) && typeof data[0] === 'object' && data[0] !== null) {
                 const headers = Object.keys(data[0]);
                 matrix.push(headers);
                 data.forEach(obj => {
@@ -977,8 +991,8 @@ export default class extends Controller {
             } else {
                 matrix = data;
             }
-        } else if (typeof data === 'object') {
-            // Single object -> wrap in array
+        } else if (typeof data === 'object' && data !== null) {
+            // Single object
             const headers = Object.keys(data);
             matrix.push(headers);
             matrix.push(headers.map(h => data[h]));

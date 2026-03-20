@@ -25,12 +25,30 @@ class Accounts::CampaignsController < InternalController
       @campaign.update(current_step: 1)
     end
 
-    # Verifica o tamanho dos dados para carregamento assíncrono (Regra de Ouro: > 500KB)
-    @spreadsheet_size = JSON.generate(@campaign.spreadsheet_data || []).bytesize
+    # [DIAGNOSTICO] Verifica o conteúdo real da coluna spreadsheet_data
+    puts "\n" + "="*50
+    puts "[DEBUG] EDIT CAMPAIGN: #{@campaign.name} (ID: #{@campaign.id})"
+    data = @campaign.spreadsheet_data
+    puts "[DEBUG] Data class: #{data.class}"
+    puts "[DEBUG] Data content blank?: #{data.blank?}"
+    
+    if data.present?
+      @spreadsheet_size = JSON.generate(data).bytesize
+      puts "[DEBUG] Data size (bytes): #{@spreadsheet_size}"
+      sample = data.is_a?(String) ? data[0..100] : data.to_json[0..100]
+      puts "[DEBUG] Sample (100 chars): #{sample}..."
+    else
+      @spreadsheet_size = 0
+      puts "[DEBUG] ERROR: spreadsheet_data is EMPTY in database for this campaign!"
+    end
+    puts "="*50 + "\n"
+
     @fetch_data_async = @spreadsheet_size > 500.kilobytes
   end
 
   def spreadsheet_data
+    puts "\n[DEBUG] API SPREADSHEET_DATA CALLED for Campaign ID: #{@campaign.id}"
+    puts "[DEBUG] Data class being rendered: #{@campaign.spreadsheet_data.class}"
     render json: @campaign.spreadsheet_data
   end
 
