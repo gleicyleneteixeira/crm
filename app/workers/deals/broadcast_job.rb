@@ -13,10 +13,16 @@ class Deals::BroadcastJob
       contact_id = data['contact_id']
       return unless account_id && contact_id
 
-      # Remove from Contact Sidebar & Chatwoot Embed
+      # Remove from Contact Sidebar
       Turbo::StreamsChannel.broadcast_remove_to(
         [account_id, contact_id, :deals],
-        target: "deal_#{deal_id}"
+        target: "drawer_row_deal_#{deal_id}"
+      )
+
+      # Remove from Chatwoot Embed
+      Turbo::StreamsChannel.broadcast_remove_to(
+        [account_id, contact_id, :deals],
+        target: "chatwoot_embed_deal_#{deal_id}"
       )
       
       # Also remove from Kanban
@@ -138,7 +144,7 @@ class Deals::BroadcastJob
         # Sidebar Update
         Turbo::StreamsChannel.broadcast_replace_to(
           [account_id, contact_id, :deals],
-          target: dom_id(deal),
+          target: dom_id(deal, :drawer_row),
           partial: 'accounts/deals/deal_row',
           locals: { deal: deal }
         )
