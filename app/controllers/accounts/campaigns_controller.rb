@@ -1,5 +1,5 @@
 class Accounts::CampaignsController < InternalController
-  before_action :set_campaign, only: %i[show edit update destroy composition update_composition process_campaign]
+  before_action :set_campaign, only: %i[show edit update destroy composition update_composition process_campaign spreadsheet_data]
 
   def index
     @campaigns = @account.campaigns.where.not(status: :draft).order(created_at: :desc)
@@ -24,6 +24,14 @@ class Accounts::CampaignsController < InternalController
     if @campaign.draft?
       @campaign.update(current_step: 1)
     end
+
+    # Verifica o tamanho dos dados para carregamento assíncrono (Regra de Ouro: > 500KB)
+    @spreadsheet_size = JSON.generate(@campaign.spreadsheet_data || []).bytesize
+    @fetch_data_async = @spreadsheet_size > 500.kilobytes
+  end
+
+  def spreadsheet_data
+    render json: @campaign.spreadsheet_data
   end
 
   def create

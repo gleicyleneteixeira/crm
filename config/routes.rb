@@ -135,6 +135,7 @@ Rails.application.routes.draw do
         get :automation
         patch :update_automation
         post :process_campaign
+        get :spreadsheet_data
       end
     end
   end

@@ -17,6 +17,7 @@
       'campaign-import-crm-fields-value': @crm_fields.to_json, 
       'campaign-import-initial-mapping-value': @campaign.mapping.to_json, 
       'campaign-import-initial-stage-id-value': @campaign.stage_id,
+      'campaign-import-fetch-url-value': (@fetch_data_async ? spreadsheet_data_account_campaign_path(@account, @campaign) : ''),
       action: 'submit->campaign-import#handleFormSubmit' 
     }, class: "flex flex-col gap-6") do |f| %>
     <%= f.hidden_field :account_id, value: @account.id %>
@@ -184,7 +185,17 @@
       </div>
     <% end %>
 
-    <%= f.hidden_field :spreadsheet_data, value: (@campaign.spreadsheet_data.is_a?(String) ? @campaign.spreadsheet_data : @campaign.spreadsheet_data.to_json), data: { 'campaign-import-target': 'jsonOutput' } %>
+
+    <%# Se os dados forem grandes (> 500KB), o controller fará o fetch via URL em vez de ler desse campo %>
+    <% unless @fetch_data_async %>
+      <%= f.hidden_field :spreadsheet_data, value: (@campaign.spreadsheet_data.is_a?(String) ? @campaign.spreadsheet_data : @campaign.spreadsheet_data.to_json), data: { 'campaign-import-target': 'jsonOutput' } %>
+    <% else %>
+      <%= f.hidden_field :spreadsheet_data, value: '[]', data: { 'campaign-import-target': 'jsonOutput' } %>
+      <div class="text-xs text-blue-500 mb-4 flex items-center gap-2" data-campaign-import-target="loadingIndicator">
+        <i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i>
+        Carregando dados da planilha (<%= number_to_human_size(@spreadsheet_size) %>)...
+      </div>
+    <% end %>
 
     <!-- BOTTOM SECTION: Action Form -->
     <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 mt-6 flex items-center justify-between">

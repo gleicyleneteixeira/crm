@@ -3,27 +3,19 @@ import * as XLSX from "xlsx"
 
 export default class extends Controller {
     static targets = [
-        "jsonOutput",
-        "pasteArea",
-        "submitButton",
-        "gridContainer",
-        "gridWrapper",
-        "headerToggle",
-        "emptyStateContainer",
-        "countTotal",
-        "countValid",
-        "countInvalid",
-        "categorySelect",
-        "pipelineSelect",
-        "stageSelect",
-        "ddiToggle"
+        "jsonOutput", "pasteArea", "submitButton", "gridContainer", 
+        "gridWrapper", "headerToggle", "emptyStateContainer", 
+        "countTotal", "countValid", "countInvalid", 
+        "categorySelect", "pipelineSelect", "stageSelect", 
+        "ddiToggle", "dropzone", "loadingIndicator"
     ]
 
     static values = {
         pipelines: Array,
         crmFields: Object,
         initialMapping: Object,
-        initialStageId: String
+        initialStageId: String,
+        fetchUrl: String
     }
 
     connect() {
@@ -180,37 +172,68 @@ export default class extends Controller {
         reader.readAsArrayBuffer(file)
     }
 
-    rehydrateData() {
-        if (!this.hasJsonOutputTarget || !this.jsonOutputTarget.value) {
-            console.log("No data for rehydration.");
-            return;
+    async rehydrateData() {
+        const startTime = performance.now();
+        console.log("[CampaignImport] Starting rehydration...");
+
+        let data = null;
+
+        // 1. Tenta carregar via URL se fornecido (Otimização para grandes volumes)
+        if (this.hasFetchUrlValue && this.fetchUrlValue) {
+            console.log(`[CampaignImport] Fetching data from: ${this.fetchUrlValue}`);
+            try {
+                if (this.hasLoadingIndicatorTarget) this.loadingIndicatorTarget.classList.remove('hidden');
+                const response = await fetch(this.fetchUrlValue);
+                if (response.ok) {
+                    data = await response.json();
+                    console.log("[CampaignImport] Data fetched via URL.");
+                } else {
+                    console.warn("[CampaignImport] Fetch URL returned status:", response.status);
+                }
+            } catch (e) {
+                console.error("[CampaignImport] Fetch failed:", e);
+            } finally {
+                if (this.hasLoadingIndicatorTarget) this.loadingIndicatorTarget.classList.add('hidden');
+            }
         }
 
-        console.log("Attempting to rehydrate data...", { length: this.jsonOutputTarget.value.length });
-        try {
-            let data = this.jsonOutputTarget.value;
-            // Handle potentially double-serialized JSON
-            if (typeof data === 'string' && data.startsWith('"')) {
-                data = JSON.parse(data);
+        // 2. Fallback para o campo oculto se não houver data via fetch
+        if (!data) {
+            if (!this.hasJsonOutputTarget || !this.jsonOutputTarget.value || this.jsonOutputTarget.value === '[]') {
+                console.log("[CampaignImport] No data for rehydration.");
+                return;
             }
-            const finalData = typeof data === 'string' ? JSON.parse(data) : data;
+            data = this.jsonOutputTarget.value;
+        }
 
-            console.log("Parsed finalData:", { 
-                type: Array.isArray(finalData) ? 'Array' : typeof finalData,
-                length: finalData.length,
-                sample: Array.isArray(finalData) ? finalData.slice(0, 1) : finalData
-            });
+        try {
+            // Parse recursivo para lidar com serialização dupla/tripla acidental
+            let finalData = data;
+            let attempts = 0;
+            while (typeof finalData === 'string' && attempts < 3) {
+                try {
+                    const parsed = JSON.parse(finalData);
+                    // If parsing results in the same string, it means it's not JSON or already parsed
+                    if (parsed === finalData) break;
+                    finalData = parsed;
+                    attempts++;
+                } catch (e) {
+                    // If parsing fails, it's not a JSON string, so break
+                    break;
+                }
+            }
 
             if (finalData && (Array.isArray(finalData) || typeof finalData === 'object')) {
-                this.ignoredRows.clear();
                 const normalized = this.normalizeMatrix(finalData);
-                this.rawData = normalized;
-                console.log(`Rehydrated: ${this.rawData.length} rows.`);
-                
-                if (this.rawData.length > 0) {
+                if (normalized.length > 0) {
+                    this.rawData = normalized;
+                    this.ignoredRows.clear(); // Clear ignored rows on rehydration
                     this.autoMatchHeaders(false); 
                     this.renderizarGrid();
                     this.validateMapping();
+                    
+                    const endTime = performance.now();
+                    console.log(`[CampaignImport] Reidratação concluída em ${(endTime - startTime).toFixed(2)}ms. Linhas: ${this.rawData.length}`);
                 } else {
                     console.warn("normalizeMatrix returned empty array for finalData.");
                 }
