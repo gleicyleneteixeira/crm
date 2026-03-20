@@ -30,6 +30,7 @@ class Accounts::CampaignsController < InternalController
     puts "DEBUG - @campaign.id: #{@campaign.id}"
     puts "DEBUG - spreadsheet_data count: #{@campaign.spreadsheet_data.respond_to?(:count) ? @campaign.spreadsheet_data.count : 'N/A'}"
     
+    @spreadsheet_size = JSON.generate(@campaign.spreadsheet_data || []).bytesize
     @fetch_data_async = @spreadsheet_size > 500.kilobytes
   end
 
@@ -77,11 +78,16 @@ class Accounts::CampaignsController < InternalController
   end
 
   def update
+    puts "\n[DEBUG] ####### UPDATE CAMPAIGN START #######"
+    puts "[DEBUG] Params Campaign present?: #{params[:campaign].present?}"
+    puts "[DEBUG] RECEBENDO PLANILHA NO UPDATE: #{params[:campaign] && params[:campaign][:spreadsheet_data].present?}"
+    
     begin
       # Se editado na Tela 1, avançamos para a Tela 3 (Composition)
       updated_params = campaign_params.merge(current_step: 3)
       
       if @campaign.update(updated_params)
+        puts "[DEBUG] Update Success! spreadsheet_data size in DB: #{@campaign.reload.spreadsheet_data.to_json.bytesize}"
         # Re-inicializa contatos se os dados/mapeamento foram revisados
         Accounts::Campaigns::InitializeContactsService.call(@campaign) if @campaign.spreadsheet_data.present? && @campaign.mapping.present?
         redirect_to composition_account_campaign_path(@account, @campaign), notice: 'Configurações atualizadas!'
