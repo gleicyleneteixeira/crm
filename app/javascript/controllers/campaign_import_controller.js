@@ -19,41 +19,64 @@ export default class extends Controller {
     }
 
     connect() {
-        console.log("Campaign Import Controller Connected");
-        this.rawData = []
-        this.ignoredRows = new Set()
-        
-        const initial = (this.hasInitialMappingValue && this.initialMappingValue) ? this.initialMappingValue : {};
-        this.currentMapping = typeof initial === 'object' ? { ...initial } : {};
-        
-        // Normalize mapping values to strings safely for consistent comparison
-        Object.keys(this.currentMapping).forEach(key => {
-            const val = this.currentMapping[key];
-            if (val !== null && val !== undefined) {
-                this.currentMapping[key] = val.toString();
+        console.log("[CampaignImport] connect start");
+        try {
+            window.campaignImport = this;
+            this.rawData = []
+            this.ignoredRows = new Set()
+            
+            // Manual parsing or values support
+            let initial = {};
+            try {
+                initial = this.hasInitialMappingValue ? this.initialMappingValue : {};
+            } catch (e) { console.error("Error parsing initialMapping", e); }
+            
+            this.currentMapping = typeof initial === 'object' ? { ...initial } : {};
+            
+            // Normalize mapping values
+            Object.keys(this.currentMapping).forEach(key => {
+                const val = this.currentMapping[key];
+                if (val !== null && val !== undefined) {
+                    this.currentMapping[key] = val.toString();
+                }
+            });
+
+            if (Object.keys(this.currentMapping).length === 0) {
+                this.loadCurrentMapping();
             }
-        });
 
-        if (Object.keys(this.currentMapping).length === 0) {
-            this.loadCurrentMapping();
+            // Initialize scroll
+            if (this.hasGridContainerTarget) {
+                this.gridContainerTarget.addEventListener('scroll', this.handleScroll.bind(this));
+            }
+            
+            // Start rehydration
+            this.rehydrateData();
+
+            // Populate stages
+            this.syncStages();
+
+            // Icons
+            this.initIcons();
+            
+            console.log("[CampaignImport] connect finish");
+        } catch (error) {
+            console.error("[CampaignImport] Critical error in connect():", error);
+            // Emergency alert to user if everything fails
+            if (window.location.search.includes('debug')) {
+                alert("Erro Stimulus: " + error.message);
+            }
         }
+    }
 
-        // Initialize grid container scroll
-        if (this.hasGridContainerTarget) {
-            this.gridContainerTarget.addEventListener('scroll', this.handleScroll.bind(this));
-        }
-        
-        this.rehydrateData();
-
-        // Populate stages if pipeline is pre-selected
+    syncStages() {
         if (this.hasPipelineSelectTarget && this.pipelineSelectTarget.value) {
             const initialStageId = this.hasInitialStageIdValue ? this.initialStageIdValue : "";
             this.handlePipelineChange(initialStageId);
         }
+    }
 
-        this.validateMapping();
-
-        // Initialize Lucide icons
+    initIcons() {
         if (window.lucide) {
             window.lucide.createIcons();
         }
@@ -172,80 +195,74 @@ export default class extends Controller {
         reader.readAsArrayBuffer(file)
     }
 
-    async rehydrateData() {
+    rehydrateData() {
         const startTime = performance.now();
-        console.log("[CampaignImport] Starting rehydration...");
+        console.log("[CampaignImport] rehydrateData start.");
 
-        let data = null;
+        // Wrapper para suporte async manual
+        const process = async () => {
+            let data = null;
 
-        // 1. Tenta carregar via URL se fornecido (Otimização para grandes volumes)
-        if (this.hasFetchUrlValue && this.fetchUrlValue) {
-            console.log(`[CampaignImport] Fetching data from: ${this.fetchUrlValue}`);
-            try {
-                if (this.hasLoadingIndicatorTarget) this.loadingIndicatorTarget.classList.remove('hidden');
-                const response = await fetch(this.fetchUrlValue);
-                if (response.ok) {
-                    data = await response.json();
-                    console.log("[CampaignImport] Data fetched via URL.");
-                } else {
-                    console.warn("[CampaignImport] Fetch URL returned status:", response.status);
-                }
-            } catch (e) {
-                console.error("[CampaignImport] Fetch failed:", e);
-            } finally {
-                if (this.hasLoadingIndicatorTarget) this.loadingIndicatorTarget.classList.add('hidden');
+            if (this.hasFetchUrlValue && this.fetchUrlValue) {
+                console.log(`[CampaignImport] Fetching URL: ${this.fetchUrlValue}`);
+                try {
+                    const response = await fetch(this.fetchUrlValue, {
+                        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    if (response.ok) {
+                        data = await response.json();
+                    }
+                } catch (e) { console.error("Fetch error", e); }
             }
-        }
 
-        // 2. Fallback para o campo oculto se não houver data via fetch
-        if (!data) {
-            if (!this.hasJsonOutputTarget || !this.jsonOutputTarget.value || this.jsonOutputTarget.value === '[]') {
-                console.log("[CampaignImport] No data for rehydration.");
+            // Fallback 1: Script Tag (Mais seguro contra truncamento)
+            if (!data) {
+                const scriptTag = document.getElementById('campaign-spreadsheet-data-json');
+                if (scriptTag && scriptTag.textContent.trim() !== '' && scriptTag.textContent.trim() !== '[]') {
+                    console.log("[CampaignImport] Loading from Script Tag.");
+                    data = scriptTag.textContent;
+                }
+            }
+
+            // Fallback 2: Hidden Field
+            if (!data && this.hasJsonOutputTarget) {
+                data = this.jsonOutputTarget.value;
+            }
+
+            if (!data || data === '[]') {
+                console.log("[CampaignImport] No data found.");
                 return;
             }
-            data = this.jsonOutputTarget.value;
-        }
 
-        try {
-            // Parse recursivo para lidar com serialização dupla/tripla acidental
-            let finalData = data;
-            let attempts = 0;
-            while (typeof finalData === 'string' && attempts < 3) {
-                try {
-                    const parsed = JSON.parse(finalData);
-                    // If parsing results in the same string, it means it's not JSON or already parsed
-                    if (parsed === finalData) break;
-                    finalData = parsed;
-                    attempts++;
-                } catch (e) {
-                    // If parsing fails, it's not a JSON string, so break
-                    break;
+            try {
+                let finalData = data;
+                let attempts = 0;
+                while (typeof finalData === 'string' && attempts < 5) {
+                    try {
+                        const parsed = JSON.parse(finalData);
+                        if (parsed === finalData) break;
+                        finalData = parsed;
+                        attempts++;
+                    } catch (e) { break; }
                 }
-            }
 
-            if (finalData && (Array.isArray(finalData) || typeof finalData === 'object')) {
-                const normalized = this.normalizeMatrix(finalData);
-                if (normalized.length > 0) {
-                    this.rawData = normalized;
-                    this.ignoredRows.clear(); // Clear ignored rows on rehydration
-                    this.autoMatchHeaders(false); 
-                    this.renderizarGrid();
-                    this.validateMapping();
-                    
-                    const endTime = performance.now();
-                    console.log(`[CampaignImport] Reidratação concluída em ${(endTime - startTime).toFixed(2)}ms. Linhas: ${this.rawData.length}`);
-                } else {
-                    console.warn("normalizeMatrix returned empty array for finalData.");
+                if (finalData && (Array.isArray(finalData) || typeof finalData === 'object')) {
+                    const normalized = this.normalizeMatrix(finalData);
+                    console.log(`[CampaignImport] Normalized rows: ${normalized.length}`);
+                    if (normalized.length > 0) {
+                        this.rawData = normalized;
+                        this.autoMatchHeaders(false); 
+                        this.renderizarGrid();
+                        this.validateMapping();
+                        console.log(`[CampaignImport] Rehydrate complete in ${(performance.now() - startTime).toFixed(2)}ms`);
+                    }
                 }
-            } else {
-                console.log("Rehydrated data is empty or invalid format.");
-                this.rawData = [];
-                this.ignoredRows.clear();
-                this.validateMapping();
+            } catch (e) {
+                console.error('[CampaignImport] Rehydrate parse error', e);
             }
-        } catch (e) {
-            console.error('Failed to rehydrate data:', e);
-        }
+        };
+
+        process().catch(err => console.error("[CampaignImport] Async process error", err));
     }
 
     updateJsonOutput() {

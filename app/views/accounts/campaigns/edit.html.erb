@@ -186,16 +186,18 @@
     <% end %>
 
 
-    <%# Se os dados forem grandes (> 500KB), o controller fará o fetch via URL em vez de ler desse campo %>
-    <% unless @fetch_data_async %>
-      <%= f.hidden_field :spreadsheet_data, value: (@campaign.spreadsheet_data.is_a?(String) ? @campaign.spreadsheet_data : @campaign.spreadsheet_data.to_json), data: { 'campaign-import-target': 'jsonOutput' } %>
-    <% else %>
-      <%= f.hidden_field :spreadsheet_data, value: '[]', data: { 'campaign-import-target': 'jsonOutput' } %>
-      <div class="text-xs text-blue-500 mb-4 flex items-center gap-2" data-campaign-import-target="loadingIndicator">
-        <i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i>
-        Carregando dados da planilha (<%= number_to_human_size(@spreadsheet_size) %>)...
-      </div>
-    <% end %>
+    <%# Gold Standard: Script tag for JSON data to avoid truncation/escaping issues in hidden fields %>
+    <script id="campaign-spreadsheet-data-json" type="application/json">
+      <%= (@campaign.spreadsheet_data || []).to_json.html_safe %>
+    </script>
+
+    <div class="hidden text-xs text-blue-500 mb-4 flex items-center gap-2" data-campaign-import-target="loadingIndicator">
+      <i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i>
+      Carregando dados da planilha...
+    </div>
+
+    <%# Hidden field stays for SUBMISSION only, sync'd by Stimulus before save %>
+    <%= f.hidden_field :spreadsheet_data, value: '[]', data: { 'campaign-import-target': 'jsonOutput' } %>
 
     <!-- BOTTOM SECTION: Action Form -->
     <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 mt-6 flex items-center justify-between">
