@@ -186,8 +186,15 @@
     <% end %>
 
 
-    <%# Dado da planilha: usando a mesma lógica exata da tela de Criação para garantir paridade %>
-    <%= f.hidden_field :spreadsheet_data, value: (@campaign.spreadsheet_data.is_a?(String) ? @campaign.spreadsheet_data : @campaign.spreadsheet_data.to_json), data: { 'campaign-import-target': 'jsonOutput' } %>
+    <%# [RESILIENCIA] Forçamos o uso do hidden_field EXATAMENTE como no New/Create para paridade total %>
+    <%= f.hidden_field :spreadsheet_data, 
+        value: (@campaign.spreadsheet_data.is_a?(String) ? @campaign.spreadsheet_data : @campaign.spreadsheet_data.to_json), 
+        data: { 'campaign-import-target': 'jsonOutput' } %>
+
+    <%# Badge de Diagnóstico em Tempo Real (Apenas para debug) %>
+    <div id="import-debug-badge" class="mt-2 text-[10px] text-slate-400 font-mono">
+      DB Data: <%= @campaign.spreadsheet_data.present? ? "PRESENT (#{@campaign.spreadsheet_data.count} rows)" : "EMPTY/NIL" %>
+    </div>
 
     <!-- BOTTOM SECTION: Action Form -->
     <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 mt-6 flex items-center justify-between">

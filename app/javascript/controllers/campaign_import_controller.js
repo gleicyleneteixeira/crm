@@ -247,6 +247,10 @@ export default class extends Controller {
                 }
 
                 if (finalData && (Array.isArray(finalData) || typeof finalData === 'object')) {
+                    // [DEBUG UI] Alert if requested in URL or special mode
+                    const debugBadge = document.getElementById('import-debug-badge');
+                    if (debugBadge) debugBadge.innerHTML += ` | JS received: ${typeof finalData} (attempt ${attempts})`;
+
                     const normalized = this.normalizeMatrix(finalData);
                     console.log(`[CampaignImport] Normalized rows: ${normalized.length}`);
                     if (normalized.length > 0) {
