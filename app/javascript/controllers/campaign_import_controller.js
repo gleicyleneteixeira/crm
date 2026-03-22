@@ -255,20 +255,28 @@ export default class extends Controller {
                     } catch (e) { break; }
                 }
 
-                if (finalData && (Array.isArray(finalData) || typeof finalData === 'object')) {
-                    // [DEBUG UI] Alert if requested in URL or special mode
-                    const debugBadge = document.getElementById('import-debug-badge');
-                    if (debugBadge) debugBadge.innerHTML += ` | JS received: ${typeof finalData} (attempt ${attempts})`;
-
+                if (finalData && (typeof finalData === 'object' || Array.isArray(finalData))) {
+                    const rawLen = Array.isArray(finalData) ? finalData.length : Object.keys(finalData).length;
                     const normalized = this.normalizeMatrix(finalData);
-                    console.log(`[CampaignImport] Normalized rows: ${normalized.length}`);
+                    const normLen = normalized.length;
+                    
+                    const debugBadge = document.getElementById('import-debug-badge');
+                    if (debugBadge) {
+                        debugBadge.innerHTML += ` | Raw: ${rawLen} | Norm: ${normLen}`;
+                    }
+
+                    console.log(`[CampaignImport] Raw: ${rawLen}, Normalized: ${normLen}`);
+                    
                     if (normalized.length > 0) {
                         this.rawData = normalized;
                         this.autoMatchHeaders(false); 
                         this.renderizarGrid();
-                        this.validateMapping();
                         console.log(`[CampaignImport] Rehydrate complete in ${(performance.now() - startTime).toFixed(2)}ms`);
+                    } else {
+                        console.warn("[CampaignImport] Normalization resulted in 0 rows.");
                     }
+                } else {
+                    console.warn("[CampaignImport] finalData is not an object/array:", typeof finalData);
                 }
             } catch (e) {
                 console.error('[CampaignImport] Rehydrate parse error', e);
