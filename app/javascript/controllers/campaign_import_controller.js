@@ -27,7 +27,8 @@ export default class extends Controller {
     }
 
     connect() {
-        console.log("[CampaignImport] connect start");
+        console.log("[CampaignImport] connect started");
+        alert("[DEBUG] Controller Conectado!");
         try {
             window.campaignImport = this;
             this.rawData = []

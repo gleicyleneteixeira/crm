@@ -41,6 +41,10 @@ class Accounts::CampaignsController < InternalController
   end
 
   def create
+    puts "\n[DEBUG] ####### CREATE CAMPAIGN START #######"
+    puts "[DEBUG] Params Campaign present?: #{params[:campaign].present?}"
+    puts "GRAVANDO PLANILHA NO CREATE: #{params[:campaign] && params[:campaign][:spreadsheet_data].present?}"
+    
     begin
       # Usa to_unsafe_h para evitar UnfilteredParameters com dados complexos de planilha
       @campaign = Campaign.new(campaign_params.merge(account: @account, status: :draft, current_step: 3))
@@ -80,7 +84,7 @@ class Accounts::CampaignsController < InternalController
   def update
     puts "\n[DEBUG] ####### UPDATE CAMPAIGN START #######"
     puts "[DEBUG] Params Campaign present?: #{params[:campaign].present?}"
-    puts "[DEBUG] RECEBENDO PLANILHA NO UPDATE: #{params[:campaign] && params[:campaign][:spreadsheet_data].present?}"
+    puts "GRAVANDO PLANILHA NO UPDATE: #{params[:campaign] && params[:campaign][:spreadsheet_data].present?}"
     
     begin
       # Se editado na Tela 1, avançamos para a Tela 3 (Composition)
