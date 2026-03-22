@@ -28,11 +28,15 @@ class Accounts::CampaignsController < InternalController
 
   def create
     begin
-      # Usa to_unsafe_h para evitar UnfilteredParameters com dados complexos de planilha
+      puts "CAMPAIGN PARAMS RECEIVED: #{campaign_params.keys}"
+      puts "SPREADSHEET DATA PRESENT: #{campaign_params[:spreadsheet_data].present?}"
+      puts "SPREADSHEET DATA SIZE: #{campaign_params[:spreadsheet_data].to_s.length}" if campaign_params[:spreadsheet_data].present?
+
       @campaign = Campaign.new(campaign_params.merge(account: @account, status: :draft, current_step: 3))
 
       if @campaign.save
         puts "CAMPAIGN SAVED SUCCESSFULLY: #{@campaign.id}"
+        puts "SAVED SPREADSHEET DATA COUNT: #{@campaign.spreadsheet_data&.size}"
         begin
           Accounts::Campaigns::InitializeContactsService.call(@campaign) if @campaign.spreadsheet_data.present? && @campaign.mapping.present?
           puts "CONTACTS INITIALIZED"
@@ -66,9 +70,14 @@ class Accounts::CampaignsController < InternalController
   def update
     begin
       # Se editado na Tela 1, avançamos para a Tela 3 (Composition)
+      puts "UPDATE PARAMS RECEIVED: #{campaign_params.keys}"
+      puts "UPDATE SPREADSHEET DATA PRESENT: #{campaign_params[:spreadsheet_data].present?}"
+      
       updated_params = campaign_params.merge(current_step: 3)
       
       if @campaign.update(updated_params)
+        puts "CAMPAIGN UPDATED SUCCESSFULLY"
+        puts "UPDATED SPREADSHEET DATA COUNT: #{@campaign.spreadsheet_data&.size}"
         # Re-inicializa contatos se os dados/mapeamento foram revisados
         Accounts::Campaigns::InitializeContactsService.call(@campaign) if @campaign.spreadsheet_data.present? && @campaign.mapping.present?
         redirect_to composition_account_campaign_path(@account, @campaign), notice: 'Configurações atualizadas!'
@@ -240,32 +249,42 @@ class Accounts::CampaignsController < InternalController
   end
 
   def campaign_params
-    # A maneira mais segura de lidar com arrays aninhados dinâmicos e hashes
-    # Converter tudo para um hash comum do Ruby primeiro, ignorando filtros do Rails
-    raw_params = params.require(:campaign).to_unsafe_h
+    # Captura os parâmetros base
+    cp = params.require(:campaign)
     
-    # Selecionar apenas o que queremos e converter chaves para símbolos
-    permitted = raw_params.slice(
-      'name', 'campaign_category_id', 'pipeline_id', 'stage_id', 
-      'insert_ddi', 'ai_randomization', 'current_step',
-      'chatwoot_inbox_ids', 'spreadsheet_data', 'mapping'
-    ).symbolize_keys
-
-    # Garantir que ID de inbox seja array
-    permitted[:chatwoot_inbox_ids] ||= []
-
-    # Converte strings JSON para Hash/Array se necessário (caso venham via JS/JSON)
-    [:spreadsheet_data, :mapping].each do |field|
-      if permitted[field].is_a?(String) && permitted[field].present?
-        begin
-          permitted[field] = JSON.parse(permitted[field])
-        rescue JSON::ParserError
-          # Mantém como está
-        end
+    # Se spreadsheet_data vier como String (JSON), fazemos o parse manual
+    # Se vier como Array (multipart/form-data ou JSON), o Rails/Rack já pode ter parseado
+    s_data = cp[:spreadsheet_data]
+    if s_data.is_a?(String) && s_data.present?
+      begin
+        s_data = JSON.parse(s_data)
+      rescue => e
+        puts "ERR PARSING SPREADSHEET_DATA: #{e.message}"
       end
     end
 
-    permitted
+    mapping_data = cp[:mapping]
+    if mapping_data.is_a?(String) && mapping_data.present?
+      begin
+        mapping_data = JSON.parse(mapping_data)
+      rescue => e
+        puts "ERR PARSING MAPPING: #{e.message}"
+      end
+    end
+
+    # Construímos o hash final permitido
+    {
+      name: cp[:name],
+      campaign_category_id: cp[:campaign_category_id],
+      pipeline_id: cp[:pipeline_id],
+      stage_id: cp[:stage_id],
+      insert_ddi: cp[:insert_ddi],
+      ai_randomization: cp[:ai_randomization],
+      current_step: cp[:current_step],
+      chatwoot_inbox_ids: cp[:chatwoot_inbox_ids] || [],
+      spreadsheet_data: s_data,
+      mapping: mapping_data
+    }
   end
 
   def composition_params
