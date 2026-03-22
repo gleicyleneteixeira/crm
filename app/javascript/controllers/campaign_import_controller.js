@@ -18,6 +18,14 @@ export default class extends Controller {
         fetchUrl: String
     }
 
+    forceRehydrate(event) {
+        if (event) event.preventDefault();
+        console.log("[CampaignImport] Force Rehydrate triggered");
+        const debugBadge = document.getElementById('import-debug-badge');
+        if (debugBadge) debugBadge.innerHTML += ' | Forced';
+        this.rehydrateData();
+    }
+
     connect() {
         console.log("[CampaignImport] connect start");
         try {
