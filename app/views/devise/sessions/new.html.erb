@@ -6,6 +6,9 @@
     <%= t('views.installation.new.step_away_from_growth') %>
   </p>
   <%= form_for(resource, as: resource_name, url: session_path(resource_name), data: { turbo: false }) do |f| %>
+    <% if flash[:alert] %>
+      <p class="typography-sub-title-900 color-fg-feedback-danger mb-5"><%= flash[:alert] %></p>
+    <% end %>
     <div class="grid gap-5 mb-2">
       <div class="grid gap-2">
         <%= f.label :email, class: "typography-text-m-lh150 leading-none text-dark-gray-palette-p1" %>
