@@ -1,5 +1,5 @@
 class Accounts::CampaignsController < InternalController
-  before_action :set_campaign, only: %i[show edit update destroy composition update_composition process_campaign spreadsheet_data]
+  before_action :set_campaign, only: %i[show edit update destroy composition update_composition process_campaign]
 
   def index
     @campaigns = @account.campaigns.where.not(status: :draft).order(created_at: :desc)
@@ -24,27 +24,9 @@ class Accounts::CampaignsController < InternalController
     if @campaign.draft?
       @campaign.update(current_step: 1)
     end
-
-    # [TESTE DE LOG SOLICITADO]
-    puts "DADOS DA PLANILHA NA EDIÇÃO: #{@campaign.spreadsheet_data.present?}"
-    puts "DEBUG - @campaign.id: #{@campaign.id}"
-    puts "DEBUG - spreadsheet_data count: #{@campaign.spreadsheet_data.respond_to?(:count) ? @campaign.spreadsheet_data.count : 'N/A'}"
-    
-    @spreadsheet_size = JSON.generate(@campaign.spreadsheet_data || []).bytesize
-    @fetch_data_async = @spreadsheet_size > 500.kilobytes
-  end
-
-  def spreadsheet_data
-    puts "\n[DEBUG] API SPREADSHEET_DATA CALLED for Campaign ID: #{@campaign.id}"
-    puts "[DEBUG] Data class being rendered: #{@campaign.spreadsheet_data.class}"
-    render json: @campaign.spreadsheet_data
   end
 
   def create
-    puts "\n[DEBUG] ####### CREATE CAMPAIGN START #######"
-    puts "[DEBUG] Params Campaign present?: #{params[:campaign].present?}"
-    puts "GRAVANDO PLANILHA NO CREATE: #{params[:campaign] && params[:campaign][:spreadsheet_data].present?}"
-    
     begin
       # Usa to_unsafe_h para evitar UnfilteredParameters com dados complexos de planilha
       @campaign = Campaign.new(campaign_params.merge(account: @account, status: :draft, current_step: 3))
@@ -82,16 +64,11 @@ class Accounts::CampaignsController < InternalController
   end
 
   def update
-    puts "\n[DEBUG] ####### UPDATE CAMPAIGN START #######"
-    puts "[DEBUG] Params Campaign present?: #{params[:campaign].present?}"
-    puts "GRAVANDO PLANILHA NO UPDATE: #{params[:campaign] && params[:campaign][:spreadsheet_data].present?}"
-    
     begin
       # Se editado na Tela 1, avançamos para a Tela 3 (Composition)
       updated_params = campaign_params.merge(current_step: 3)
       
       if @campaign.update(updated_params)
-        puts "[DEBUG] Update Success! spreadsheet_data size in DB: #{@campaign.reload.spreadsheet_data.to_json.bytesize}"
         # Re-inicializa contatos se os dados/mapeamento foram revisados
         Accounts::Campaigns::InitializeContactsService.call(@campaign) if @campaign.spreadsheet_data.present? && @campaign.mapping.present?
         redirect_to composition_account_campaign_path(@account, @campaign), notice: 'Configurações atualizadas!'

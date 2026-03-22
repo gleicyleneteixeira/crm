@@ -5,29 +5,14 @@
         <h1 class="typography-title-b-lh150 text-dark-gray-palette-p1">Editar Campanha</h1>
         <p class="typography-body-s-lh150 text-slate-500">Revise os contatos e destinos antes de avançar para as mensagens.</p>
       </div>
-      </div>
       <div class="flex items-center gap-2">
         <span class="px-3 py-1 bg-brand-palette-03/10 text-brand-palette-03 rounded-full typography-micro-b-lh150 font-bold">Passo 1 de 2</span>
       </div>
     </div>
   </div>
 
-  <%= form_with(model: [@account, @campaign], data: { 
-      controller: 'campaign-import', 
-      'campaign-import-pipelines-value': @pipelines.to_json(include: :stages), 
-      'campaign-import-crm-fields-value': @crm_fields.to_json, 
-      'campaign-import-initial-mapping-value': @campaign.mapping.to_json, 
-      'campaign-import-initial-stage-id-value': @campaign.stage_id,
-      'campaign-import-fetch-url-value': (@fetch_data_async ? spreadsheet_data_account_campaign_path(@account, @campaign) : ''),
-      action: 'submit->campaign-import#handleFormSubmit' 
-    }, class: "flex flex-col gap-6") do |f| %>
+  <%= form_with(model: [@account, @campaign], data: { controller: 'campaign-import', 'campaign-import-pipelines-value': @pipelines.to_json(include: :stages), 'campaign-import-crm-fields-value': @crm_fields.to_json, 'campaign-import-initial-mapping-value': @campaign.mapping.to_json, action: 'submit->campaign-import#handleFormSubmit' }, class: "flex flex-col gap-6") do |f| %>
     <%= f.hidden_field :account_id, value: @account.id %>
-
-    <div id="import-debug-badge" class="mt-2 inline-flex items-center gap-2 px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-[10px] text-slate-500 font-mono border border-slate-200 dark:border-slate-700">
-      <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-      DB: <%= @campaign.spreadsheet_data.present? ? "PRESENT (#{@campaign.spreadsheet_data.count} rows)" : "EMPTY" %>
-      <button type="button" data-action="click->campaign-import#forceRehydrate" class="ml-2 underline hover:text-blue-500">Forçar Render</button>
-    </div>
     
     <!-- TOP SECTION: Configuração de Campanha e Destino -->
     <div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
@@ -157,7 +142,7 @@
               </button>
             </div>
           </div>
-          <div id="spreadsheet-import-grid" class="overflow-x-auto overflow-y-auto max-h-[65vh] w-full" data-campaign-import-target="gridContainer" data-action="paste->campaign-import#handleGridPaste">
+          <div class="overflow-x-auto overflow-y-auto max-h-[65vh] w-full" data-campaign-import-target="gridContainer" data-action="paste->campaign-import#handleGridPaste">
           </div>
         </div>
 
@@ -192,16 +177,7 @@
       </div>
     <% end %>
 
-
-    <%# [RESILIENCIA] Forçamos o uso do hidden_field EXATAMENTE como no New/Create para paridade total %>
-    <%= f.hidden_field :spreadsheet_data, 
-        value: (@campaign.spreadsheet_data.is_a?(String) ? @campaign.spreadsheet_data : @campaign.spreadsheet_data.to_json), 
-        data: { 'campaign-import-target': 'jsonOutput' } %>
-
-    <%# Badge de Diagnóstico em Tempo Real (Apenas para debug) %>
-    <div id="import-debug-badge" class="mt-2 text-[10px] text-slate-400 font-mono">
-      DB Data: <%= @campaign.spreadsheet_data.present? ? "PRESENT (#{@campaign.spreadsheet_data.count} rows)" : "EMPTY/NIL" %>
-    </div>
+    <%= f.hidden_field :spreadsheet_data, value: (@campaign.spreadsheet_data.is_a?(String) ? @campaign.spreadsheet_data : @campaign.spreadsheet_data.to_json), data: { 'campaign-import-target': 'jsonOutput' } %>
 
     <!-- BOTTOM SECTION: Action Form -->
     <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 mt-6 flex items-center justify-between">
@@ -216,4 +192,32 @@
   <% end %>
 </div>
 
-<%# O controller campaign-import já cuida da reatividade e do mapeamento inicial %>
+<script type="module">
+  // Garantimos que o script de suporte para pipelines rode, se necessário fora do controller global
+  document.addEventListener('turbo:load', () => {
+    const pipelinesData = <%= raw @pipelines.to_json(include: :stages) %>;
+    const currentStage = "<%= @campaign.stage_id %>";
+    
+    // O controller campaign-import já cuida de muita coisa, mas se precisarmos de patch manual:
+    const pipelineSelect = document.querySelector('[data-campaign-import-target="pipelineSelect"]');
+    const stageSelect = document.querySelector('[data-campaign-import-target="stageSelect"]');
+    
+    if (pipelineSelect && stageSelect && pipelinesData) {
+       const updateStages = () => {
+          const pId = pipelineSelect.value;
+          stageSelect.innerHTML = '<option value="">Selecione...</option>';
+          const pipe = pipelinesData.find(p => p.id.toString() === pId);
+          if (pipe && pipe.stages) {
+             pipe.stages.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id; opt.textContent = s.name;
+                if (s.id.toString() === currentStage) opt.selected = true;
+                stageSelect.appendChild(opt);
+             });
+          }
+       };
+       pipelineSelect.addEventListener('change', updateStages);
+       if (pipelineSelect.value) updateStages();
+    }
+  });
+</script>

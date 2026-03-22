@@ -3,106 +3,55 @@ import * as XLSX from "xlsx"
 
 export default class extends Controller {
     static targets = [
-        "jsonOutput", "pasteArea", "submitButton", "gridContainer", 
-        "gridWrapper", "headerToggle", "emptyStateContainer", 
-        "countTotal", "countValid", "countInvalid", 
-        "categorySelect", "pipelineSelect", "stageSelect", 
-        "ddiToggle", "dropzone", "loadingIndicator"
+        "jsonOutput",
+        "pasteArea",
+        "submitButton",
+        "gridContainer",
+        "gridWrapper",
+        "headerToggle",
+        "emptyStateContainer",
+        "countTotal",
+        "countValid",
+        "countInvalid",
+        "categorySelect",
+        "pipelineSelect",
+        "stageSelect",
+        "ddiToggle"
     ]
 
     static values = {
         pipelines: Array,
         crmFields: Object,
-        initialMapping: Object,
-        initialStageId: String,
-        fetchUrl: String
-    }
-
-    forceRehydrate(event) {
-        if (event) event.preventDefault();
-        console.log("[CampaignImport] Force Rehydrate triggered");
-        const debugBadge = document.getElementById('import-debug-badge');
-        if (debugBadge) debugBadge.innerHTML += ' | Forced';
-        this.rehydrateData();
+        initialMapping: Object
     }
 
     connect() {
-        console.log("[CampaignImport] connect started");
-        alert("[DEBUG] Controller Conectado!");
-        try {
-            window.campaignImport = this;
-            this.rawData = []
-            this.ignoredRows = new Set()
-            
-            // Manual parsing or values support
-            let initial = {};
-            try {
-                initial = this.hasInitialMappingValue ? this.initialMappingValue : {};
-            } catch (e) { console.error("Error parsing initialMapping", e); }
-            
-            this.currentMapping = typeof initial === 'object' ? { ...initial } : {};
-            
-            // Normalize mapping values
-            Object.keys(this.currentMapping).forEach(key => {
-                const val = this.currentMapping[key];
-                if (val !== null && val !== undefined) {
-                    this.currentMapping[key] = val.toString();
-                }
-            });
-
-            if (Object.keys(this.currentMapping).length === 0) {
-                this.loadCurrentMapping();
+        console.log("Campaign Import Controller Connected");
+        this.rawData = []
+        this.ignoredRows = new Set()
+        
+        const initial = (this.hasInitialMappingValue && this.initialMappingValue) ? this.initialMappingValue : {};
+        this.currentMapping = typeof initial === 'object' ? { ...initial } : {};
+        
+        // Normalize mapping values to strings safely for consistent comparison
+        Object.keys(this.currentMapping).forEach(key => {
+            const val = this.currentMapping[key];
+            if (val !== null && val !== undefined) {
+                this.currentMapping[key] = val.toString();
             }
+        });
 
-            // Initialize scroll
-            if (this.hasGridContainerTarget) {
-                this.gridContainerTarget.addEventListener('scroll', this.handleScroll.bind(this));
-            }
-            
-            // Start rehydration
-            this.rehydrateData();
-
-            // Populate stages
-            this.syncStages();
-
-            // Icons
-            this.initIcons();
-            
-            console.log("[CampaignImport] connect finish");
-        } catch (error) {
-            console.error("[CampaignImport] Critical error in connect():", error);
-            // Emergency alert to user if everything fails
-            if (window.location.search.includes('debug')) {
-                alert("Erro Stimulus: " + error.message);
-            }
+        if (Object.keys(this.currentMapping).length === 0) {
+            this.loadCurrentMapping();
         }
-    }
-
-    syncStages() {
-        if (this.hasPipelineSelectTarget && this.pipelineSelectTarget.value) {
-            const initialStageId = this.hasInitialStageIdValue ? this.initialStageIdValue : "";
-            this.handlePipelineChange(initialStageId);
-        }
-    }
-
-    initIcons() {
-        if (window.lucide) {
-            window.lucide.createIcons();
-        }
+        
+        this.rehydrateData()
+        this.validateMapping()
     }
 
     handleFormSubmit(event) {
-        console.log("Submit triggered. Syncing JSON...");
+        console.log("Syncing JSON before submit...");
         this.updateJsonOutput();
-        this.generateHiddenMappingInputs();
-        
-        // Final sanity check before submission
-        const exportData = this.rawData ? this.rawData.filter((_, index) => !this.ignoredRows.has(index)) : []
-        if (exportData.length === 0) {
-            console.error("Submission blocked: No data to submit.");
-            // We don't preventDefault here to allow the browser validation to work if needed, 
-            // but the button should already be disabled.
-        }
     }
 
     loadCurrentMapping() {
@@ -124,16 +73,8 @@ export default class extends Controller {
         this.validateMapping();
     }
 
-    autoMatchHeaders(force = false) {
+    autoMatchHeaders() {
         if (!this.rawData || this.rawData.length === 0) return;
-        
-        // Se já temos mapeamento e não é forçado (ex: reidratação de rascunho), 
-        // mantemos o que existe para não apagar o trabalho do usuário.
-        if (Object.keys(this.currentMapping).length > 0 && !force) {
-            console.log("Mapeamento existente preservado. Ignorando auto-match.");
-            return;
-        }
-
         const headers = this.rawData[0];
 
         this.currentMapping = {};
@@ -196,7 +137,7 @@ export default class extends Controller {
             this.ignoredRows.clear()
             this.rawData = this.normalizeMatrix(processedJson)
             console.log('Dados carregados:', this.rawData);
-            this.autoMatchHeaders(true) // Forçamos o match em upload de novo arquivo
+            this.autoMatchHeaders()
             this.renderizarGrid()
 
             event.target.value = ''
@@ -205,85 +146,31 @@ export default class extends Controller {
     }
 
     rehydrateData() {
-        const startTime = performance.now();
-        console.log("[CampaignImport] rehydrateData start.");
+        if (!this.hasJsonOutputTarget || !this.jsonOutputTarget.value) return
 
-        // Wrapper para suporte async manual
-        const process = async () => {
-            let data = null;
+        console.log("Tentando reidratar dados...")
+        try {
+            const data = JSON.parse(this.jsonOutputTarget.value)
+            // Sometimes it's double escaped or comes as a literal string "[...] "
+            const finalData = typeof data === 'string' ? JSON.parse(data) : data
 
-            if (this.hasFetchUrlValue && this.fetchUrlValue) {
-                console.log(`[CampaignImport] Fetching URL: ${this.fetchUrlValue}`);
-                try {
-                    const response = await fetch(this.fetchUrlValue, {
-                        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
-                    });
-                    if (response.ok) {
-                        data = await response.json();
-                    }
-                } catch (e) { console.error("Fetch error", e); }
+            if (Array.isArray(finalData) && finalData.length > 0) {
+                this.ignoredRows.clear()
+                this.rawData = this.normalizeMatrix(finalData)
+                console.log(`Reidratado: ${this.rawData.length} linhas (após limpeza).`)
+                this.autoMatchHeaders()
+                this.renderizarGrid()
+                this.validateMapping()
+            } else if (Array.isArray(finalData)) {
+                this.rawData = []
+                this.ignoredRows.clear()
+                this.renderizarGrid()
+                this.validateMapping()
+                console.log("Dados reidratados como array vazio.")
             }
-
-            // Fallback 1: Script Tag (Mais seguro contra truncamento)
-            if (!data) {
-                const scriptTag = document.getElementById('campaign-spreadsheet-data-json');
-                if (scriptTag && scriptTag.textContent.trim() !== '' && scriptTag.textContent.trim() !== '[]') {
-                    console.log("[CampaignImport] Loading from Script Tag.");
-                    data = scriptTag.textContent;
-                }
-            }
-
-            // Fallback 2: Hidden Field
-            if (!data && this.hasJsonOutputTarget) {
-                data = this.jsonOutputTarget.value;
-            }
-
-            if (!data || data === '[]') {
-                console.log("[CampaignImport] No data found.");
-                return;
-            }
-
-            try {
-                let finalData = data;
-                let attempts = 0;
-                while (typeof finalData === 'string' && attempts < 5) {
-                    try {
-                        const parsed = JSON.parse(finalData);
-                        if (parsed === finalData) break;
-                        finalData = parsed;
-                        attempts++;
-                    } catch (e) { break; }
-                }
-
-                if (finalData && (typeof finalData === 'object' || Array.isArray(finalData))) {
-                    const rawLen = Array.isArray(finalData) ? finalData.length : Object.keys(finalData).length;
-                    const normalized = this.normalizeMatrix(finalData);
-                    const normLen = normalized.length;
-                    
-                    const debugBadge = document.getElementById('import-debug-badge');
-                    if (debugBadge) {
-                        debugBadge.innerHTML += ` | Raw: ${rawLen} | Norm: ${normLen}`;
-                    }
-
-                    console.log(`[CampaignImport] Raw: ${rawLen}, Normalized: ${normLen}`);
-                    
-                    if (normalized.length > 0) {
-                        this.rawData = normalized;
-                        this.autoMatchHeaders(false); 
-                        this.renderizarGrid();
-                        console.log(`[CampaignImport] Rehydrate complete in ${(performance.now() - startTime).toFixed(2)}ms`);
-                    } else {
-                        console.warn("[CampaignImport] Normalization resulted in 0 rows.");
-                    }
-                } else {
-                    console.warn("[CampaignImport] finalData is not an object/array:", typeof finalData);
-                }
-            } catch (e) {
-                console.error('[CampaignImport] Rehydrate parse error', e);
-            }
-        };
-
-        process().catch(err => console.error("[CampaignImport] Async process error", err));
+        } catch (e) {
+            console.error('Falha ao reidratar dados:', e)
+        }
     }
 
     updateJsonOutput() {
@@ -387,6 +274,21 @@ export default class extends Controller {
         this.renderizarGrid()
     }
 
+    normalizeMatrix(matrix) {
+        if (!matrix || matrix.length === 0) return []
+        let maxCols = 0;
+        matrix.forEach(row => {
+            if (row.length > maxCols) maxCols = row.length;
+        });
+        return matrix.map(row => {
+            const newRow = [...row];
+            while (newRow.length < maxCols) {
+                newRow.push("");
+            }
+            return newRow;
+        }).filter(row => row.some(cell => cell !== "" && cell !== undefined && cell !== null));
+    }
+
     clearData(event) {
         if (event) event.preventDefault()
         this.rawData = []
@@ -438,48 +340,16 @@ export default class extends Controller {
 
     renderizarGrid() {
         if (!this.rawData || this.rawData.length === 0) {
-            console.log("[CampaignImport] No rawData to render.");
             this.clearData()
             return
         }
 
-        // --- FORÇA BRUTA: TIMEOUT E LOGS ---
-        console.log(`[CampaignImport] Queueing renderizarGrid with ${this.rawData.length} rows (500ms delay)...`);
-        
-        setTimeout(() => {
-            try {
-                // LOG DE COLUNAS (Sollicitado pelo usuário)
-                if (this.rawData.length > 0) {
-                    console.log("[CampaignImport] COLUNAS DETECTADAS:");
-                    console.table(this.rawData[0]);
-                }
+        console.log('Iniciando renderizarGrid com rawData length:', this.rawData.length);
 
-                const isHeader = this.hasHeaderToggleTarget ? this.headerToggleTarget.checked : true
-                
-                // INJEÇÃO BRUTA: Sincronia de ID (Surgical Fix)
-                let container = document.getElementById('spreadsheet-import-grid');
-                if (!container && this.hasGridContainerTarget) {
-                    container = this.gridContainerTarget;
-                }
+        try {
+            const isHeader = this.hasHeaderToggleTarget ? this.headerToggleTarget.checked : true
 
-                if (container) {
-                    container.innerHTML = '';
-                    
-                    // DERRUBADA DE PAREDES: Remove 'hidden' e força visibilidade em toda a hierarquia
-                    let curr = container;
-                    while (curr && curr !== document.body) {
-                        curr.classList.remove('hidden', 'invisible', 'opacity-0', 'd-none');
-                        curr.style.display = (curr.tagName === 'DIV' && !curr.className.includes('flex')) ? 'block' : '';
-                        curr.style.visibility = 'visible';
-                        curr.style.opacity = '1';
-                        curr = curr.parentElement;
-                    }
-                } else {
-                    console.error("FORÇA BRUTA FALHOU: Container #spreadsheet-import-grid não encontrado.");
-                    return;
-                }
-
-                let html = '<table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700" style="display: table !important; visibility: visible !important;">'
+            let html = '<table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">'
 
             let phoneIndex = -1;
             if (isHeader && this.rawData.length > 0) {
@@ -614,35 +484,25 @@ export default class extends Controller {
             }
             html += '</table>'
 
-                if (container) {
-                     container.innerHTML = html;
-                     console.log("[CampaignImport] HTML FORCED into container.");
-                }
-                
-                if (this.hasGridWrapperTarget) {
-                    this.gridWrapperTarget.classList.remove('hidden');
-                    this.gridWrapperTarget.style.display = 'flex';
-                }
-                
-                if (this.hasPasteAreaTarget) this.pasteAreaTarget.classList.add('hidden')
-                if (this.hasEmptyStateContainerTarget) this.emptyStateContainerTarget.classList.add('hidden')
-                
-                // Retrigger lucide icons
-                if (window.lucide) window.lucide.createIcons();
+            if (this.hasGridContainerTarget) this.gridContainerTarget.innerHTML = html
+            if (this.hasGridWrapperTarget) this.gridWrapperTarget.classList.remove('hidden')
+            if (this.hasPasteAreaTarget) this.pasteAreaTarget.classList.add('hidden')
+            if (this.hasEmptyStateContainerTarget) this.emptyStateContainerTarget.classList.add('hidden')
 
-                this.updateCounters(totalRecords, validRecords, invalidRecords)
-                this.validateMapping()
-                console.log(`[CampaignImport] Force Brute Render of ${totalRecords} contacts complete.`);
-            } catch (error) {
-                alert(`[FORÇA BRUTA ERROR]: ${error.message}`);
-                console.error('Erro na Força Bruta:', error);
-            }
-        }, 500);
+            // Retrigger lucide icons for new elements
+            if (window.lucide) window.lucide.createIcons();
+
+            this.updateCounters(totalRecords, validRecords, invalidRecords)
+            this.validateMapping()
+        } catch (error) {
+            console.error('Erro ao renderizar a grid (DOM Builder):', error);
+        }
     }
 
     updateCounters(total, valid, invalid) {
         if (this.hasCountTotalTarget) this.countTotalTarget.textContent = total
         if (this.hasCountValidTarget) this.countValidTarget.textContent = valid
+        if (this.hasCountInvalidTarget) this.countInvalidTarget.textContent = invalid
     }
 
     validarLinha(row, phoneIndex) {
@@ -847,14 +707,11 @@ export default class extends Controller {
         this.validateMapping()
     }
 
-    handlePipelineChange(initialStageId = "") {
+    handlePipelineChange() {
         if (!this.hasPipelineSelectTarget || !this.hasStageSelectTarget) return
 
         const pipelineIdStr = this.pipelineSelectTarget.value
         const pipelineId = pipelineIdStr ? parseInt(pipelineIdStr, 10) : null
-        
-        // Use provided initialStageId, or current target value, or empty
-        const currentSelectedStage = initialStageId || this.stageSelectTarget.value
 
         this.stageSelectTarget.innerHTML = '<option value="">Selecione a etapa inicial...</option>'
 
@@ -865,9 +722,6 @@ export default class extends Controller {
                     const opt = document.createElement('option')
                     opt.value = stage.id
                     opt.textContent = stage.name
-                    if (stage.id.toString() === currentSelectedStage.toString()) {
-                        opt.selected = true
-                    }
                     this.stageSelectTarget.appendChild(opt)
                 })
             }
@@ -881,64 +735,54 @@ export default class extends Controller {
         const hasData = exportData && exportData.length > 0;
 
         let mappingsValid = true
-        let mappingError = ""
-        
         if (hasData) {
-            const hasFullName = (this.currentMapping['contact.full_name'] !== undefined && this.currentMapping['contact.full_name'] !== "");
-            const hasCampaignNameTarget = (this.currentMapping['__campaign_name_target__'] !== undefined && this.currentMapping['__campaign_name_target__'] !== "");
-            
-            const hasPhone1 = (this.currentMapping['contact.phone'] !== undefined && this.currentMapping['contact.phone'] !== "");
-            const hasPhone2 = (this.currentMapping['contact.phone_2'] !== undefined && this.currentMapping['contact.phone_2'] !== "");
-            const hasPhone3 = (this.currentMapping['contact.phone_3'] !== undefined && this.currentMapping['contact.phone_3'] !== "");
+            const hasName = this.currentMapping['contact.full_name'] !== undefined || this.currentMapping['__campaign_name_target__'] !== undefined;
+            const hasPhone = this.currentMapping['contact.phone'] !== undefined ||
+                this.currentMapping['contact.phone_2'] !== undefined ||
+                this.currentMapping['contact.phone_3'] !== undefined;
 
-            const hasName = hasFullName || hasCampaignNameTarget;
-            const hasPhone = hasPhone1 || hasPhone2 || hasPhone3;
-
-            console.log("Mapping Detail:", { 
-                hasFullName, hasCampaignNameTarget, hasName,
-                hasPhone1, hasPhone2, hasPhone3, hasPhone,
-                currentMapping: this.currentMapping 
-            });
-
-            if (!hasName) mappingError = "Mapeamento de Nome faltando.";
-            if (!hasPhone) mappingError += " Mapeamento de Telefone faltando.";
-            
             if (!hasName || !hasPhone) {
                 mappingsValid = false;
             }
-        } else {
-            mappingError = "Sem dados na planilha.";
         }
 
-        const categoryVal = this.hasCategorySelectTarget ? this.categorySelectTarget.value : null;
-        const pipelineVal = this.hasPipelineSelectTarget ? this.pipelineSelectTarget.value : null;
-        const stageVal = this.hasStageSelectTarget ? this.stageSelectTarget.value : null;
+        let categoryParams = true;
+        if (this.hasCategorySelectTarget && !this.categorySelectTarget.value) {
+            categoryParams = false;
+        }
 
-        const isValid = hasData && mappingsValid && categoryVal && pipelineVal && stageVal
+        let pipelineParams = true;
+        if (this.hasPipelineSelectTarget && !this.pipelineSelectTarget.value) {
+            pipelineParams = false;
+        }
 
-        console.log("Validation Check:", { 
-            isValid,
+        let stageParams = true;
+        if (this.hasStageSelectTarget && !this.stageSelectTarget.value) {
+            stageParams = false;
+        }
+
+        const isValid = hasData && mappingsValid && categoryParams && pipelineParams && stageParams
+
+        console.log("Validation State:", { 
             hasData, 
             mappingsValid, 
-            mappingError,
-            category: !!categoryVal, 
-            pipeline: !!pipelineVal, 
-            stage: !!stageVal
+            categoryParams, 
+            pipelineParams, 
+            stageParams,
+            currentMapping: this.currentMapping 
         });
 
         if (this.hasSubmitButtonTarget) {
             this.submitButtonTarget.disabled = !isValid
             if (isValid) {
                 this.submitButtonTarget.classList.remove('opacity-50', 'cursor-not-allowed')
-                this.submitButtonTarget.title = "Avançar para a próxima etapa"
             } else {
                 this.submitButtonTarget.classList.add('opacity-50', 'cursor-not-allowed')
-                this.submitButtonTarget.title = `Bloqueado: ${mappingError || "Preencha todos os campos obrigatórios"}`
             }
         }
 
         this.generateHiddenMappingInputs();
-        this.updateJsonOutput(); 
+        this.updateJsonOutput(); // Garante que o JSON está sempre sincronizado e limpo
     }
 
     removeDuplicates() {
@@ -1023,63 +867,21 @@ export default class extends Controller {
         }
     }
     
-    normalizeMatrix(data) {
-        if (!data) return [];
-        if (data === '[]' || data === 'null') return [];
+    normalizeMatrix(matrix) {
+        if (!matrix || matrix.length === 0) return []
         
-        let matrix = [];
-
-        // Handle string data (CSV or JSON string)
-        if (typeof data === 'string') {
-            try {
-                const parsed = JSON.parse(data);
-                return this.normalizeMatrix(parsed);
-            } catch (e) {
-                // If it's not JSON, treat it as CSV/TSV
-                const rows = data.trim().split(/\r?\n/);
-                if (rows.length === 0) return [];
-                const firstRow = rows[0];
-                const separator = firstRow.includes('\t') ? '\t' : (firstRow.includes(';') ? ';' : ',');
-                matrix = rows.map(row => row.split(separator).map(cell => cell.trim().replace(/^"|"$/g, '')));
-            }
-        } else if (Array.isArray(data)) {
-            // Converte Array de Objetos para Matriz
-            if (data.length > 0 && !Array.isArray(data[0]) && typeof data[0] === 'object' && data[0] !== null) {
-                const headers = Object.keys(data[0]);
-                matrix.push(headers);
-                data.forEach(obj => {
-                    matrix.push(headers.map(h => obj[h]));
-                });
-            } else {
-                matrix = data;
-            }
-        } else if (typeof data === 'object' && data !== null) {
-            // Single object
-            const headers = Object.keys(data);
-            matrix.push(headers);
-            matrix.push(headers.map(h => data[h]));
-        }
-
-        if (matrix.length === 0) {
-            console.log("normalizeMatrix: Matriz vazia após conversão");
-            return [];
-        }
-        
-        // Remove completely empty rows
+        // Remove completamente linhas vazias
         const cleanMatrix = matrix.filter(row => {
             if (!Array.isArray(row)) return false;
             return row.some(cell => cell !== null && cell !== undefined && cell.toString().trim() !== '');
         });
 
-        if (cleanMatrix.length === 0) {
-            console.warn("normalizeMatrix: Todas as linhas foram filtradas como vazias.");
-            return [];
-        }
+        if (cleanMatrix.length === 0) return []
 
         // Calcula o número máximo de colunas
         const maxCols = Math.max(...cleanMatrix.map(row => row.length))
 
-        // Normaliza o tamanho de todas as linhas e limpa valores nulos
+        // Normaliza o tamanho de todas as linhas
         return cleanMatrix.map(row => {
             const newRow = [...row]
             while (newRow.length < maxCols) newRow.push('')
