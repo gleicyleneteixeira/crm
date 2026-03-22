@@ -443,17 +443,27 @@ export default class extends Controller {
             return
         }
 
+        alert(`[DEBUG] Iniciando desenho de ${this.rawData.length} linhas...`);
         console.log(`[CampaignImport] Starting renderizarGrid with ${this.rawData.length} rows.`);
         
         try {
             const isHeader = this.hasHeaderToggleTarget ? this.headerToggleTarget.checked : true
-            const debugBadge = document.getElementById('import-debug-badge');
             
-            // Clean container
-            if (this.hasGridContainerTarget) {
-                this.gridContainerTarget.innerHTML = '';
+            // Re-find container even if target fails
+            let container = this.hasGridContainerTarget ? this.gridContainerTarget : document.querySelector('[data-campaign-import-target="gridContainer"]');
+            
+            if (container) {
+                container.innerHTML = '';
+                // Ensure visible
+                container.style.display = 'block';
+                container.style.visibility = 'visible';
+                container.style.opacity = '1';
+                if (container.parentElement) {
+                    container.parentElement.classList.remove('hidden');
+                }
             } else {
-                throw new Error("Target gridContainer not found!");
+                alert("ERRO CRÍTICO: Não achei onde desenhar a tabela (gridContainer missing)");
+                return;
             }
 
             let html = '<table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">'
@@ -591,17 +601,27 @@ export default class extends Controller {
             }
             html += '</table>'
 
-            if (this.hasGridContainerTarget) this.gridContainerTarget.innerHTML = html
-            if (this.hasGridWrapperTarget) this.gridWrapperTarget.classList.remove('hidden')
+            if (container) {
+                 container.innerHTML = html;
+                 console.log("[CampaignImport] HTML injected into container.");
+            }
+            
+            if (this.hasGridWrapperTarget) {
+                this.gridWrapperTarget.classList.remove('hidden');
+                this.gridWrapperTarget.style.display = 'flex';
+            }
+            
             if (this.hasPasteAreaTarget) this.pasteAreaTarget.classList.add('hidden')
             if (this.hasEmptyStateContainerTarget) this.emptyStateContainerTarget.classList.add('hidden')
-
+            
             // Retrigger lucide icons for new elements
             if (window.lucide) window.lucide.createIcons();
 
             this.updateCounters(totalRecords, validRecords, invalidRecords)
             this.validateMapping()
+            alert(`[DEBUG] Desenho de ${totalRecords} contatos concluído com sucesso!`);
         } catch (error) {
+            alert(`[DEBUG] ERRO AO RENDERIZAR: ${error.message}`);
             console.error('Erro ao renderizar a grid (DOM Builder):', error);
         }
     }
@@ -609,7 +629,6 @@ export default class extends Controller {
     updateCounters(total, valid, invalid) {
         if (this.hasCountTotalTarget) this.countTotalTarget.textContent = total
         if (this.hasCountValidTarget) this.countValidTarget.textContent = valid
-        if (this.hasCountInvalidTarget) this.countInvalidTarget.textContent = invalid
     }
 
     validarLinha(row, phoneIndex) {
