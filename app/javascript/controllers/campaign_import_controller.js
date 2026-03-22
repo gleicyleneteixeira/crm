@@ -31,18 +31,22 @@ export default class extends Controller {
         this.ignoredRows = new Set()
         
         const initial = (this.hasInitialMappingValue && this.initialMappingValue) ? this.initialMappingValue : {};
-        this.currentMapping = typeof initial === 'object' ? { ...initial } : {};
+        this.currentMapping = typeof initial === 'object' && initial !== null ? { ...initial } : {};
         
         // Normalize mapping values to strings safely for consistent comparison
-        Object.keys(this.currentMapping).forEach(key => {
-            const val = this.currentMapping[key];
-            if (val !== null && val !== undefined) {
-                this.currentMapping[key] = val.toString();
-            }
-        });
+        if (this.currentMapping) {
+            Object.keys(this.currentMapping).forEach(key => {
+                const val = this.currentMapping[key];
+                if (val !== null && val !== undefined) {
+                    this.currentMapping[key] = val.toString();
+                }
+            });
 
-        if (Object.keys(this.currentMapping).length === 0) {
-            this.loadCurrentMapping();
+            if (Object.keys(this.currentMapping).length === 0) {
+                this.loadCurrentMapping();
+            }
+        } else {
+            this.currentMapping = {};
         }
         
         this.rehydrateData()
@@ -197,9 +201,11 @@ export default class extends Controller {
 
         // Filtramos as linhas ignoradas para o envio final
         const finalData = this.rawData.filter((_, index) => !this.ignoredRows.has(index)).map(row => {
+            if (!row) return [];
             return row.map((cell, colIndex) => {
                 const colIndexStr = colIndex.toString();
-                const mappedCrmKey = Object.keys(this.currentMapping).find(k => this.currentMapping[k]?.toString() === colIndexStr);
+                const mapping = this.currentMapping || {};
+                const mappedCrmKey = Object.keys(mapping).find(k => mapping[k]?.toString() === colIndexStr);
                 
                 // Limpeza básica de telefone se for uma coluna de telefone mapeada
                 if (mappedCrmKey && mappedCrmKey.includes('contact.phone')) {
@@ -286,19 +292,13 @@ export default class extends Controller {
         this.renderizarGrid()
     }
 
-    normalizeMatrix(matrix) {
-        if (!matrix || matrix.length === 0) return []
-        let maxCols = 0;
-        matrix.forEach(row => {
-            if (row.length > maxCols) maxCols = row.length;
+    normalizeMatrix(data) {
+        if (!data || !Array.isArray(data)) return [];
+        return data.filter(row => row !== null && row !== undefined).map(row => {
+            if (Array.isArray(row)) return row;
+            if (typeof row === 'object' && row !== null) return Object.values(row);
+            return [row];
         });
-        return matrix.map(row => {
-            const newRow = [...row];
-            while (newRow.length < maxCols) {
-                newRow.push("");
-            }
-            return newRow;
-        }).filter(row => row.some(cell => cell !== "" && cell !== undefined && cell !== null));
     }
 
     clearData(event) {
