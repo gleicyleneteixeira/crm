@@ -438,15 +438,23 @@ export default class extends Controller {
 
     renderizarGrid() {
         if (!this.rawData || this.rawData.length === 0) {
+            console.log("[CampaignImport] No rawData to render.");
             this.clearData()
             return
         }
 
-        console.log('Iniciando renderizarGrid com rawData length:', this.rawData.length);
-        if (this.rawData.length > 0) console.log('Amostra rawData:', this.rawData[0]);
-
+        console.log(`[CampaignImport] Starting renderizarGrid with ${this.rawData.length} rows.`);
+        
         try {
             const isHeader = this.hasHeaderToggleTarget ? this.headerToggleTarget.checked : true
+            const debugBadge = document.getElementById('import-debug-badge');
+            
+            // Clean container
+            if (this.hasGridContainerTarget) {
+                this.gridContainerTarget.innerHTML = '';
+            } else {
+                throw new Error("Target gridContainer not found!");
+            }
 
             let html = '<table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">'
 
