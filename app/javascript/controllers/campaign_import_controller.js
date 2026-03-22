@@ -184,15 +184,6 @@ export default class extends Controller {
             alert("Erro ao processar dados da planilha: " + e.message);
         }
     }
-                this.ignoredRows.clear()
-                this.renderizarGrid()
-                this.validateMapping()
-                console.log("Dados reidratados como array vazio.")
-            }
-        } catch (e) {
-            console.error('Falha ao reidratar dados:', e)
-        }
-    }
 
     updateJsonOutput() {
         if (!this.hasJsonOutputTarget) return;
