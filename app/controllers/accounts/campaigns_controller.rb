@@ -33,6 +33,8 @@ class Accounts::CampaignsController < InternalController
       puts "SPREADSHEET DATA SIZE: #{campaign_params[:spreadsheet_data].to_s.length}" if campaign_params[:spreadsheet_data].present?
 
       @campaign = Campaign.new(campaign_params.merge(account: @account, status: :draft, current_step: 3))
+      
+      puts "PRE-SAVE CAMPAIGN JSON: #{@campaign.to_json}"
 
       if @campaign.save
         puts "CAMPAIGN SAVED SUCCESSFULLY: #{@campaign.id}"
@@ -74,8 +76,11 @@ class Accounts::CampaignsController < InternalController
       puts "UPDATE SPREADSHEET DATA PRESENT: #{campaign_params[:spreadsheet_data].present?}"
       
       updated_params = campaign_params.merge(current_step: 3)
+      @campaign.assign_attributes(updated_params)
       
-      if @campaign.update(updated_params)
+      puts "PRE-UPDATE CAMPAIGN JSON: #{@campaign.to_json}"
+
+      if @campaign.save
         puts "CAMPAIGN UPDATED SUCCESSFULLY"
         puts "UPDATED SPREADSHEET DATA COUNT: #{@campaign.spreadsheet_data&.size}"
         # Re-inicializa contatos se os dados/mapeamento foram revisados
@@ -278,13 +283,12 @@ class Accounts::CampaignsController < InternalController
       campaign_category_id: cp[:campaign_category_id],
       pipeline_id: cp[:pipeline_id],
       stage_id: cp[:stage_id],
-      insert_ddi: cp[:insert_ddi],
-      ai_randomization: cp[:ai_randomization],
-      current_step: cp[:current_step],
+      insert_ddi: cp[:insert_ddi].to_s == '1' || cp[:insert_ddi].to_s == 'true',
+      ai_randomization: cp[:ai_randomization].to_s == 'true' || cp[:ai_randomization].to_s == '1',
+      current_step: cp[:current_step] || 1,
       chatwoot_inbox_ids: cp[:chatwoot_inbox_ids] || [],
       spreadsheet_data: s_data,
-      mapping: mapping_data,
-      ai_randomization: cp[:ai_randomization].to_s == 'true'
+      mapping: mapping_data
     }
   end
 

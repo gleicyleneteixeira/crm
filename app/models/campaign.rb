@@ -26,11 +26,13 @@ class Campaign < ApplicationRecord
     message_sequence || []
   end
 
-  after_initialize :set_defaults, if: :new_record?
+  after_initialize :set_defaults
 
   private
 
   def set_defaults
     self.ai_randomization = false if ai_randomization.nil?
+    self.ai_text_enabled = false if ai_text_enabled.nil?
+    self.ai_audio_enabled = false if ai_audio_enabled.nil?
   end
 end
