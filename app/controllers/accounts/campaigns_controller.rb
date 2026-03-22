@@ -283,7 +283,8 @@ class Accounts::CampaignsController < InternalController
       current_step: cp[:current_step],
       chatwoot_inbox_ids: cp[:chatwoot_inbox_ids] || [],
       spreadsheet_data: s_data,
-      mapping: mapping_data
+      mapping: mapping_data,
+      ai_randomization: cp[:ai_randomization].to_s == 'true'
     }
   end
 
