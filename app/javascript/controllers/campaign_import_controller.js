@@ -155,17 +155,19 @@ export default class extends Controller {
             return;
         }
 
-        const rawValue = this.jsonOutputTarget.value;
-        console.log("REHYDRATE: Valor bruto encontrado:", rawValue ? rawValue.substring(0, 100) + "..." : "VAZIO");
-        
-        if (!rawValue || rawValue === '[]' || rawValue === '""') {
-            console.warn("REHYDRATE: Campo de saída está vazio.");
-            return;
-        }
-
         try {
-            const data = JSON.parse(rawValue);
-            const finalData = typeof data === 'string' ? JSON.parse(data) : data;
+            const rawValue = this.jsonOutputTarget.value;
+            console.log("REHYDRATE: Valor bruto encontrado:", rawValue ? rawValue.substring(0, 100) + "..." : "VAZIO");
+            
+            if (!rawValue || rawValue === '[]' || rawValue === '""' || rawValue === 'null') {
+                console.warn("REHYDRATE: Campo de saída está vazio ou nulo.");
+                return;
+            }
+
+            const spreadsheetData = JSON.parse(rawValue);
+            if (!spreadsheetData) return; // Guard solicitado pelo usuário
+
+            const finalData = typeof spreadsheetData === 'string' ? JSON.parse(spreadsheetData) : spreadsheetData;
 
             if (Array.isArray(finalData) && finalData.length > 0) {
                 this.ignoredRows.clear();
