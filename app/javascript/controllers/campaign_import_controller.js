@@ -456,29 +456,26 @@ export default class extends Controller {
 
                 const isHeader = this.hasHeaderToggleTarget ? this.headerToggleTarget.checked : true
                 
-                // INJEÇÃO BRUTA: Tenta Target -> Tenta ID fixo
-                let container = this.hasGridContainerTarget ? this.gridContainerTarget : document.getElementById('spreadsheet-grid-container');
-                
-                if (!container) {
-                    container = document.querySelector('[data-campaign-import-target="gridContainer"]');
+                // INJEÇÃO BRUTA: Sincronia de ID (Surgical Fix)
+                let container = document.getElementById('spreadsheet-import-grid');
+                if (!container && this.hasGridContainerTarget) {
+                    container = this.gridContainerTarget;
                 }
 
                 if (container) {
                     container.innerHTML = '';
-                    // Force visibility marathon
-                    container.style.display = 'block';
-                    container.style.visibility = 'visible';
-                    container.style.opacity = '1';
-                    container.classList.remove('hidden');
                     
+                    // DERRUBADA DE PAREDES: Remove 'hidden' e força visibilidade em toda a hierarquia
                     let curr = container;
                     while (curr && curr !== document.body) {
-                        curr.classList.remove('hidden');
+                        curr.classList.remove('hidden', 'invisible', 'opacity-0', 'd-none');
                         curr.style.display = (curr.tagName === 'DIV' && !curr.className.includes('flex')) ? 'block' : '';
+                        curr.style.visibility = 'visible';
+                        curr.style.opacity = '1';
                         curr = curr.parentElement;
                     }
                 } else {
-                    alert("FORÇA BRUTA FALHOU: Container não encontrado nem por Target nem por ID!");
+                    console.error("FORÇA BRUTA FALHOU: Container #spreadsheet-import-grid não encontrado.");
                     return;
                 }
 
