@@ -443,30 +443,46 @@ export default class extends Controller {
             return
         }
 
-        alert(`[DEBUG] Iniciando desenho de ${this.rawData.length} linhas...`);
-        console.log(`[CampaignImport] Starting renderizarGrid with ${this.rawData.length} rows.`);
+        // --- FORÇA BRUTA: TIMEOUT E LOGS ---
+        console.log(`[CampaignImport] Queueing renderizarGrid with ${this.rawData.length} rows (500ms delay)...`);
         
-        try {
-            const isHeader = this.hasHeaderToggleTarget ? this.headerToggleTarget.checked : true
-            
-            // Re-find container even if target fails
-            let container = this.hasGridContainerTarget ? this.gridContainerTarget : document.querySelector('[data-campaign-import-target="gridContainer"]');
-            
-            if (container) {
-                container.innerHTML = '';
-                // Ensure visible
-                container.style.display = 'block';
-                container.style.visibility = 'visible';
-                container.style.opacity = '1';
-                if (container.parentElement) {
-                    container.parentElement.classList.remove('hidden');
+        setTimeout(() => {
+            try {
+                // LOG DE COLUNAS (Sollicitado pelo usuário)
+                if (this.rawData.length > 0) {
+                    console.log("[CampaignImport] COLUNAS DETECTADAS:");
+                    console.table(this.rawData[0]);
                 }
-            } else {
-                alert("ERRO CRÍTICO: Não achei onde desenhar a tabela (gridContainer missing)");
-                return;
-            }
 
-            let html = '<table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">'
+                const isHeader = this.hasHeaderToggleTarget ? this.headerToggleTarget.checked : true
+                
+                // INJEÇÃO BRUTA: Tenta Target -> Tenta ID fixo
+                let container = this.hasGridContainerTarget ? this.gridContainerTarget : document.getElementById('spreadsheet-grid-container');
+                
+                if (!container) {
+                    container = document.querySelector('[data-campaign-import-target="gridContainer"]');
+                }
+
+                if (container) {
+                    container.innerHTML = '';
+                    // Force visibility marathon
+                    container.style.display = 'block';
+                    container.style.visibility = 'visible';
+                    container.style.opacity = '1';
+                    container.classList.remove('hidden');
+                    
+                    let curr = container;
+                    while (curr && curr !== document.body) {
+                        curr.classList.remove('hidden');
+                        curr.style.display = (curr.tagName === 'DIV' && !curr.className.includes('flex')) ? 'block' : '';
+                        curr = curr.parentElement;
+                    }
+                } else {
+                    alert("FORÇA BRUTA FALHOU: Container não encontrado nem por Target nem por ID!");
+                    return;
+                }
+
+                let html = '<table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700" style="display: table !important; visibility: visible !important;">'
 
             let phoneIndex = -1;
             if (isHeader && this.rawData.length > 0) {
@@ -601,29 +617,30 @@ export default class extends Controller {
             }
             html += '</table>'
 
-            if (container) {
-                 container.innerHTML = html;
-                 console.log("[CampaignImport] HTML injected into container.");
-            }
-            
-            if (this.hasGridWrapperTarget) {
-                this.gridWrapperTarget.classList.remove('hidden');
-                this.gridWrapperTarget.style.display = 'flex';
-            }
-            
-            if (this.hasPasteAreaTarget) this.pasteAreaTarget.classList.add('hidden')
-            if (this.hasEmptyStateContainerTarget) this.emptyStateContainerTarget.classList.add('hidden')
-            
-            // Retrigger lucide icons for new elements
-            if (window.lucide) window.lucide.createIcons();
+                if (container) {
+                     container.innerHTML = html;
+                     console.log("[CampaignImport] HTML FORCED into container.");
+                }
+                
+                if (this.hasGridWrapperTarget) {
+                    this.gridWrapperTarget.classList.remove('hidden');
+                    this.gridWrapperTarget.style.display = 'flex';
+                }
+                
+                if (this.hasPasteAreaTarget) this.pasteAreaTarget.classList.add('hidden')
+                if (this.hasEmptyStateContainerTarget) this.emptyStateContainerTarget.classList.add('hidden')
+                
+                // Retrigger lucide icons
+                if (window.lucide) window.lucide.createIcons();
 
-            this.updateCounters(totalRecords, validRecords, invalidRecords)
-            this.validateMapping()
-            alert(`[DEBUG] Desenho de ${totalRecords} contatos concluído com sucesso!`);
-        } catch (error) {
-            alert(`[DEBUG] ERRO AO RENDERIZAR: ${error.message}`);
-            console.error('Erro ao renderizar a grid (DOM Builder):', error);
-        }
+                this.updateCounters(totalRecords, validRecords, invalidRecords)
+                this.validateMapping()
+                console.log(`[CampaignImport] Force Brute Render of ${totalRecords} contacts complete.`);
+            } catch (error) {
+                alert(`[FORÇA BRUTA ERROR]: ${error.message}`);
+                console.error('Erro na Força Bruta:', error);
+            }
+        }, 500);
     }
 
     updateCounters(total, valid, invalid) {
