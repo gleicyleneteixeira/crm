@@ -146,23 +146,44 @@ export default class extends Controller {
     }
 
     rehydrateData() {
-        if (!this.hasJsonOutputTarget || !this.jsonOutputTarget.value) return
+        if (!this.hasJsonOutputTarget) {
+            console.error("ERRO: jsonOutputTarget não encontrado!");
+            return;
+        }
 
-        console.log("Tentando reidratar dados...")
+        const rawValue = this.jsonOutputTarget.value;
+        console.log("REHYDRATE: Valor bruto encontrado:", rawValue ? rawValue.substring(0, 100) + "..." : "VAZIO");
+        
+        if (!rawValue || rawValue === '[]' || rawValue === '""') {
+            console.warn("REHYDRATE: Campo de saída está vazio.");
+            return;
+        }
+
         try {
-            const data = JSON.parse(this.jsonOutputTarget.value)
-            // Sometimes it's double escaped or comes as a literal string "[...] "
-            const finalData = typeof data === 'string' ? JSON.parse(data) : data
+            const data = JSON.parse(rawValue);
+            const finalData = typeof data === 'string' ? JSON.parse(data) : data;
 
             if (Array.isArray(finalData) && finalData.length > 0) {
-                this.ignoredRows.clear()
-                this.rawData = this.normalizeMatrix(finalData)
-                console.log(`Reidratado: ${this.rawData.length} linhas (após limpeza).`)
-                this.autoMatchHeaders()
-                this.renderizarGrid()
-                this.validateMapping()
-            } else if (Array.isArray(finalData)) {
-                this.rawData = []
+                this.ignoredRows.clear();
+                this.rawData = this.normalizeMatrix(finalData);
+                console.log(`REHYDRATE SUCESSO: ${this.rawData.length} linhas.`);
+                
+                // Força a exibição
+                this.autoMatchHeaders();
+                this.renderizarGrid();
+                this.validateMapping();
+                
+                // Garante que o container esteja visível
+                const grid = document.getElementById('spreadsheet-import-grid');
+                if (grid) grid.style.display = 'block';
+            } else {
+                console.warn("REHYDRATE: Dados parseados mas não são um array populado:", finalData);
+            }
+        } catch (e) {
+            console.error("REHYDRATE ERRO CRÍTICO:", e);
+            alert("Erro ao processar dados da planilha: " + e.message);
+        }
+    }
                 this.ignoredRows.clear()
                 this.renderizarGrid()
                 this.validateMapping()
