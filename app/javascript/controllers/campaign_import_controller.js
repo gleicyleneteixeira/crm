@@ -778,20 +778,9 @@ export default class extends Controller {
             }
         }
 
-        let categoryParams = true;
-        if (this.hasCategorySelectTarget && !this.categorySelectTarget.value) {
-            categoryParams = false;
-        }
-
-        let pipelineParams = true;
-        if (this.hasPipelineSelectTarget && !this.pipelineSelectTarget.value) {
-            pipelineParams = false;
-        }
-
-        let stageParams = true;
-        if (this.hasStageSelectTarget && !this.stageSelectTarget.value) {
-            stageParams = false;
-        }
+        let categoryParams = true; // Opcional conforme solicitado pelo usuário
+        let pipelineParams = true; // Opcional
+        let stageParams = true;    // Opcional
 
         const isValid = hasData && mappingsValid && categoryParams && pipelineParams && stageParams
 

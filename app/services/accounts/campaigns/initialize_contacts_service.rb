@@ -36,7 +36,7 @@ module Accounts
           # Upsert contacts based on phone number (unique constraint)
           @account.contacts.upsert_all(
             contacts_to_upsert,
-            unique_by: :phone,
+            unique_by: :index_contacts_on_phone,
             update_only: [:full_name, :email, :custom_attributes, :updated_at]
           )
         end
