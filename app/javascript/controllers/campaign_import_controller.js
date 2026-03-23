@@ -34,7 +34,7 @@ export default class extends Controller {
         this.currentMapping = typeof initial === 'object' && initial !== null ? { ...initial } : {};
         
         // Normalize mapping values to strings safely for consistent comparison
-        if (this.currentMapping) {
+        if (this.currentMapping && typeof this.currentMapping === 'object') {
             Object.keys(this.currentMapping).forEach(key => {
                 const val = this.currentMapping[key];
                 if (val !== null && val !== undefined) {
@@ -47,6 +47,7 @@ export default class extends Controller {
             }
         } else {
             this.currentMapping = {};
+            this.loadCurrentMapping();
         }
         
         this.rehydrateData()
@@ -59,15 +60,25 @@ export default class extends Controller {
     }
 
     loadCurrentMapping() {
-        this.currentMapping = {};
-        this.savedHeaderMappings = JSON.parse(localStorage.getItem('campaignInverseMappingsByName') || '{}');
+        this.currentMapping = this.currentMapping || {};
+        try {
+            const raw = localStorage.getItem('campaignInverseMappingsByName');
+            this.savedHeaderMappings = JSON.parse(raw || '{}');
+            if (!this.savedHeaderMappings || typeof this.savedHeaderMappings !== 'object') {
+                this.savedHeaderMappings = {};
+            }
+        } catch (e) {
+            console.error("Erro ao carregar mapeamento do localStorage:", e);
+            this.savedHeaderMappings = {};
+        }
     }
 
     saveCurrentMapping() {
         const headers = this.rawData && this.rawData.length > 0 ? this.rawData[0] : [];
-        this.savedHeaderMappings = {};
+        this.savedHeaderMappings = this.savedHeaderMappings || {};
+        const mapping = this.currentMapping || {};
 
-        for (const [crmKey, colIndex] of Object.entries(this.currentMapping)) {
+        for (const [crmKey, colIndex] of Object.entries(mapping)) {
             if (headers[colIndex]) {
                 this.savedHeaderMappings[crmKey] = headers[colIndex];
             }
@@ -88,9 +99,11 @@ export default class extends Controller {
             const colIndexStr = index.toString();
 
             let matchedCrmKey = null;
+            const saved = this.savedHeaderMappings || {};
+            const current = this.currentMapping || {};
 
-            for (const [crmKey, savedHeader] of Object.entries(this.savedHeaderMappings)) {
-                if (savedHeader === header && !Object.values(this.currentMapping).includes(colIndexStr)) {
+            for (const [crmKey, savedHeader] of Object.entries(saved)) {
+                if (savedHeader === header && !Object.values(current).includes(colIndexStr)) {
                     matchedCrmKey = crmKey;
                     break;
                 }
