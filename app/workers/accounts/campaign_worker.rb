@@ -159,9 +159,15 @@ class Accounts::CampaignWorker
       processed.gsub!(/\{\{first_name\}\}/i, first_name.presence || "[Nome]")
     end
 
-    # Process other variables if needed (mapped from contact attributes/custom_attributes)
-    # For now, focus on the smart variable requested
+    # Process all variables from contact custom_attributes
+    contact.custom_attributes.each do |key, val|
+      variable_tag = "{{#{key}}}"
+      processed.gsub!(Regexp.new(Regexp.escape(variable_tag), Regexp::IGNORECASE), val.to_s)
+    end
     
+    # Re-process {{nome}} specifically if mapped to full_name but tag used is {{nome}}
+    processed.gsub!(/\{\{nome\}\}/i, contact.full_name) if processed.downcase.include?('{{nome}}')
+
     processed
   end
 

@@ -4,11 +4,16 @@ export default class extends Controller {
     static targets = ["previewText", "blocksContainer", "messagesList", "blockTemplate", "aiButton", "audioButton", "aiVariationsContainer", "aiVariationsList", "audioPreviewContainer", "audioPlayer"]
     static values = {
         headers: Array,
-        sampleRow: Array
+        sampleRow: Array,
+        initialSequence: Array
     }
 
     connect() {
-        this.messageBlocks = []
+        // Initialize from existing data if possible, or start empty
+        this.messageBlocks = this.initialSequenceValue || []
+        this.currentMessageType = 'text'
+        this.updateUI()
+        
         this.setupEditor()
         if (window.lucide) window.lucide.createIcons()
     }
@@ -147,6 +152,22 @@ export default class extends Controller {
         }
     }
 
+    setMessageType(e) {
+        const type = e.currentTarget.dataset.type
+        this.currentMessageType = type
+        
+        // Update UI states for tabs
+        this.element.querySelectorAll('[data-action*="setMessageType"]').forEach(btn => {
+            if (btn.dataset.type === type) {
+                btn.classList.add('bg-emerald-500/20', 'text-emerald-500', 'border-emerald-500/30')
+                btn.classList.remove('bg-slate-900', 'text-slate-500', 'border-slate-800')
+            } else {
+                btn.classList.remove('bg-emerald-500/20', 'text-emerald-500', 'border-emerald-500/30')
+                btn.classList.add('bg-slate-900', 'text-slate-500', 'border-slate-800')
+            }
+        })
+    }
+
     addBlock() {
         const editor = document.getElementById('message-editor')
         const message = editor.value.trim()
@@ -154,7 +175,7 @@ export default class extends Controller {
 
         const block = {
             content: message,
-            kind: 'texto'
+            type: this.currentMessageType || 'text'
         }
 
         this.messageBlocks.push(block)
@@ -189,13 +210,26 @@ export default class extends Controller {
         `
             }
         } else {
+            const typesMeta = {
+                text: { label: 'TEXTO', icon: 'text' },
+                image: { label: 'IMAGEM', icon: 'image' },
+                audio: { label: 'ÁUDIO', icon: 'mic' },
+                video: { label: 'VÍDEO', icon: 'video' },
+                document: { label: 'DOC', icon: 'file-text' }
+            }
+
             this.messageBlocks.forEach((block, idx) => {
                 const tpl = this.blockTemplateTarget.content.cloneNode(true)
                 const item = tpl.querySelector('.message-item')
+                const meta = typesMeta[block.type] || typesMeta.text
 
                 item.dataset.index = idx + 1
                 item.querySelector('.index-tag').innerText = idx + 1
                 item.querySelector('.message-preview-line').innerText = block.content
+                item.querySelector('.type-tag').innerText = meta.label
+                
+                const iconContainer = item.querySelector('.index-tag')
+                iconContainer.innerHTML = `<i data-lucide="${meta.icon}" class="w-3 h-3"></i>`
 
                 list.appendChild(item)
             })
@@ -211,7 +245,7 @@ export default class extends Controller {
         this.blocksContainerTarget.innerHTML = ''
         this.messageBlocks.forEach((block, idx) => {
             this.addHiddenInput(`campaign[message_sequence][${idx}][content]`, block.content)
-            this.addHiddenInput(`campaign[message_sequence][${idx}][kind]`, block.kind)
+            this.addHiddenInput(`campaign[message_sequence][${idx}][type]`, block.type)
         })
     }
 
