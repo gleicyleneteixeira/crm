@@ -96,9 +96,10 @@ export default class extends Controller {
                 }
             }
 
-            if (!matchedCrmKey) {
+            if (!matchedCrmKey && this.hasCrmFieldsValue && this.crmFieldsValue) {
                 for (const groupName in this.crmFieldsValue) {
                     const attributesList = this.crmFieldsValue[groupName];
+                    if (!attributesList) continue;
                     for (const [label, key] of attributesList) {
                         if (this.stringMatch(label, header) && !this.currentMapping[key] && !Object.values(this.currentMapping).includes(colIndexStr)) {
                             matchedCrmKey = key;
