@@ -72,9 +72,12 @@ class Accounts::Contacts::GetByParams
   end
 
   def self.sanitized_phone(phone_number)
-    raise TypeError, 'phone_number must be a String' unless phone_number.is_a?(String)
-
-    cleaned_phone_number = phone_number.gsub(/\D/, '')
+    return "" if phone_number.blank?
+    return phone_number if phone_number.is_a?(String) && phone_number.start_with?('+')
+    
+    cleaned_phone_number = phone_number.to_s.gsub(/\D/, '')
+    return "" if cleaned_phone_number.blank?
+    
     cleaned_phone_number.prepend('+')
     cleaned_phone_number
   end

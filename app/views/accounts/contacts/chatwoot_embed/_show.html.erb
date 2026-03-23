@@ -49,8 +49,10 @@
       <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)] animate-pulse"></span>
       <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none">Crm Sync</p>
     </div>
-    <%= link_to account_contact_path(Current.account, contact), class: "text-[10px] font-bold text-brand-palette-03 uppercase tracking-widest hover:text-brand-palette-04 transition-colors", data: { turbo_frame: :_top } do %>
-      <%= t('activerecord.models.show') %> →
+    <% if contact.persisted? %>
+      <%= link_to account_contact_path(Current.account, contact), class: "text-[10px] font-bold text-brand-palette-03 uppercase tracking-widest hover:text-brand-palette-04 transition-colors", data: { turbo_frame: :_top } do %>
+        <%= t('activerecord.models.show') %> →
+      <% end %>
     <% end %>
   </div>
 </div>

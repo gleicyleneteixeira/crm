@@ -48,9 +48,10 @@ class Accounts::Apps::Chatwoots::Webhooks::ImportContact
       chatwoot.request_headers
     )
 
-    body = JSON.parse(contact_response.body)
-    conversations_tags = body['payload'].map { |c| c['labels'] }.flatten.uniq
-    contact.assign_attributes({ chatwoot_conversations_label_list: conversations_tags })
+    if body['payload'].present?
+      conversations_tags = body['payload'].map { |c| c['labels'] }.flatten.uniq
+      contact.assign_attributes({ chatwoot_conversations_label_list: conversations_tags })
+    end
     contact
   end
 
@@ -61,7 +62,9 @@ class Accounts::Apps::Chatwoots::Webhooks::ImportContact
       chatwoot.request_headers
     )
     body = JSON.parse(contact_response.body)
-    contact.assign_attributes({ label_list: body['payload'] })
+    if body['payload'].present?
+      contact.assign_attributes({ label_list: body['payload'] })
+    end
     contact
   end
 
@@ -82,7 +85,7 @@ class Accounts::Apps::Chatwoots::Webhooks::ImportContact
                               })
 
     contact.additional_attributes.merge!({ 'chatwoot_id' => body['id'], 'chatwoot_identifier' => body['identifier'] })
-    contact.custom_attributes.merge!(body['custom_attributes'])
+    contact.custom_attributes.merge!(body['custom_attributes']) if body['custom_attributes'].present?
     contact
   end
 end
