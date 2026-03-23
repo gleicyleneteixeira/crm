@@ -9,8 +9,10 @@ export default class extends Controller {
     }
 
     connect() {
+        console.log("Campaign Composition Controller connected")
         // Initialize from existing data if possible, or start empty
-        this.messageBlocks = this.initialSequenceValue || []
+        this.messageBlocks = Array.isArray(this.initialSequenceValue) ? [...this.initialSequenceValue] : []
+        console.log("Initial message blocks:", this.messageBlocks)
         this.currentMessageType = 'text'
         this.updateUI()
         
@@ -184,17 +186,29 @@ export default class extends Controller {
     }
 
     addBlock() {
+        console.log("addBlock clicked")
         const editor = document.getElementById('message-editor')
+        if (!editor) {
+            console.error("Editor not found!")
+            return
+        }
         const message = editor.value.trim()
-        if (!message) return
+        console.log("Message length:", message.length)
+        
+        if (!message) {
+            console.warn("Message is empty")
+            return
+        }
 
         const block = {
             content: message,
             type: this.currentMessageType || 'text'
         }
+        console.log("Adding block to array", block)
 
         this.messageBlocks.push(block)
         this.updateUI()
+        
         editor.value = ''
         this.previewTextTarget.innerText = 'Sua prévia aparecerá aqui conforme você digita...'
         if (this.hasAudioPreviewContainerTarget) this.audioPreviewContainerTarget.classList.add('hidden')
