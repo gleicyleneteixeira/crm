@@ -88,11 +88,15 @@ export default class extends Controller {
         this.validateMapping();
     }
 
-    autoMatchHeaders() {
+    autoMatchHeaders(forceReset = false) {
         if (!this.rawData || this.rawData.length === 0) return;
         const headers = this.rawData[0];
 
-        this.currentMapping = {};
+        if (forceReset) {
+            this.currentMapping = {};
+        } else {
+            this.currentMapping = this.currentMapping || {};
+        }
 
         headers.forEach((header, index) => {
             if (header === undefined || header === null) return;
@@ -155,7 +159,7 @@ export default class extends Controller {
             this.ignoredRows.clear()
             this.rawData = this.normalizeMatrix(processedJson)
             console.log('Dados carregados:', this.rawData);
-            this.autoMatchHeaders()
+            this.autoMatchHeaders(true)
             this.renderizarGrid()
 
             event.target.value = ''
@@ -188,8 +192,8 @@ export default class extends Controller {
                 this.rawData = this.normalizeMatrix(finalData);
                 console.log(`REHYDRATE SUCESSO: ${this.rawData.length} linhas.`);
                 
-                // Força a exibição
-                this.autoMatchHeaders();
+                // Força a exibição preservando o mapeamento atual (do banco)
+                this.autoMatchHeaders(false);
                 this.renderizarGrid();
                 this.validateMapping();
                 
