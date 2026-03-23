@@ -37,7 +37,7 @@ module Accounts
           @account.contacts.upsert_all(
             contacts_to_upsert,
             unique_by: :index_contacts_on_phone,
-            update_only: [:full_name, :email, :custom_attributes, :updated_at]
+            update_only: [:full_name, :email, :custom_attributes]
           )
         end
       end
