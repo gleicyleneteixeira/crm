@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-    static targets = ["previewText", "blocksContainer", "messagesList", "blockTemplate", "aiButton", "audioButton", "aiVariationsContainer", "aiVariationsList", "audioPreviewContainer", "audioPlayer"]
+    static targets = ["previewText", "blocksContainer", "messagesList", "blockTemplate", "aiButton", "audioButton", "aiVariationsContainer", "aiVariationsList", "audioPreviewContainer", "audioPlayer", "addButton", "emojiPicker", "fileInput"]
     static values = {
         headers: Array,
         sampleRow: Array,
@@ -24,7 +24,22 @@ export default class extends Controller {
             editor.addEventListener('input', (e) => {
                 const text = e.target.value
                 this.previewTextTarget.innerText = this.processVariables(text)
+                this.updateAddButtonState()
             })
+        }
+    }
+
+    updateAddButtonState() {
+        const editor = document.getElementById('message-editor')
+        if (!editor || !this.hasAddButtonTarget) return
+        
+        const hasContent = editor.value.trim().length > 0
+        if (hasContent) {
+            this.addButtonTarget.classList.add('bg-emerald-500', 'text-[#0D1117]', 'border-emerald-600')
+            this.addButtonTarget.classList.remove('bg-slate-900', 'text-slate-400', 'border-slate-800/60')
+        } else {
+            this.addButtonTarget.classList.remove('bg-emerald-500', 'text-[#0D1117]', 'border-emerald-600')
+            this.addButtonTarget.classList.add('bg-slate-900', 'text-slate-400', 'border-slate-800/60')
         }
     }
 
@@ -183,6 +198,7 @@ export default class extends Controller {
         editor.value = ''
         this.previewTextTarget.innerText = 'Sua prévia aparecerá aqui conforme você digita...'
         if (this.hasAudioPreviewContainerTarget) this.audioPreviewContainerTarget.classList.add('hidden')
+        this.updateAddButtonState()
     }
 
     removeBlock(e) {
@@ -255,6 +271,37 @@ export default class extends Controller {
         input.name = name
         input.value = value
         this.blocksContainerTarget.appendChild(input)
+    }
+
+    toggleEmojiPicker() {
+        if (this.hasEmojiPickerTarget) {
+            this.emojiPickerTarget.classList.toggle('hidden')
+        }
+    }
+
+    insertEmoji(e) {
+        const emoji = e.currentTarget.innerText
+        const editor = document.getElementById('message-editor')
+        if (editor) {
+            editor.value += emoji
+            editor.dispatchEvent(new Event('input'))
+            this.emojiPickerTarget.classList.add('hidden')
+        }
+    }
+
+    openFileSelector() {
+        if (this.hasFileInputTarget) {
+            this.fileInputTarget.click()
+        }
+    }
+
+    handleFileSelect(e) {
+        const file = e.target.files[0]
+        if (!file) return
+        
+        // In a real app, you'd upload here. 
+        // For now, we'll just indicate a file is selected in the editor or just alert.
+        alert(`Arquivo selecionado: ${file.name}. (Funcionalidade de upload em desenvolvimento)`)
     }
 
     getAccountId() {
