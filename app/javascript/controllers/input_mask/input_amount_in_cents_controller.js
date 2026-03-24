@@ -49,24 +49,37 @@ export default class extends Controller {
   }
 
   formatExhibitionNumberField() {
-    const value = this.element.value;
-    if (value && !isNaN(value)) {
-      this.element.value = this.formatToCurrencyNumber(value);
+    try {
+      const value = this.element.value;
+      if (value && typeof value === 'string') {
+        // Only format if it's purely digits (raw cents from DB)
+        // If it already has symbols like , or . followed by non-thousands pattern, 
+        // it means it's likely already formatted.
+        if (value.match(/^\d+$/)) {
+          this.element.value = this.formatToCurrencyNumber(value);
+        }
+      }
+    } catch (e) {
+      console.error("Error in formatExhibitionNumberField:", e);
     }
   }
 
   formatToCurrencyNumber(amount) {
-    const numericValue = parseFloat(amount) / 100;
-    if (isNaN(numericValue)) return "0,00";
+    try {
+      const numericValue = parseFloat(amount) / 100;
+      if (isNaN(numericValue)) return amount || "0,00";
 
-    return numericValue.toLocaleString("pt-BR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
+      return numericValue.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    } catch (e) {
+      console.error("Error in formatToCurrencyNumber:", e);
+      return amount;
+    }
   }
 
   prepareSubmit() {
-    // IMask updates the value in real-time. 
-    // The backend sanitize_amount will handle stripping characters.
+    // IMask handles real-time updates. No extra logic needed.
   }
 }
