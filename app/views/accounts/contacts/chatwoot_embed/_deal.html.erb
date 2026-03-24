@@ -10,20 +10,51 @@
       <% end %>
     </div>
 
-    <div class="flex flex-wrap gap-2 items-center mb-1">
+    <div class="flex flex-wrap gap-2 items-center mb-1" data-controller="load-lucid-icons">
       <% 
-        priority_color = case deal.priority_level
-                         when 'low' then 'text-emerald-500'
-                         when 'medium' then 'text-amber-500'
-                         when 'high' then 'text-red-500'
-                         else 'text-slate-400'
+        priority_classes = case deal.priority_level
+                         when 'low' then 'border-emerald-500 text-emerald-500 bg-emerald-500/10'
+                         when 'medium' then 'border-amber-400 text-amber-500 bg-amber-400/10'
+                         when 'high' then 'border-red-500 text-red-500 bg-red-500/10'
+                         else 'border-slate-400 text-slate-400 bg-transparent'
                          end
       %>
-      <span class="inline-flex items-center gap-1 text-[10px] font-bold uppercase <%= priority_color %>" title="<%= Deal.human_enum_name(:priority_level, deal.priority_level) %>">
-        <i data-lucide="flag" class="w-3 h-3"></i>
-      </span>
+      
+      <details class="relative group">
+        <summary class="list-none cursor-pointer outline-none">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-lg border text-[10px] font-bold uppercase <%= priority_classes %>" title="<%= Deal.human_enum_name(:priority_level, deal.priority_level) %>">
+            <i data-lucide="flag" class="w-3 h-3"></i>
+          </span>
+        </summary>
+        <div class="absolute left-0 mt-2 w-32 rounded-xl border border-light-palette-p3 bg-light-palette-p5 shadow-2xl z-[100] py-2 animate-in fade-in zoom-in-95 duration-200 lg:w-40">
+          <% [:low, :medium, :high, :none].each do |level| %>
+            <% 
+              l_color = case level
+                        when :low then 'text-emerald-500'
+                        when :medium then 'text-amber-500'
+                        when :high then 'text-red-500'
+                        else 'text-slate-400'
+                        end
+              l_bg = case level
+                     when :low then 'bg-emerald-500'
+                     when :medium then 'bg-amber-400'
+                     when :high then 'bg-red-500'
+                     else 'bg-slate-400'
+                     end
+            %>
+            <%= button_to account_deal_path(deal.account, deal),
+                          method: :patch,
+                          params: { deal: { priority_level: level } },
+                          form: { data: { turbo_stream: true } },
+                          class: "w-full text-left px-4 py-2 text-[10px] font-bold uppercase flex items-center gap-3 #{l_color} hover:bg-light-palette-p3 transition-colors" do %>
+              <span class="inline-block w-2 h-2 rounded-full <%= l_bg %> shadow-sm"></span>
+              <span><%= level == :none ? "Sem prioridade" : Deal.human_enum_name(:priority_level, level) %></span>
+            <% end %>
+          <% end %>
+        </div>
+      </details>
 
-      <span class="text-slate-300">|</span>
+      <span class="text-slate-300 pb-0.5">|</span>
 
       <p class="typography-sub-text-m-lh150 text-dark-gray-palette-p3 text-[10px] uppercase font-bold">Etapa</p>
       <%= render 'accounts/pipelines/deal_event', event: deal.next_event_planned if deal.next_event_planned? %>
