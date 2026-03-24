@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-    static targets = ["previewText", "blocksContainer", "messagesList", "blockTemplate", "aiButton", "audioButton", "aiVariationsContainer", "aiVariationsList", "audioPreviewContainer", "audioPlayer", "addButton", "emojiPicker", "fileInput"]
+    static targets = ["previewText", "blocksContainer", "messagesList", "blockTemplate", "aiButton", "audioButton", "aiVariationsContainer", "aiVariationsList", "audioPreviewContainer", "audioPlayer", "addButton", "emojiPicker", "fileInput", "editor", "count"]
     static values = {
         headers: Array,
         sampleRow: Array,
@@ -16,26 +16,13 @@ export default class extends Controller {
         this.currentMessageType = 'text'
         this.updateUI()
         
-        this.setupEditor()
         if (window.lucide) window.lucide.createIcons()
     }
 
-    setupEditor() {
-        const editor = document.getElementById('message-editor')
-        if (editor) {
-            editor.addEventListener('input', (e) => {
-                const text = e.target.value
-                this.previewTextTarget.innerText = this.processVariables(text)
-                this.updateAddButtonState()
-            })
-        }
-    }
-
     updateAddButtonState() {
-        const editor = document.getElementById('message-editor')
-        if (!editor || !this.hasAddButtonTarget) return
+        if (!this.hasEditorTarget || !this.hasAddButtonTarget) return
         
-        const hasContent = editor.value.trim().length > 0
+        const hasContent = this.editorTarget.value.trim().length > 0
         if (hasContent) {
             this.addButtonTarget.classList.add('bg-emerald-500', 'text-[#0D1117]', 'border-emerald-600')
             this.addButtonTarget.classList.remove('bg-slate-900', 'text-slate-400', 'border-slate-800/60')
@@ -43,6 +30,28 @@ export default class extends Controller {
             this.addButtonTarget.classList.remove('bg-emerald-500', 'text-[#0D1117]', 'border-emerald-600')
             this.addButtonTarget.classList.add('bg-slate-900', 'text-slate-400', 'border-slate-800/60')
         }
+        
+        // Update preview too
+        if (this.hasPreviewTextTarget) {
+            this.previewTextTarget.innerText = this.editorTarget.value.trim().length > 0 ? 
+                this.processVariables(this.editorTarget.value) : 
+                'Sua prévia aparecerá aqui conforme você digita...'
+        }
+    }
+
+    insertVariable(e) {
+        const variable = ` {{${e.currentTarget.dataset.variable}}}`
+        this.editorTarget.value += variable
+        this.editorTarget.focus()
+        this.editorTarget.dispatchEvent(new Event('input'))
+    }
+
+    insertEmoji(e) {
+        const emoji = e.currentTarget.innerText
+        this.editorTarget.value += emoji
+        this.editorTarget.focus()
+        this.editorTarget.dispatchEvent(new Event('input'))
+        if (this.hasEmojiPickerTarget) this.emojiPickerTarget.classList.add('hidden')
     }
 
     processVariables(text) {
@@ -65,7 +74,8 @@ export default class extends Controller {
 
         // Process other spreadsheet variables
         this.headersValue.forEach((header, index) => {
-            const variable = `{{${header.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "_")}}}`
+            const var_name = header.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "_")
+            const variable = `{{${var_name}}}`
             const value = this.sampleRowValue[index] || `[${header}]`
             const regex = new RegExp(variable.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi')
             processedText = processedText.replace(regex, value)
@@ -86,8 +96,7 @@ export default class extends Controller {
     }
 
     async generateAIVariations() {
-        const editor = document.getElementById('message-editor')
-        const message = editor.value
+        const message = this.editorTarget.value
         if (!message) return
 
         this.aiButtonTarget.innerHTML = '<i class="w-3 h-3 animate-spin"></i> Gerando...'
@@ -127,16 +136,15 @@ export default class extends Controller {
             card.className = "bg-[#0D1117] border border-slate-800 p-3 rounded-xl cursor-pointer hover:border-emerald-500/50 transition-all text-xs text-slate-300 mb-2"
             card.innerText = v
             card.onclick = () => {
-                document.getElementById('message-editor').value = v
-                document.getElementById('message-editor').dispatchEvent(new Event('input'))
+                this.editorTarget.value = v
+                this.editorTarget.dispatchEvent(new Event('input'))
             }
             this.aiVariationsListTarget.appendChild(card)
         })
     }
 
     async generateAudioPreview() {
-        const editor = document.getElementById('message-editor')
-        const text = editor.value
+        const text = this.editorTarget.value
         if (!text) return
 
         this.audioButtonTarget.innerHTML = '<i class="w-3 h-3 animate-spin"></i> Gravando...'
@@ -187,41 +195,36 @@ export default class extends Controller {
 
     addBlock() {
         console.log("addBlock clicked")
-        const editor = document.getElementById('message-editor')
-        if (!editor) {
-            console.error("Editor not found!")
-            return
-        }
-        const message = editor.value.trim()
-        console.log("Message length:", message.length)
+        if (!this.hasEditorTarget) return
         
-        if (!message) {
-            console.warn("Message is empty")
-            return
-        }
+        const message = this.editorTarget.value.trim()
+        if (!message) return
 
         const block = {
             content: message,
             type: this.currentMessageType || 'text'
         }
-        console.log("Adding block to array", block)
 
         this.messageBlocks.push(block)
         this.updateUI()
         
-        editor.value = ''
-        this.previewTextTarget.innerText = 'Sua prévia aparecerá aqui conforme você digita...'
+        this.editorTarget.value = ''
+        if (this.hasPreviewTextTarget) this.previewTextTarget.innerText = 'Sua prévia aparecerá aqui conforme você digita...'
         if (this.hasAudioPreviewContainerTarget) this.audioPreviewContainerTarget.classList.add('hidden')
         this.updateAddButtonState()
     }
 
     removeBlock(e) {
-        const index = parseInt(e.currentTarget.closest('.message-item').dataset.index) - 1
+        const item = e.currentTarget.closest('.message-item')
+        if (!item) return
+        const index = parseInt(item.dataset.index) - 1
         this.messageBlocks.splice(index, 1)
         this.updateUI()
     }
 
     updateUI() {
+        if (!this.hasMessagesListTarget) return
+        
         const list = this.messagesListTarget
         list.querySelectorAll('.message-item').forEach(el => el.remove())
 
@@ -267,11 +270,12 @@ export default class extends Controller {
 
         this.persist()
         if (window.lucide) window.lucide.createIcons()
-        const countEl = document.getElementById('count')
-        if (countEl) countEl.innerText = this.messageBlocks.length
+        if (this.hasCountTarget) this.countTarget.innerText = this.messageBlocks.length
     }
 
     persist() {
+        if (!this.hasBlocksContainerTarget) return
+        
         this.blocksContainerTarget.innerHTML = ''
         this.messageBlocks.forEach((block, idx) => {
             this.addHiddenInput(`campaign[message_sequence][${idx}][content]`, block.content)
@@ -293,16 +297,6 @@ export default class extends Controller {
         }
     }
 
-    insertEmoji(e) {
-        const emoji = e.currentTarget.innerText
-        const editor = document.getElementById('message-editor')
-        if (editor) {
-            editor.value += emoji
-            editor.dispatchEvent(new Event('input'))
-            this.emojiPickerTarget.classList.add('hidden')
-        }
-    }
-
     openFileSelector() {
         if (this.hasFileInputTarget) {
             this.fileInputTarget.click()
@@ -312,9 +306,6 @@ export default class extends Controller {
     handleFileSelect(e) {
         const file = e.target.files[0]
         if (!file) return
-        
-        // In a real app, you'd upload here. 
-        // For now, we'll just indicate a file is selected in the editor or just alert.
         alert(`Arquivo selecionado: ${file.name}. (Funcionalidade de upload em desenvolvimento)`)
     }
 
