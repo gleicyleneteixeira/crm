@@ -95,7 +95,7 @@ class Accounts::DealsController < InternalController
     @deal = DealBuilder.new(current_user, deal_params).perform
 
     if Deal::CreateOrUpdate.new(@deal, deal_params).call
-      redirect_to account_deal_path(current_user.account, @deal)
+      redirect_to account_deal_path(current_user.account, @deal), notice: t('flash_messages.created', model: Deal.model_name.human)
     else
       render :new, status: :unprocessable_entity
     end

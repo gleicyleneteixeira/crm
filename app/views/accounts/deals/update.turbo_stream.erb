@@ -61,6 +61,9 @@
     <%= turbo_stream.remove 'modal' %>
   <% end %>
 <% else %>
+  <%# Feedback genérico para outras atualizações %>
+  <%= turbo_stream.update :flash_message, partial: "components/flash_message", locals: { message: t('flash_messages.updated', model: Deal.model_name.human), type: :success } %>
+
   <%# Se não houve mudança de status para finalizado, apenas limpa o modal normalmente se necessário %>
   <%= turbo_stream.replace :modal do %>
     <%= turbo_frame_tag :modal %>
