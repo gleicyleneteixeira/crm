@@ -40,16 +40,30 @@ export default class extends Controller {
     }
 
     insertVariable(e) {
-        const variable = ` {{${e.currentTarget.dataset.variable}}}`
-        this.editorTarget.value += variable
+        if (!this.hasEditorTarget) return
+        const variable = `{{${e.currentTarget.dataset.variable}}}`
+        
+        const start = this.editorTarget.selectionStart
+        const end = this.editorTarget.selectionEnd
+        const text = this.editorTarget.value
+        this.editorTarget.value = text.substring(0, start) + variable + text.substring(end)
+        
         this.editorTarget.focus()
+        this.editorTarget.selectionStart = this.editorTarget.selectionEnd = start + variable.length
         this.editorTarget.dispatchEvent(new Event('input'))
     }
 
     insertEmoji(e) {
+        if (!this.hasEditorTarget) return
         const emoji = e.currentTarget.innerText
-        this.editorTarget.value += emoji
+        
+        const start = this.editorTarget.selectionStart
+        const end = this.editorTarget.selectionEnd
+        const text = this.editorTarget.value
+        this.editorTarget.value = text.substring(0, start) + emoji + text.substring(end)
+        
         this.editorTarget.focus()
+        this.editorTarget.selectionStart = this.editorTarget.selectionEnd = start + emoji.length
         this.editorTarget.dispatchEvent(new Event('input'))
         if (this.hasEmojiPickerTarget) this.emojiPickerTarget.classList.add('hidden')
     }
@@ -257,12 +271,19 @@ export default class extends Controller {
                 const meta = typesMeta[block.type] || typesMeta.text
 
                 item.dataset.index = idx + 1
-                item.querySelector('.index-tag').innerText = idx + 1
+                const indexTag = item.querySelector('.index-tag')
+                if (indexTag) indexTag.innerText = idx + 1
+                
                 item.querySelector('.message-preview-line').innerText = block.content
                 item.querySelector('.type-tag').innerText = meta.label
                 
-                const iconContainer = item.querySelector('.index-tag')
-                iconContainer.innerHTML = `<i data-lucide="${meta.icon}" class="w-3 h-3"></i>`
+                const iconWrapper = item.querySelector('.index-wrapper')
+                if (iconWrapper) {
+                    const icon = document.createElement('i')
+                    icon.dataset.lucide = meta.icon
+                    icon.className = "w-3 h-3 ml-1"
+                    iconWrapper.appendChild(icon)
+                }
 
                 list.appendChild(item)
             })

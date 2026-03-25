@@ -283,22 +283,24 @@
        </div>
      <% end %>
   </footer>
-</div>
 
-<template data-campaign--composition-target="blockTemplate">
-  <div class="message-item bg-[#161B22] border border-slate-800 rounded-2xl p-4 flex items-center gap-6 group hover:border-emerald-500/30 transition-all animate-in zoom-in-95" data-index="INDEX">
-     <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-black text-[10px] index-tag">INDEX</div>
-     <div class="flex-1">
-        <p class="text-xs text-white font-bold truncate message-preview-line">CONTENT</p>
-        <span class="text-[9px] text-slate-500 font-bold uppercase type-tag">TEXTO</span>
-     </div>
-      <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button type="button" data-action="click->campaign--composition#removeBlock" class="p-2 bg-[#0D1117] text-slate-400 hover:text-red-500 rounded-lg transition-colors">
-          <i data-lucide="trash-2" class="w-4 h-4"></i>
-        </button>
-      </div>
-  </div>
-</template>
+  <template data-campaign--composition-target="blockTemplate">
+    <div class="message-item bg-[#161B22] border border-slate-800 rounded-2xl p-4 flex items-center gap-6 group hover:border-emerald-500/30 transition-all animate-in zoom-in-95" data-index="INDEX">
+       <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-black text-[10px] index-wrapper">
+         <span class="index-tag">INDEX</span>
+       </div>
+       <div class="flex-1">
+          <p class="text-xs text-white font-bold truncate message-preview-line">CONTENT</p>
+          <span class="text-[9px] text-slate-500 font-bold uppercase type-tag">TEXTO</span>
+       </div>
+        <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button type="button" data-action="click->campaign--composition#removeBlock" class="p-2 bg-[#0D1117] text-slate-400 hover:text-red-500 rounded-lg transition-colors">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
+        </div>
+    </div>
+  </template>
+</div>
 
 <style>
   .no-scrollbar::-webkit-scrollbar { display: none; }
