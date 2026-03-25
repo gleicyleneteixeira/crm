@@ -31,7 +31,8 @@
           <% if deal.next_event_planned? %>
             <span class="text-slate-300">|</span>
             <div class="flex items-center">
-              <%= render 'accounts/pipelines/deal_event', event: deal.next_event_planned %>
+              <%= render "accounts/events/task_menu", event: deal.next_event_planned, show_date: true %>
+
             </div>
           <% end %>
         </div>

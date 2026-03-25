@@ -1,0 +1,6 @@
+<%= turbo_stream.replace @event %>
+<% if @event.deal_id.present? %>
+  <%= turbo_stream.replace dom_id(@event.deal) do %>
+    <%= render partial: 'accounts/pipelines/deal', locals: { deal: @event.deal } %>
+  <% end %>
+<% end %>

@@ -29,13 +29,25 @@ class Accounts::Contacts::EventsController < InternalController
 
   def destroy
     @event.destroy
+    respond_to do |format|
+      format.html { redirect_to account_contact_path(current_user.account, @contact) }
+      format.turbo_stream
+    end
   end
 
   def update
-    @deal = current_user.account.deals.find(params[:deal_id])
-    @events = @deal.contact.events
-    render :edit, status: :unprocessable_entity unless @event.update(event_params)
+    @deal = current_user.account.deals.find(params[:deal_id]) if params[:deal_id].present?
+
+    if @event.update(event_params)
+      respond_to do |format|
+        format.html { redirect_to account_contact_path(current_user.account, @contact) }
+        format.turbo_stream
+      end
+    else
+      render :edit, status: :unprocessable_entity
+    end
   end
+
 
   def show; end
 
