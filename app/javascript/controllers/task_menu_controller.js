@@ -69,11 +69,16 @@ export default class extends Controller {
     target.classList.add("hidden");
 
     let top = trigger.bottom + 5;
-    let left = trigger.right - width; // Align right of menu with right of icon
+    let left = trigger.left; // Align left of menu with left of icon
 
     // Flip vertical if no space below
-    if (top + height > window.innerHeight) {
+    if (top + height > window.innerHeight - 10) {
       top = trigger.top - height - 5;
+    }
+
+    // Adjust horizontal if going off-screen right
+    if (left + width > window.innerWidth - 10) {
+      left = window.innerWidth - width - 10;
     }
 
     // Adjust horizontal if going off-screen left
@@ -87,6 +92,7 @@ export default class extends Controller {
     target.style.margin = '0';
     target.style.zIndex = '9999';
   }
+
 
   cancelEdit(event) {
     if (event) event.preventDefault();

@@ -24,20 +24,20 @@
 
   <!-- Inline Edit Form (Hidden) -->
   <div data-task-menu-target="editForm" 
-       class="hidden fixed z-[9999] bg-slate-900 border border-slate-700 rounded-lg shadow-2xl p-2 w-44 animate-in fade-in zoom-in-95 duration-100">
+       class="hidden fixed z-[9999] bg-slate-950 border border-emerald-500/40 rounded-lg shadow-[0_20px_50px_rgba(0,0,0,0.9)] p-2 w-44 animate-in fade-in zoom-in-95 duration-100">
     <%= form_with model: event, url: account_contact_event_path(event.account, event.contact, event, deal_id: event.deal_id), method: :patch, data: { action: "submit->task-menu#submitEdit" } do |f| %>
-      <div class="flex flex-col gap-1.5">
+      <div class="flex flex-col gap-1.5 text-slate-100">
         <div class="flex flex-col gap-0.5">
           <label class="text-[8px] uppercase font-bold text-slate-500 ml-1">Tarefa</label>
-          <%= f.text_field :title, class: "form-input !text-[10px] !h-6 !px-2 !bg-slate-950 !text-slate-100 !border-slate-800 focus:!ring-1 focus:!ring-brand-palette-04", placeholder: "O que fazer?", data: { task_menu_target: "input" } %>
+          <%= f.text_field :title, class: "form-input !text-[10px] !h-6 !px-2 !bg-black !text-slate-100 !border-slate-800 focus:!border-emerald-500/50 focus:!ring-1 focus:!ring-emerald-500/30", placeholder: "O que fazer?", data: { task_menu_target: "input" } %>
         </div>
         <div class="flex flex-col gap-0.5">
           <label class="text-[8px] uppercase font-bold text-slate-500 ml-1">Prazo</label>
-          <%= f.datetime_local_field :scheduled_at, value: event.scheduled_at&.strftime("%Y-%m-%dT%H:%M"), class: "form-input !text-[10px] !h-6 !px-2 !bg-slate-950 !text-slate-100 !border-slate-800 focus:!ring-1 focus:!ring-brand-palette-04" %>
+          <%= f.datetime_local_field :scheduled_at, value: event.scheduled_at&.strftime("%Y-%m-%dT%H:%M"), class: "form-input !text-[10px] !h-6 !px-2 !bg-black !text-slate-100 !border-slate-800 focus:!border-emerald-500/50 focus:!ring-1 focus:!ring-emerald-500/30" %>
         </div>
         <div class="flex justify-end gap-1 mt-1">
           <button type="button" data-action="click->task-menu#cancelEdit" class="text-[9px] font-medium px-1.5 py-0.5 text-slate-500 hover:text-slate-300 transition-colors">Cancelar</button>
-          <%= f.submit "Salvar", class: "button-default-primary-xs !py-0 !px-2 !text-[9px] !h-5 !bg-brand-palette-03 !hover:bg-brand-palette-04 !border-none" %>
+          <%= f.submit "Salvar", class: "button-default-primary-xs !py-0 !px-2 !text-[9px] !h-5 !bg-emerald-600 !hover:bg-emerald-500 !text-white !border-none" %>
         </div>
       </div>
     <% end %>
@@ -45,8 +45,9 @@
 
   <!-- Dropdown Menu -->
   <div data-task-menu-target="menu" 
-       class="hidden fixed w-32 origin-top-right rounded-md bg-slate-900 shadow-xl z-[9999] py-1 text-[10px] border border-slate-700 animate-in fade-in slide-in-from-top-1 duration-100" 
+       class="hidden fixed w-32 origin-top-left rounded-md bg-slate-950 shadow-[0_10px_40px_rgba(0,0,0,0.8)] z-[9999] py-1 text-[10px] border border-emerald-500/30 animate-in fade-in slide-in-from-top-1 duration-100" 
        role="menu">
+
 
 
 
