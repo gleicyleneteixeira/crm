@@ -11,12 +11,12 @@
       <% if event.done? %>
         <i data-lucide="check" class="w-4 h-4 text-emerald-500"></i>
       <% else %>
-        <i data-lucide="clock-4" class="w-4 h-4 <%= event.overdue? ? 'text-red-500' : 'text-slate-400' %>"></i>
+        <i data-lucide="clock-4" class="w-4 h-4 <%= event.status_color %>"></i>
       <% end %>
     </button>
     
     <% if defined?(show_date) && show_date %>
-      <span class="typography-body-800 text-[11px] <%= event.overdue? ? 'text-red-500' : '' %>">
+      <span class="typography-body-800 text-[11px] <%= event.status_color %>">
         <%= render "components/formatters/datetime", value: event.primary_date, type: "distance" %>
       </span>
     <% end %>
@@ -41,7 +41,14 @@
        class="hidden absolute left-0 mt-1 w-40 origin-top-left rounded-md bg-white dark:!bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-[100] py-1 text-xs border border-slate-200 dark:border-slate-700" 
        role="menu">
     
-    <% if !event.done? %>
+    <% if event.done? %>
+      <a href="#" class="flex items-center gap-2 px-3 py-1.5 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" 
+         role="menuitem" 
+         data-action="click->task-menu#reopenTask">
+        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-sky-500"></i>
+        <span>Reabrir Tarefa</span>
+      </a>
+    <% else %>
       <a href="#" class="flex items-center gap-2 px-3 py-1.5 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" 
          role="menuitem" 
          data-action="click->task-menu#completeTask">

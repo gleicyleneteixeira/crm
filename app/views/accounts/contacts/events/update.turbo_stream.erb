@@ -1,4 +1,18 @@
-<%= turbo_stream.replace @event %>
+<% if @event.saved_change_to_done_at? %>
+  <%= turbo_stream.remove @event %>
+  <% if @event.done? %>
+    <%= turbo_stream.prepend "events_done_list_#{@event.contact.id}" do %>
+      <%= render partial: 'accounts/contacts/events/event', locals: { event: @event, deal: @deal } %>
+    <% end %>
+  <% else %>
+    <%= turbo_stream.prepend "events_to_do_list_#{@event.contact.id}" do %>
+      <%= render partial: 'accounts/contacts/events/event', locals: { event: @event, deal: @deal } %>
+    <% end %>
+  <% end %>
+<% else %>
+  <%= turbo_stream.replace @event %>
+<% end %>
+
 <% if @event.deal_id.present? %>
   <%= turbo_stream.replace dom_id(@event.deal) do %>
     <%= render partial: 'accounts/pipelines/deal', locals: { deal: @event.deal } %>

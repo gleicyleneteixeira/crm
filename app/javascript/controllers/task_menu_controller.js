@@ -39,17 +39,35 @@ export default class extends Controller {
     // Instant visual feedback
     if (this.hasIconTarget) {
       this.iconTarget.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-emerald-500"></i>';
-      // Re-initialize lucid icons if needed, but we can also just use a direct SVG for speed
       if (window.lucide) {
         window.lucide.createIcons({
-          nameAttr: 'data-lucide',
-          attrs: { class: 'w-4 h-4 text-emerald-500' }
+          nameAttr: 'data-lucide'
         });
       }
     }
 
     const formData = new FormData();
     formData.append("event[done]", "true");
+
+    await this.performRequest(this.updateUrlValue, "PATCH", formData);
+  }
+
+  async reopenTask(event) {
+    event.preventDefault();
+    this.menuTarget.classList.add("hidden");
+
+    // Instant visual feedback - return to clock
+    if (this.hasIconTarget) {
+      this.iconTarget.innerHTML = '<i data-lucide="clock-4" class="w-4 h-4"></i>';
+      if (window.lucide) {
+        window.lucide.createIcons({
+          nameAttr: 'data-lucide'
+        });
+      }
+    }
+
+    const formData = new FormData();
+    formData.append("event[done]", "false");
 
     await this.performRequest(this.updateUrlValue, "PATCH", formData);
   }

@@ -219,7 +219,25 @@ class Event < ApplicationRecord
   def overdue?
     return false if done == true || scheduled_at.blank?
 
-    DateTime.current > scheduled_at
+    Time.current > scheduled_at
+  end
+
+  def due_today?
+    return false if done == true || scheduled_at.blank?
+
+    scheduled_at.to_date == Time.current.to_date
+  end
+
+  def status_color
+    if done?
+      'text-emerald-500'
+    elsif overdue?
+      'text-red-500'
+    elsif due_today?
+      'text-yellow-500'
+    else
+      'text-emerald-500' # No prazo
+    end
   end
 
   def primary_date
