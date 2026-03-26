@@ -16,40 +16,42 @@ export default class extends Controller {
   toggleMenu(event) {
     event.preventDefault();
     event.stopPropagation();
-    this.menuTarget.classList.toggle("hidden");
-
-    // Boost z-index of the parent card when menu is open
-    const card = this.element.closest('li') || this.element.closest('.group');
-    if (card) {
-      if (!this.menuTarget.classList.contains("hidden")) {
-        card.classList.add("z-[999]");
-        card.style.zIndex = "999"; // Force inline style for legacy overflow issues
-      } else {
-        card.classList.remove("z-[999]");
-        card.style.zIndex = "";
-      }
-    }
-
-    if (!this.menuTarget.classList.contains("hidden")) {
-      document.addEventListener("click", this.closeMenuHandler);
+    
+    if (this.menuTarget.classList.contains("hidden")) {
+      this.openMenu();
     } else {
-      document.removeEventListener("click", this.closeMenuHandler);
+      this.closeMenu(event);
     }
   }
 
-  closeMenu(event) {
-    if (!this.element.contains(event.target)) {
-      this.menuTarget.classList.add("hidden");
-      
-      // Reset z-index of the parent card
-      const card = this.element.closest('li') || this.element.closest('.group');
-      if (card) {
-        card.classList.remove("z-[999]");
-        card.style.zIndex = "";
-      }
+  openMenu() {
+    this.menuTarget.classList.remove("hidden");
+    this.positionMenu();
+    document.addEventListener("click", this.closeMenuHandler);
+    window.addEventListener("scroll", this.closeMenuHandler, true);
+    window.addEventListener("resize", this.closeMenuHandler);
+  }
 
-      document.removeEventListener("click", this.closeMenuHandler);
-    }
+  positionMenu() {
+    // We use getBoundingClientRect to get viewport-relative coordinates
+    // and apply them to a position: fixed element.
+    const rect = this.element.getBoundingClientRect();
+    const menuWidth = 160; // w-40 = 10rem = 160px
+    
+    // Position the menu below the icon, aligned to the right of the icon's right edge
+    this.menuTarget.style.position = "fixed";
+    this.menuTarget.style.top = `${rect.bottom + 8}px`; // mt-2 approx 8px
+    this.menuTarget.style.left = `${rect.right - menuWidth}px`;
+    this.menuTarget.style.zIndex = "9999";
+  }
+
+  closeMenu(event) {
+    if (event && event.type === "click" && this.element.contains(event.target)) return;
+
+    this.menuTarget.classList.add("hidden");
+    document.removeEventListener("click", this.closeMenuHandler);
+    window.removeEventListener("scroll", this.closeMenuHandler, true);
+    window.removeEventListener("resize", this.closeMenuHandler);
   }
 
   async completeTask(event) {
