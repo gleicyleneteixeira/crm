@@ -31,7 +31,7 @@
           <% if deal.next_event_planned? %>
             <span class="text-slate-300">|</span>
             <div class="flex items-center">
-              <%= render "accounts/events/task_menu", event: deal.next_event_planned, show_date: true %>
+              <%= render "accounts/events/task_menu", event: deal.next_event_planned, show_date: true, minimal: true %>
 
             </div>
           <% end %>

@@ -42,7 +42,7 @@
       <span class="text-slate-300 pb-0.5">|</span>
 
       <p class="typography-sub-text-m-lh150 text-dark-gray-palette-p3 text-[10px] uppercase font-bold">Etapa</p>
-      <%= render "accounts/events/task_menu", event: deal.next_event_planned, show_date: true if deal.next_event_planned? %>
+      <%= render "accounts/events/task_menu", event: deal.next_event_planned, show_date: true, minimal: true if deal.next_event_planned? %>
 
     </div>
 

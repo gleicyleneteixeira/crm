@@ -73,26 +73,32 @@ export default class extends Controller {
   }
 
   showEdit(event) {
-    event.preventDefault();
-    this.menuTarget.classList.add("hidden");
-    this.displayTarget.classList.add("hidden");
-    this.editFormTarget.classList.remove("hidden");
-    if (this.hasInputTarget) {
-      this.inputTarget.focus();
+    if (this.hasEditFormTarget) {
+      event.preventDefault();
+      this.menuTarget.classList.add("hidden");
+      this.displayTarget.classList.add("hidden");
+      this.editFormTarget.classList.remove("hidden");
+      if (this.hasInputTarget) {
+        this.inputTarget.focus();
+      }
     }
   }
 
   cancelEdit(event) {
     if (event) event.preventDefault();
-    this.editFormTarget.classList.add("hidden");
-    this.displayTarget.classList.remove("hidden");
+    if (this.hasEditFormTarget) {
+      this.editFormTarget.classList.add("hidden");
+      this.displayTarget.classList.remove("hidden");
+    }
   }
 
   async submitEdit(event) {
-    event.preventDefault();
-    const formData = new FormData(this.editFormTarget.querySelector('form'));
-    await this.performRequest(this.updateUrlValue, "PATCH", formData);
-    this.cancelEdit();
+    if (this.hasEditFormTarget) {
+      event.preventDefault();
+      const formData = new FormData(this.editFormTarget.querySelector('form'));
+      await this.performRequest(this.updateUrlValue, "PATCH", formData);
+      this.cancelEdit();
+    }
   }
 
   async deleteTask(event) {
