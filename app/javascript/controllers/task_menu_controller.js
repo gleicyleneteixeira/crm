@@ -18,6 +18,18 @@ export default class extends Controller {
     event.stopPropagation();
     this.menuTarget.classList.toggle("hidden");
 
+    // Boost z-index of the parent card when menu is open
+    const card = this.element.closest('li') || this.element.closest('.group');
+    if (card) {
+      if (!this.menuTarget.classList.contains("hidden")) {
+        card.classList.add("z-[999]");
+        card.style.zIndex = "999"; // Force inline style for legacy overflow issues
+      } else {
+        card.classList.remove("z-[999]");
+        card.style.zIndex = "";
+      }
+    }
+
     if (!this.menuTarget.classList.contains("hidden")) {
       document.addEventListener("click", this.closeMenuHandler);
     } else {
@@ -28,6 +40,14 @@ export default class extends Controller {
   closeMenu(event) {
     if (!this.element.contains(event.target)) {
       this.menuTarget.classList.add("hidden");
+      
+      // Reset z-index of the parent card
+      const card = this.element.closest('li') || this.element.closest('.group');
+      if (card) {
+        card.classList.remove("z-[999]");
+        card.style.zIndex = "";
+      }
+
       document.removeEventListener("click", this.closeMenuHandler);
     }
   }
