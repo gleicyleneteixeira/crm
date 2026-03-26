@@ -8,3 +8,10 @@
 // Commons
 @import "./commons/w-btn-block.scss";
 @import "./commons/w-btn-outline.scss";
+
+// Fix calendar icon visibility in dark mode
+.dark [type="datetime-local"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}
+
