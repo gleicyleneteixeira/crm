@@ -24,7 +24,7 @@
 
   <!-- Inline Edit Form (Hidden) -->
   <div data-task-menu-target="editForm" 
-       class="hidden fixed z-[9999] bg-slate-950 border border-emerald-500/40 rounded-lg shadow-[0_20px_50px_rgba(0,0,0,0.9)] p-2 w-44 animate-in fade-in zoom-in-95 duration-100">
+       class="hidden fixed z-[9999] !bg-[#0b0f19] !opacity-100 border border-emerald-500/40 rounded-lg shadow-[0_20px_50px_rgba(0,0,0,0.9)] p-2 w-44 animate-in fade-in zoom-in-95 duration-100">
     <%= form_with model: event, url: account_contact_event_path(event.account, event.contact, event, deal_id: event.deal_id), method: :patch, data: { action: "submit->task-menu#submitEdit" } do |f| %>
       <div class="flex flex-col gap-1.5 text-slate-100">
         <div class="flex flex-col gap-0.5">
@@ -45,8 +45,9 @@
 
   <!-- Dropdown Menu -->
   <div data-task-menu-target="menu" 
-       class="hidden fixed w-32 origin-top-left rounded-md bg-slate-950 shadow-[0_10px_40px_rgba(0,0,0,0.8)] z-[9999] py-1 text-[10px] border border-emerald-500/30 animate-in fade-in slide-in-from-top-1 duration-100" 
+       class="hidden fixed w-32 origin-top-left rounded-md !bg-[#0b0f19] !opacity-100 shadow-[0_10px_40px_rgba(0,0,0,0.8)] z-[9999] py-1 text-[10px] border border-emerald-500/30 animate-in fade-in slide-in-from-top-1 duration-100" 
        role="menu">
+
 
 
 

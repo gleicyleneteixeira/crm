@@ -90,8 +90,11 @@ export default class extends Controller {
     target.style.top = `${top}px`;
     target.style.left = `${left}px`;
     target.style.margin = '0';
-    target.style.zIndex = '9999';
+    target.style.zIndex = '10000';
+    target.style.backgroundColor = '#0b0f19';
+    target.style.opacity = '1';
   }
+
 
 
   cancelEdit(event) {
