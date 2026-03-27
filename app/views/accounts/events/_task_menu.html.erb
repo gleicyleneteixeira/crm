@@ -1,23 +1,24 @@
 <% minimal = defined?(minimal) ? minimal : false %>
 <div class="relative inline-block text-left" 
      data-controller="task-menu" 
+     data-task-menu-event-id-value="<%= event.id %>"
      data-task-menu-update-url-value="<%= account_contact_event_path(event.account, event.contact, event, deal_id: event.deal_id) %>"
      data-task-menu-delete-url-value="<%= account_contact_event_path(event.account, event.contact, event, deal_id: event.deal_id) %>">
   
-  <div data-task-menu-target="display" class="flex items-center gap-1">
-    <button type="button" 
-            class="flex items-center justify-center transition-colors rounded-full p-0.5 hover:bg-slate-100 dark:hover:bg-slate-800"
-            data-action="click->task-menu#toggleMenu"
-            data-task-menu-target="icon">
+  <div data-task-menu-target="display" 
+       data-action="click->task-menu#toggleMenu"
+       class="flex items-center gap-1 cursor-pointer">
+    <div class="flex items-center justify-center transition-colors rounded-full p-0.5 hover:bg-slate-100 dark:hover:bg-slate-800"
+         data-task-menu-target="icon">
       <% if event.done? %>
         <i data-lucide="check" class="w-4 h-4 text-emerald-500"></i>
       <% else %>
         <i data-lucide="clock-4" class="w-4 h-4 <%= event.status_color %>"></i>
       <% end %>
-    </button>
+    </div>
     
     <% if defined?(show_date) && show_date %>
-      <span class="typography-body-800 text-[11px] <%= event.status_color %>">
+      <span class="typography-body-800 text-[11px] <%= event.status_color %> select-none">
         <%= render "components/formatters/datetime", value: event.primary_date, type: "distance" %>
       </span>
     <% end %>
