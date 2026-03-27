@@ -128,7 +128,8 @@ export default class extends Controller {
     this.closeMenu(); 
 
     if (this.hasEditFormTarget) {
-      this.displayTarget.classList.add("hidden");
+      // Preserve space: Use visibility instead of display:none to prevent layout shift
+      this.displayTarget.style.visibility = "hidden";
       this.editFormTarget.classList.remove("hidden");
       this.editFormTarget.style.display = "block";
       this.editFormTarget.style.zIndex = "99999";
@@ -149,7 +150,8 @@ export default class extends Controller {
     if (event) event.preventDefault();
     if (this.hasEditFormTarget) {
       this.editFormTarget.classList.add("hidden");
-      this.displayTarget.classList.remove("hidden");
+      // Restore visibility
+      this.displayTarget.style.visibility = "";
     }
     this.cleanupCardState();
   }
