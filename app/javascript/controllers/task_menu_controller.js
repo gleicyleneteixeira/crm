@@ -26,6 +26,12 @@ export default class extends Controller {
 
   openMenu() {
     this.menuTarget.classList.remove("hidden");
+    
+    // Ensure visibility and stacking
+    this.menuTarget.style.display = "block";
+    this.menuTarget.style.visibility = "visible";
+    this.menuTarget.style.opacity = "1";
+    
     this.positionMenu();
     document.addEventListener("click", this.closeMenuHandler);
     window.addEventListener("scroll", this.closeMenuHandler, true);
@@ -33,16 +39,28 @@ export default class extends Controller {
   }
 
   positionMenu() {
-    // We use getBoundingClientRect to get viewport-relative coordinates
-    // and apply them to a position: fixed element.
-    const rect = this.element.getBoundingClientRect();
-    const menuWidth = 160; // w-40 = 10rem = 160px
+    const icon = this.hasIconTarget ? this.iconTarget : this.element;
+    const rect = icon.getBoundingClientRect();
+    const menuWidth = 160; 
     
-    // Position the menu below the icon, aligned to the right of the icon's right edge
+    // Safety check for browser boundaries
+    let top = rect.bottom + 8;
+    let left = rect.right - menuWidth;
+    
+    // If it would go off the bottom, open upwards
+    if (top + 200 > window.innerHeight) {
+      top = rect.top - 180; // approx height
+    }
+    
+    // If it would go off the left, align to left of icon
+    if (left < 0) {
+      left = rect.left;
+    }
+
     this.menuTarget.style.position = "fixed";
-    this.menuTarget.style.top = `${rect.bottom + 8}px`; // mt-2 approx 8px
-    this.menuTarget.style.left = `${rect.right - menuWidth}px`;
-    this.menuTarget.style.zIndex = "9999";
+    this.menuTarget.style.top = `${top}px`;
+    this.menuTarget.style.left = `${left}px`;
+    this.menuTarget.style.zIndex = "99999";
   }
 
   closeMenu(event) {

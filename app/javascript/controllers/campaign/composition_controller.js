@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-    static targets = ["previewText", "blocksContainer", "messagesList", "blockTemplate", "aiButton", "audioButton", "aiVariationsContainer", "aiVariationsList", "audioPreviewContainer", "audioPlayer", "addButton", "emojiPicker", "fileInput", "editor", "count"]
+    static targets = ["previewText", "blocksContainer", "messagesList", "blockTemplate", "aiButton", "audioButton", "aiVariationsContainer", "aiVariationsList", "audioPreviewContainer", "audioPlayer", "addButton", "emojiPicker", "fileInput", "editor", "count", "simulatorHistory", "simulatorBody"]
     static values = {
         headers: Array,
         sampleRow: Array,
@@ -36,6 +36,7 @@ export default class extends Controller {
             this.previewTextTarget.innerText = this.editorTarget.value.trim().length > 0 ? 
                 this.processVariables(this.editorTarget.value) : 
                 'Sua prévia aparecerá aqui conforme você digita...'
+            this.scrollToBottom()
         }
     }
 
@@ -290,8 +291,35 @@ export default class extends Controller {
         }
 
         this.persist()
+        this.updateSimulator()
         if (window.lucide) window.lucide.createIcons()
         if (this.hasCountTarget) this.countTarget.innerText = this.messageBlocks.length
+        this.scrollToBottom()
+    }
+
+    updateSimulator() {
+        if (!this.hasSimulatorHistoryTarget) return
+        this.simulatorHistoryTarget.innerHTML = ''
+        
+        this.messageBlocks.forEach(block => {
+            const bubble = document.createElement('div')
+            bubble.className = "bg-[#0D1117] border border-slate-800 p-4 rounded-2xl rounded-tl-none shadow-xl max-w-[85%] self-start animate-in fade-in slide-in-from-left-2"
+            bubble.innerHTML = `
+                <div class="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">${block.type}</div>
+                <p class="text-xs text-slate-300 leading-relaxed">${block.content}</p>
+            `
+            this.simulatorHistoryTarget.appendChild(bubble)
+        })
+    }
+
+    scrollToBottom() {
+        if (!this.hasSimulatorBodyTarget) return
+        setTimeout(() => {
+            this.simulatorBodyTarget.scrollTo({
+                top: this.simulatorBodyTarget.scrollHeight,
+                behavior: 'smooth'
+            })
+        }, 50)
     }
 
     persist() {
