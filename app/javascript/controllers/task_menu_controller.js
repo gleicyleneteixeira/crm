@@ -12,6 +12,12 @@ export default class extends Controller {
   connect() {
     this.closeMenuHandler = this.closeMenu.bind(this);
     this.menuId = `task-menu-dropdown-${this.eventIdValue}`;
+    
+    // ZOMBIE CLEANUP: If there's an old menu with this ID in the body (from a previous render), remove it
+    const oldMenu = document.body.querySelector(`#${this.menuId}`);
+    if (oldMenu && oldMenu.parentNode === document.body) {
+        document.body.removeChild(oldMenu);
+    }
   }
 
   disconnect() {
