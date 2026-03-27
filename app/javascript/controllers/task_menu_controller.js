@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus";
 import * as Turbo from "@hotwired/turbo";
 
 export default class extends Controller {
-  static targets = ["display", "editForm", "input", "icon"];
+  static targets = ["display", "editForm", "input", "icon", "menu"];
   static values = {
     updateUrl: String,
     deleteUrl: String,
@@ -11,21 +11,10 @@ export default class extends Controller {
 
   connect() {
     this.closeMenuHandler = this.closeMenu.bind(this);
-    this.menuId = `task-menu-dropdown-${this.eventIdValue}`;
-    
-    // ZOMBIE CLEANUP: If there's an old menu with this ID in the body (from a previous render), remove it
-    const oldMenu = document.body.querySelector(`#${this.menuId}`);
-    if (oldMenu && oldMenu.parentNode === document.body) {
-        document.body.removeChild(oldMenu);
-    }
   }
 
   disconnect() {
     this.closeMenu();
-  }
-
-  get menuElement() {
-    return document.getElementById(this.menuId);
   }
 
   toggleMenu(event) {
@@ -34,89 +23,70 @@ export default class extends Controller {
         event.stopPropagation();
     }
     
-    const menu = this.menuElement;
-    if (!menu) return;
-
-    if (menu.classList.contains("hidden")) {
-      this.openMenu(menu);
-    } else {
-      this.closeMenu();
+    if (this.hasMenuTarget) {
+      if (this.menuTarget.classList.contains("hidden")) {
+        this.openMenu();
+      } else {
+        this.closeMenu();
+      }
     }
   }
 
-  openMenu(menu) {
-    if (!menu) menu = this.menuElement;
-    if (!menu) return;
+  openMenu() {
+    if (!this.hasMenuTarget) return;
 
-    // 1. Calculate relative to the element (icon)
-    const icon = this.hasIconTarget ? this.iconTarget : this.element;
-    const rect = icon.getBoundingClientRect();
+    // 1. Boost card/container z-index to fly over neighbors
+    const card = this.element.closest('.rounded-xl, .rounded-lg, [id^="deal_"], [id^="event_"]');
+    if (card) {
+        card.style.zIndex = "9999";
+        card.style.position = "relative";
+        // Remove overflow:hidden to allow menu to exit the card boundaries
+        card.classList.remove("overflow-hidden");
+        card.style.overflow = "visible";
+    }
+    
+    // Also boost the controller element itself
+    this.element.style.zIndex = "9999";
+    this.element.style.position = "relative";
 
-    // 2. Portal: Always move to body to escape parent scoping
-    document.body.appendChild(menu);
+    // 2. Show and position absolutely relative to the anchored icon/pill
+    this.menuTarget.classList.remove("hidden");
+    this.menuTarget.style.display = "block";
+    this.menuTarget.style.visibility = "visible";
+    this.menuTarget.style.opacity = "1";
+    this.menuTarget.style.position = "absolute";
+    this.menuTarget.style.zIndex = "9999";
+    
+    // Position Dropup (Above)
+    this.menuTarget.style.bottom = "100%";
+    this.menuTarget.style.right = "0";
+    this.menuTarget.style.marginBottom = "8px";
+    this.menuTarget.style.top = "auto"; // Ensure it doesn't try to open downwards
 
-    // 3. Absolute Position relative to body (viewport + scroll)
-    menu.classList.remove("hidden");
-    menu.style.display = "block";
-    menu.style.visibility = "visible";
-    menu.style.opacity = "1";
-    menu.style.position = "absolute";
-    menu.style.zIndex = "2147483647";
-
-    this.applyPosition(menu, rect);
-
-    // 4. Global listeners
+    // 3. Global listeners
     setTimeout(() => {
         document.addEventListener("click", this.closeMenuHandler);
-        window.addEventListener("resize", this.closeMenuHandler);
     }, 50);
   }
 
-  applyPosition(menu, rect) {
-    const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-    const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
-    
-    const menuWidth = 160;
-    const menuHeight = 180; // Approximate height
-    
-    // DROPUP: Force opening upwards since the clock is at the base
-    let top = rect.top + scrollY - menuHeight - 12;
-    let left = rect.right + scrollX - menuWidth;
-    
-    // Safety check: if hitting the very top of the screen, fallback to dropdown
-    if (top < scrollY + 10) {
-        top = rect.bottom + scrollY + 8;
-    }
-    
-    // Horizontal adjustment
-    if (left < 10) left = 10;
-    if (left + menuWidth > window.innerWidth - 10) {
-        left = window.innerWidth - menuWidth - 10;
-    }
-
-    menu.style.top = `${top}px`;
-    menu.style.left = `${left}px`;
-  }
-
   closeMenu(event) {
-    const menu = this.menuElement;
-    if (!menu) return;
-
-    // If click is inside menu (and not a menuitem), don't close
-    if (event && event.type === "click" && menu.contains(event.target)) {
-        const item = event.target.closest('[role="menuitem"]');
-        if (!item) return;
+    if (event && event.type === "click" && this.hasMenuTarget && this.menuTarget.contains(event.target)) {
+        if (!event.target.closest('[role="menuitem"]')) return;
     }
 
-    menu.classList.add("hidden");
-    
-    // Return to original container if possible
-    if (this.element && !this.element.contains(menu)) {
-        this.element.appendChild(menu);
+    if (this.hasMenuTarget) {
+      this.menuTarget.classList.add("hidden");
     }
+
+    // 4. Restore original state of card
+    const card = this.element.closest('.rounded-xl, .rounded-lg, [id^="deal_"], [id^="event_"]');
+    if (card) {
+        card.style.zIndex = "";
+        card.style.overflow = "";
+    }
+    this.element.style.zIndex = "";
 
     document.removeEventListener("click", this.closeMenuHandler);
-    window.removeEventListener("resize", this.closeMenuHandler);
   }
 
   async completeTask(event) {
@@ -138,7 +108,7 @@ export default class extends Controller {
     this.closeMenu();
 
     if (this.hasIconTarget) {
-      this.iconTarget.innerHTML = '<i data-lucide="clock-4" class="w-4 h-4"></i>';
+      this.iconTarget.innerHTML = '<i data-lucide="clock-4" class="w-4 h-4 text-sky-500"></i>';
       if (window.lucide) window.lucide.createIcons();
     }
 
