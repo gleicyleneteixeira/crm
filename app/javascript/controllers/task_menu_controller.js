@@ -11,23 +11,29 @@ export default class extends Controller {
 
   connect() {
     this.closeMenuHandler = this.closeMenu.bind(this);
-    this.isOpen = false;
   }
 
   disconnect() {
     this.closeMenu();
   }
 
+  // --- Core Lifecycle/Display ---
+
   toggleMenu(event) {
     if (event) {
       event.preventDefault();
-      event.stopPropagation();
+      event.stopPropagation(); // Essential: prevent the document click listener from firing for this click
     }
 
-    if (this.isOpen) {
-      this.closeMenu();
-    } else {
-      this.openMenu();
+    if (this.hasMenuTarget) {
+      // Truth Source: The 'hidden' class on the menu target
+      const isCurrentlyOpen = !this.menuTarget.classList.contains("hidden");
+      
+      if (isCurrentlyOpen) {
+        this.closeMenu();
+      } else {
+        this.openMenu();
+      }
     }
   }
 
@@ -36,15 +42,15 @@ export default class extends Controller {
 
     const menu = this.menuTarget;
     
-    // 1. Boost card/container z-index to fly over neighbors
+    // 1. Boost parent card z-index (Overlap Safety)
     const card = this.element.closest('.rounded-xl, .rounded-lg, li[id^="deal_"], div[id^="event_"]');
     if (card) {
         card.style.zIndex = "99999"; 
         card.style.position = "relative";
-        card.style.overflow = "visible"; // Essential to show the menu outside card boundaries
+        card.style.overflow = "visible"; 
     }
     
-    // 2. Simple Absolute Positioning (anchored to the controller/pill)
+    // 2. Local Anchored Positioning (No movement)
     menu.classList.remove("hidden");
     menu.style.display = "block";
     menu.style.position = "absolute";
@@ -54,16 +60,14 @@ export default class extends Controller {
     menu.style.marginTop = "8px";
     menu.style.visibility = "visible";
     menu.style.opacity = "1";
-    this.isOpen = true;
 
-    // 3. Global listener for closing
-    setTimeout(() => {
-      document.addEventListener("click", this.closeMenuHandler);
-    }, 50);
+    // 3. Sensor: Click Outside listener
+    // Use capture to catch events before they bubble if needed, but simple listener usually works
+    document.addEventListener("click", this.closeMenuHandler);
   }
 
   closeMenu(event) {
-    // Keep open if clicking inside the menu (unless a menu item)
+    // SENSOR: Don't close if clicking INSIDE the menu (unless it's a specific menuitem link)
     if (event && event.type === "click" && this.hasMenuTarget && this.menuTarget.contains(event.target)) {
       if (!event.target.closest('[role="menuitem"]')) return;
     }
@@ -72,16 +76,17 @@ export default class extends Controller {
       this.menuTarget.classList.add("hidden");
     }
 
-    // 4. Restore original state of card
+    // 4. Reset Parent Card (Cleanup)
     const card = this.element.closest('.rounded-xl, .rounded-lg, li[id^="deal_"], div[id^="event_"]');
     if (card) {
         card.style.zIndex = "";
         card.style.overflow = "";
     }
-    this.isOpen = false;
 
     document.removeEventListener("click", this.closeMenuHandler);
   }
+
+  // --- Task Operations (Keep Logic Intact) ---
 
   async completeTask(event) {
     event.preventDefault();
