@@ -121,7 +121,7 @@ export default class extends Controller {
         
         form.style.top = (card.offsetTop + 40) + "px";
         form.style.left = "10px"; // Fixed within the column width
-        form.style.width = "270px"; // Gold Standard width
+        form.style.width = "240px"; // Compact Supreme width
         form.style.zIndex = "999999";
         
         if (this.hasDisplayTarget) this.displayTarget.style.visibility = "hidden";
