@@ -11,6 +11,7 @@ export default class extends Controller {
 
   connect() {
     this.closeMenuHandler = this.closeMenu.bind(this);
+    this.scrollHandler = this.handleScroll.bind(this);
     
     // Global uniqueness: Listen for other menus opening
     this.externalOpenHandler = (e) => {
@@ -26,6 +27,7 @@ export default class extends Controller {
     this.closeMenu();
     this.cancelEdit();
     window.removeEventListener("task-menu:opened", this.externalOpenHandler);
+    window.removeEventListener("scroll", this.scrollHandler, true);
   }
 
   // --- Core Lifecycle ---
@@ -53,7 +55,6 @@ export default class extends Controller {
 
     const menu = this.menuTarget;
     
-    // Boost parent container z-index (Local boost for the menu)
     const card = this.getCardContainer();
     if (card) {
         card.style.zIndex = "99999"; 
@@ -71,28 +72,35 @@ export default class extends Controller {
     menu.style.visibility = "visible";
     menu.style.opacity = "1";
 
-    // Add listener on next tick
+    // Add listeners
     setTimeout(() => {
       document.addEventListener("click", this.closeMenuHandler);
+      window.addEventListener("scroll", this.scrollHandler, true);
     }, 1);
   }
 
   closeMenu(event) {
-    // SENSOR: Check if clicking inside this instance
     if (event && event.type === "click" && this.element.contains(event.target)) {
        if (!event.target.closest('[role="menuitem"]')) return;
     }
 
     if (this.hasMenuTarget) {
       this.menuTarget.classList.add("hidden");
-      this.menuTarget.style.display = "none"; // Force hidden via style to override any block
+      this.menuTarget.style.display = "none";
     }
 
     if (!this.isEditing()) {
       this.cleanupCardState();
+      window.removeEventListener("scroll", this.scrollHandler, true);
     }
 
     document.removeEventListener("click", this.closeMenuHandler);
+  }
+
+  handleScroll() {
+    // Close everything on scroll (consistent with options menu behavior)
+    this.closeMenu();
+    this.cancelEdit();
   }
 
   // --- Task Actions ---
@@ -127,16 +135,12 @@ export default class extends Controller {
 
   showEdit(event) {
     event.preventDefault();
-    
-    // CASCADE: Hide the menu forcefully before showing edit
     this.closeMenu(); 
 
     if (this.hasEditFormTarget) {
       const form = this.editFormTarget;
       const rect = this.displayTarget.getBoundingClientRect();
       
-      // FIXED PORTAL: Completely move to body and use fixed coordinates
-      // This is the ONLY way to be 100% sure it doesn't affect column width
       document.body.appendChild(form);
       
       form.classList.remove("hidden");
@@ -150,10 +154,19 @@ export default class extends Controller {
         maxWidth: "280px"
       });
       
-      // Keep card space reserved but hide icon
+      // RESTORE ACTIONS: Manually re-bind since portal broke Stimulus delegation
+      const cancelBtn = form.querySelector('[data-action*="cancelEdit"]');
+      if (cancelBtn) cancelBtn.onclick = (e) => this.cancelEdit(e);
+      
+      const formEl = form.querySelector('form');
+      if (formEl) formEl.onsubmit = (e) => this.submitEdit(e);
+      
       this.displayTarget.style.visibility = "hidden";
       
       if (this.hasInputTarget) this.inputTarget.focus();
+
+      // Ensure scroll handler is active for the edit cloud
+      window.addEventListener("scroll", this.scrollHandler, true);
     }
   }
 
@@ -165,15 +178,15 @@ export default class extends Controller {
       form.style.display = "none";
       form.style.position = "";
       
-      // Restore for Turbo parity
       this.element.appendChild(form);
       this.displayTarget.style.visibility = "";
     }
     this.cleanupCardState();
+    window.removeEventListener("scroll", this.scrollHandler, true);
   }
 
   async submitEdit(event) {
-    event.preventDefault();
+    if (event) event.preventDefault();
     const formElement = this.editFormTarget.querySelector('form');
     const formData = new FormData(formElement);
     await this.performRequest(this.updateUrlValue, "PATCH", formData);
