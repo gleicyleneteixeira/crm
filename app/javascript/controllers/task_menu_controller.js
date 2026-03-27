@@ -11,62 +11,99 @@ export default class extends Controller {
 
   connect() {
     this.closeMenuHandler = this.closeMenu.bind(this);
+    this.isMenuInBody = false;
+  }
+
+  disconnect() {
+    this.closeMenu();
+    // Ensure cleanup if controller is removed
+    if (this.hasMenuTarget && this.isMenuInBody) {
+        document.body.removeChild(this.menuTarget);
+    }
   }
 
   toggleMenu(event) {
-    event.preventDefault();
-    event.stopPropagation();
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
     
     if (this.menuTarget.classList.contains("hidden")) {
       this.openMenu();
     } else {
-      this.closeMenu(event);
+      this.closeMenu();
     }
   }
 
   openMenu() {
+    if (!this.hasMenuTarget) return;
+
+    // 1. Position calculation BEFORE moving (or we lose relative context)
+    const icon = this.hasIconTarget ? this.iconTarget : this.element;
+    const rect = icon.getBoundingClientRect();
+
+    // 2. Portal: Move to body to escape any parent stacking contexts/overflows
+    document.body.appendChild(this.menuTarget);
+    this.isMenuInBody = true;
+
+    // 3. Show and Position
     this.menuTarget.classList.remove("hidden");
-    
-    // Ensure visibility and stacking
     this.menuTarget.style.display = "block";
     this.menuTarget.style.visibility = "visible";
     this.menuTarget.style.opacity = "1";
-    
-    this.positionMenu();
-    document.addEventListener("click", this.closeMenuHandler);
-    window.addEventListener("scroll", this.closeMenuHandler, true);
-    window.addEventListener("resize", this.closeMenuHandler);
+    this.menuTarget.style.position = "fixed";
+    this.menuTarget.style.zIndex = "2147483647"; // Absolute maximum z-index
+
+    this.applyPosition(rect);
+
+    // 4. Global listeners for closing
+    setTimeout(() => {
+        document.addEventListener("click", this.closeMenuHandler);
+        window.addEventListener("resize", this.closeMenuHandler);
+        // We only close on scroll if it's a significant move to avoid accidental closures
+        window.addEventListener("scroll", this.closeMenuHandler, true);
+    }, 50);
   }
 
-  positionMenu() {
-    const icon = this.hasIconTarget ? this.iconTarget : this.element;
-    const rect = icon.getBoundingClientRect();
+  applyPosition(rect) {
     const menuWidth = 160; 
+    const menuHeight = 200; // Estimated max height
     
-    // Safety check for browser boundaries
     let top = rect.bottom + 8;
     let left = rect.right - menuWidth;
     
-    // If it would go off the bottom, open upwards
-    if (top + 200 > window.innerHeight) {
-      top = rect.top - 180; // approx height
+    // Fit to screens
+    if (top + menuHeight > window.innerHeight) {
+      top = rect.top - menuHeight - 8;
     }
-    
-    // If it would go off the left, align to left of icon
-    if (left < 0) {
-      left = rect.left;
+    if (left < 10) {
+      left = 10;
+    }
+    if (left + menuWidth > window.innerWidth - 10) {
+      left = window.innerWidth - menuWidth - 10;
     }
 
-    this.menuTarget.style.position = "fixed";
     this.menuTarget.style.top = `${top}px`;
     this.menuTarget.style.left = `${left}px`;
-    this.menuTarget.style.zIndex = "99999";
   }
 
   closeMenu(event) {
-    if (event && event.type === "click" && this.element.contains(event.target)) return;
+    // If it's a click INSIDE the menu, don't close (unless it's a menu item)
+    if (event && event.type === "click" && this.menuTarget.contains(event.target)) {
+        // If clicking a menu item, we DO want to close
+        if (!event.target.closest('[role="menuitem"]')) return;
+    }
 
-    this.menuTarget.classList.add("hidden");
+    if (this.hasMenuTarget) {
+      this.menuTarget.classList.add("hidden");
+      
+      // Return to original parent to keep Stimulus/Turbo integrity
+      if (this.isMenuInBody) {
+        this.element.appendChild(this.menuTarget);
+        this.isMenuInBody = false;
+      }
+    }
+
     document.removeEventListener("click", this.closeMenuHandler);
     window.removeEventListener("scroll", this.closeMenuHandler, true);
     window.removeEventListener("resize", this.closeMenuHandler);
@@ -74,53 +111,40 @@ export default class extends Controller {
 
   async completeTask(event) {
     event.preventDefault();
-    this.menuTarget.classList.add("hidden");
+    this.closeMenu();
     
-    // Instant visual feedback
     if (this.hasIconTarget) {
       this.iconTarget.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-emerald-500"></i>';
-      if (window.lucide) {
-        window.lucide.createIcons({
-          nameAttr: 'data-lucide'
-        });
-      }
+      if (window.lucide) window.lucide.createIcons();
     }
 
     const formData = new FormData();
     formData.append("event[done]", "true");
-
     await this.performRequest(this.updateUrlValue, "PATCH", formData);
   }
 
   async reopenTask(event) {
     event.preventDefault();
-    this.menuTarget.classList.add("hidden");
+    this.closeMenu();
 
-    // Instant visual feedback - return to clock
     if (this.hasIconTarget) {
       this.iconTarget.innerHTML = '<i data-lucide="clock-4" class="w-4 h-4"></i>';
-      if (window.lucide) {
-        window.lucide.createIcons({
-          nameAttr: 'data-lucide'
-        });
-      }
+      if (window.lucide) window.lucide.createIcons();
     }
 
     const formData = new FormData();
     formData.append("event[done]", "false");
-
     await this.performRequest(this.updateUrlValue, "PATCH", formData);
   }
 
   showEdit(event) {
+    event.preventDefault();
+    this.closeMenu();
+    
     if (this.hasEditFormTarget) {
-      event.preventDefault();
-      this.menuTarget.classList.add("hidden");
       this.displayTarget.classList.add("hidden");
       this.editFormTarget.classList.remove("hidden");
-      if (this.hasInputTarget) {
-        this.inputTarget.focus();
-      }
+      if (this.hasInputTarget) this.inputTarget.focus();
     }
   }
 
@@ -133,40 +157,30 @@ export default class extends Controller {
   }
 
   async submitEdit(event) {
-    if (this.hasEditFormTarget) {
-      event.preventDefault();
-      const formData = new FormData(this.editFormTarget.querySelector('form'));
-      await this.performRequest(this.updateUrlValue, "PATCH", formData);
-      this.cancelEdit();
-    }
+    event.preventDefault();
+    const formData = new FormData(this.editFormTarget.querySelector('form'));
+    await this.performRequest(this.updateUrlValue, "PATCH", formData);
+    this.cancelEdit();
   }
 
   async deleteTask(event) {
     event.preventDefault();
     if (!confirm("Tem certeza que deseja excluir esta tarefa?")) return;
-    
-    this.menuTarget.classList.add("hidden");
+    this.closeMenu();
     await this.performRequest(this.deleteUrlValue, "DELETE");
   }
 
   async performRequest(url, method, body = null) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
-
     try {
       const response = await fetch(url, {
         method: method,
-        headers: {
-          "X-CSRF-Token": csrfToken,
-          "Accept": "text/vnd.turbo-stream.html"
-        },
+        headers: { "X-CSRF-Token": csrfToken, "Accept": "text/vnd.turbo-stream.html" },
         body: body
       });
-
       if (response.ok) {
         const stream = await response.text();
         Turbo.renderStreamMessage(stream);
-      } else {
-        console.error("Task action failed");
       }
     } catch (error) {
       console.error("Error performing task action:", error);
