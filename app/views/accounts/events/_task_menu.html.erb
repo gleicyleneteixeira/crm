@@ -5,9 +5,10 @@
      data-task-menu-update-url-value="<%= account_contact_event_path(event.account, event.contact, event, deal_id: event.deal_id) %>"
      data-task-menu-delete-url-value="<%= account_contact_event_path(event.account, event.contact, event, deal_id: event.deal_id) %>">
   
-  <div data-task-menu-target="display" 
-       data-action="click->task-menu#toggleMenu"
-       class="flex items-center gap-1 cursor-pointer">
+  <button data-task-menu-target="display" 
+          type="button"
+          data-action="click->task-menu#toggleMenu"
+          class="flex items-center gap-1 cursor-pointer border-none bg-transparent p-0 m-0 outline-none focus:ring-0">
     <div class="flex items-center justify-center transition-colors rounded-full p-0.5 hover:bg-slate-100 dark:hover:bg-slate-800"
          data-task-menu-target="icon">
       <% if event.done? %>
@@ -22,7 +23,7 @@
         <%= render "components/formatters/datetime", value: event.primary_date, type: "distance" %>
       </span>
     <% end %>
-  </div>
+  </button>
 
   <% if minimal %>
     <!-- Inline Edit Form (Hidden) -->
