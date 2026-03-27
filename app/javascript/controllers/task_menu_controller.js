@@ -75,13 +75,21 @@ export default class extends Controller {
     // Add listeners
     setTimeout(() => {
       document.addEventListener("click", this.closeMenuHandler);
-      window.addEventListener("scroll", this.scrollHandler, true);
     }, 1);
   }
 
   closeMenu(event) {
-    if (event && event.type === "click" && this.element.contains(event.target)) {
-       if (!event.target.closest('[role="menuitem"]')) return;
+    // SENSOR INTELIGENTE: Ignorar se o clique foi dentro da instância ou se é um calendário/data
+    if (event && event.type === "click") {
+       // 1. Se clicar dentro do controller, não fecha (a menos que seja um comando de menu)
+       if (this.element.contains(event.target)) {
+          if (!event.target.closest('[role="menuitem"]')) return;
+       }
+
+       // 2. Se for um picker de data (nativo), ignorar para não fechar por engano
+       if (event.target.closest('input[type="datetime-local"]') || event.target.tagName === 'INPUT') {
+          return;
+       }
     }
 
     if (this.hasMenuTarget) {
@@ -91,16 +99,15 @@ export default class extends Controller {
 
     if (!this.isEditing()) {
       this.cleanupCardState();
-      window.removeEventListener("scroll", this.scrollHandler, true);
     }
 
     document.removeEventListener("click", this.closeMenuHandler);
   }
 
   handleScroll() {
-    // Close everything on scroll (consistent with options menu behavior)
-    this.closeMenu();
-    this.cancelEdit();
+    // No more aggressive auto-close on scroll if the user wants relative anchoring.
+    // Instead, we just ensure the Z-index is maintained or we close if the card is literally out of view (optional).
+    // For now, let's keep it simple: the local absolute anchor handles scroll naturally.
   }
 
   // --- Task Actions ---
@@ -139,34 +146,19 @@ export default class extends Controller {
 
     if (this.hasEditFormTarget) {
       const form = this.editFormTarget;
-      const rect = this.displayTarget.getBoundingClientRect();
       
-      document.body.appendChild(form);
-      
+      // ANCORAGEM LOCAL: Não movemos mais para o body.
+      // Isso garante que os botões (Stimulus) e o Scroll funcionem naturalmente.
       form.classList.remove("hidden");
-      Object.assign(form.style, {
-        display: "block",
-        position: "fixed",
-        zIndex: "999999",
-        top: `${rect.top}px`,
-        left: `${rect.left - 10}px`,
-        width: "auto",
-        maxWidth: "280px"
-      });
-      
-      // RESTORE ACTIONS: Manually re-bind since portal broke Stimulus delegation
-      const cancelBtn = form.querySelector('[data-action*="cancelEdit"]');
-      if (cancelBtn) cancelBtn.onclick = (e) => this.cancelEdit(e);
-      
-      const formEl = form.querySelector('form');
-      if (formEl) formEl.onsubmit = (e) => this.submitEdit(e);
+      form.style.display = "block";
+      form.style.zIndex = "999999";
       
       this.displayTarget.style.visibility = "hidden";
       
       if (this.hasInputTarget) this.inputTarget.focus();
 
-      // Ensure scroll handler is active for the edit cloud
-      window.addEventListener("scroll", this.scrollHandler, true);
+      // Monitoramos o clique fora especificamente para a edição
+      document.addEventListener("click", this.closeMenuHandler);
     }
   }
 
@@ -176,17 +168,14 @@ export default class extends Controller {
       const form = this.editFormTarget;
       form.classList.add("hidden");
       form.style.display = "none";
-      form.style.position = "";
-      
-      this.element.appendChild(form);
       this.displayTarget.style.visibility = "";
     }
     this.cleanupCardState();
-    window.removeEventListener("scroll", this.scrollHandler, true);
+    document.removeEventListener("click", this.closeMenuHandler);
   }
 
   async submitEdit(event) {
-    if (event) event.preventDefault();
+    event.preventDefault();
     const formElement = this.editFormTarget.querySelector('form');
     const formData = new FormData(formElement);
     await this.performRequest(this.updateUrlValue, "PATCH", formData);

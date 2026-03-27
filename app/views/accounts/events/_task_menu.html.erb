@@ -26,8 +26,8 @@
   </button>
 
   <% if minimal %>
-    <%# EDIT FORM: FIXED CLOUD (PORTAL) %>
-    <div data-task-menu-target="editForm" class="hidden absolute left-0 w-0 overflow-hidden z-[999999] bg-white dark:!bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-xl p-3">
+    <%# EDIT FORM: LOCAL ANCHOR (ZERO FLOW IMPACT) %>
+    <div data-task-menu-target="editForm" class="hidden absolute top-full left-0 mt-2 z-[999999] w-64 bg-white dark:!bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-xl p-3 pointer-events-auto">
       <%= form_with model: event, url: account_contact_event_path(event.account, event.contact, event, deal_id: event.deal_id), method: :patch, data: { action: "submit->task-menu#submitEdit" } do |f| %>
         <div class="flex flex-col gap-2">
           <%= f.text_field :title, class: "form-input text-xs h-7 px-2 !bg-white dark:!bg-black !text-slate-900 dark:!text-slate-100", placeholder: "O que precisa ser feito?", data: { task_menu_target: "input" } %>
