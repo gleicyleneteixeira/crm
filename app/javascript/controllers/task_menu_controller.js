@@ -16,7 +16,7 @@ export default class extends Controller {
     this.externalOpenHandler = (e) => {
       if (e.detail && e.detail.eventId !== this.eventIdValue) {
         this.closeMenu();
-        this.cancelEdit(); // Also close edit forms if another task's menu is opened
+        this.cancelEdit(); 
       }
     };
     window.addEventListener("task-menu:opened", this.externalOpenHandler);
@@ -24,6 +24,7 @@ export default class extends Controller {
 
   disconnect() {
     this.closeMenu();
+    this.cancelEdit();
     window.removeEventListener("task-menu:opened", this.externalOpenHandler);
   }
 
@@ -32,7 +33,7 @@ export default class extends Controller {
   toggleMenu(event) {
     if (event) {
       event.preventDefault();
-      event.stopPropagation();
+      // No stopPropagation here - let the flow be natural or managed by logic
     }
 
     if (this.hasMenuTarget) {
@@ -53,7 +54,7 @@ export default class extends Controller {
 
     const menu = this.menuTarget;
     
-    // Boost parent container z-index
+    // Boost parent container z-index (Local boost for the menu)
     const card = this.getCardContainer();
     if (card) {
         card.style.zIndex = "99999"; 
@@ -71,19 +72,24 @@ export default class extends Controller {
     menu.style.visibility = "visible";
     menu.style.opacity = "1";
 
-    document.addEventListener("click", this.closeMenuHandler);
+    // Add listener on next tick to avoid catching the same click
+    setTimeout(() => {
+      document.addEventListener("click", this.closeMenuHandler);
+    }, 1);
   }
 
   closeMenu(event) {
-    if (event && event.type === "click" && this.hasMenuTarget && this.menuTarget.contains(event.target)) {
-      if (!event.target.closest('[role="menuitem"]')) return;
+    // SENSOR: Check if clicking inside the elements of THIS instance
+    if (event && event.type === "click" && this.element.contains(event.target)) {
+       // If it's a menu action link, proceed with closing, otherwise stay open
+       if (!event.target.closest('[role="menuitem"]')) return;
     }
 
     if (this.hasMenuTarget) {
       this.menuTarget.classList.add("hidden");
     }
 
-    // Only cleanup card state if NOT in edit mode
+    // Only cleanup card state if NOT in cloud-edit mode
     if (!this.isEditing()) {
       this.cleanupCardState();
     }
@@ -123,24 +129,24 @@ export default class extends Controller {
 
   showEdit(event) {
     event.preventDefault();
-    
-    // Cascade Close: Hide the menu before showing the edit form
     this.closeMenu(); 
 
     if (this.hasEditFormTarget) {
-      // Preserve space: Use visibility instead of display:none to prevent layout shift
-      this.displayTarget.style.visibility = "hidden";
-      this.editFormTarget.classList.remove("hidden");
-      this.editFormTarget.style.display = "block";
-      this.editFormTarget.style.zIndex = "99999";
+      const form = this.editFormTarget;
+      const rect = this.displayTarget.getBoundingClientRect();
       
-      // Ensure the card stays on top for the edit form
-      const card = this.getCardContainer();
-      if (card) {
-          card.style.zIndex = "99999";
-          card.style.position = "relative";
-          card.style.overflow = "visible";
-      }
+      // PORTAL: Move form to body for "Cloud" behavior (No deformation)
+      document.body.appendChild(form);
+      
+      form.classList.remove("hidden");
+      form.style.display = "block";
+      form.style.position = "fixed";
+      form.style.zIndex = "999999";
+      form.style.top = `${rect.top}px`;
+      form.style.left = `${rect.left - 10}px`; // Adjust slightly to center or match cloud feel
+      
+      // Preserve card space with visibility (though form is gone, keeps card static)
+      this.displayTarget.style.visibility = "hidden";
       
       if (this.hasInputTarget) this.inputTarget.focus();
     }
@@ -149,8 +155,14 @@ export default class extends Controller {
   cancelEdit(event) {
     if (event) event.preventDefault();
     if (this.hasEditFormTarget) {
-      this.editFormTarget.classList.add("hidden");
-      // Restore visibility
+      const form = this.editFormTarget;
+      form.classList.add("hidden");
+      form.style.display = "none";
+      form.style.position = "";
+      
+      // Move back to original element for Turbo consistency
+      this.element.appendChild(form);
+      
       this.displayTarget.style.visibility = "";
     }
     this.cleanupCardState();
@@ -158,7 +170,8 @@ export default class extends Controller {
 
   async submitEdit(event) {
     event.preventDefault();
-    const formData = new FormData(this.editFormTarget.querySelector('form'));
+    const formElement = this.editFormTarget.querySelector('form');
+    const formData = new FormData(formElement);
     await this.performRequest(this.updateUrlValue, "PATCH", formData);
     this.cancelEdit();
   }
@@ -185,6 +198,7 @@ export default class extends Controller {
   }
 
   isEditing() {
+    // Check if form is in body or locally visible
     return this.hasEditFormTarget && !this.editFormTarget.classList.contains("hidden");
   }
 
