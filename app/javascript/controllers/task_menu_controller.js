@@ -26,7 +26,6 @@ export default class extends Controller {
     this.closeMenu();
     this.fallbackCancel();
     window.removeEventListener("task-menu:opened", this.externalOpenHandler);
-    if (this.scrollHandler) window.removeEventListener("scroll", this.scrollHandler, true);
   }
 
   // --- Core Lifecycle ---
@@ -91,7 +90,7 @@ export default class extends Controller {
     document.removeEventListener("click", this.closeMenuHandler);
   }
 
-  // --- Gold Standard: Smart Teleport ---
+  // --- Supreme Standard: Stage Portal ---
 
   showEdit(event) {
     if (event) event.preventDefault();
@@ -99,30 +98,39 @@ export default class extends Controller {
 
     if (this.hasEditFormTarget) {
       const form = this.editFormTarget;
-      const cardRoot = this.element.closest('.rounded-xl');
       
-      if (cardRoot && form.parentElement !== cardRoot) {
-        // TELEPORT: Move form to card root to protect layout
-        cardRoot.appendChild(form);
-        cardRoot.style.position = "relative";
-        cardRoot.style.overflow = "visible";
-        this.rebindTeleportedActions(form);
+      // SUPREME PORTAL: Find the Stage Root (the card list 'ul')
+      // This ensures the form is 'Above' the column and doesn't squeeze the card
+      const stageRoot = this.element.closest('ul[id^="deals_stage_"]');
+      const card = this.element.closest('li[id^="deal_"]');
+      
+      if (stageRoot && card) {
+        if (form.parentElement !== stageRoot) {
+          stageRoot.appendChild(form);
+          this.rebindTeleportedActions(form);
+        }
+
+        form.classList.remove("hidden");
+        form.style.display = "block";
+        form.style.position = "absolute";
+        
+        // Position relative to the Card within the scrolling Stage
+        // This ensures perfect Scroll Sync natively
+        const rect = card.getBoundingClientRect();
+        const stageRect = stageRoot.getBoundingClientRect();
+        
+        form.style.top = (card.offsetTop + 40) + "px";
+        form.style.left = "10px"; // Fixed within the column width
+        form.style.width = "270px"; // Gold Standard width
+        form.style.zIndex = "999999";
+        
+        if (this.hasDisplayTarget) this.displayTarget.style.visibility = "hidden";
+        
+        const input = form.querySelector('input[type="text"]');
+        if (input) input.focus();
+
+        document.addEventListener("click", this.closeMenuHandler);
       }
-
-      form.classList.remove("hidden");
-      form.style.display = "block";
-      form.style.position = "absolute";
-      form.style.top = "40px"; // Gold Standard offset
-      form.style.left = "20px";
-      form.style.zIndex = "999999";
-      
-      if (cardRoot) cardRoot.style.zIndex = "999999";
-      if (this.hasDisplayTarget) this.displayTarget.style.visibility = "hidden";
-      
-      const input = form.querySelector('input[type="text"]');
-      if (input) input.focus();
-
-      document.addEventListener("click", this.closeMenuHandler);
     }
   }
 
@@ -163,11 +171,7 @@ export default class extends Controller {
   // --- Helpers ---
 
   cleanupCardState() {
-    const card = this.element.closest('.rounded-xl');
-    if (card) {
-      card.style.zIndex = "";
-    }
-    this.element.style.zIndex = "";
+    // No specific card state cleanup needed since work is Stage-anchored
   }
 
   isEditing() {

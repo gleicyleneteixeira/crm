@@ -1,7 +1,7 @@
 <%= content_tag :li, id: dom_id(deal), data: { id: deal.id, account_id: (defined?(Current) && Current.account&.id || deal.account_id), position: deal.position } , class: "hover:shadow-sm select-none cursor-pointer #{'opacity-60 pointer-events-none animate-pulse' if local_assigns[:loading]}" do %>
   <%= turbo_stream_from deal %>
   
-  <div class="rounded-xl border border-slate-200/70 dark:border-slate-800 bg-white dark:bg-slate-950/70 dark:backdrop-blur-md transition-colors duration-200 px-3 pt-3 pb-2" data-controller='load-lucid-icons'>
+  <div class="rounded-xl border border-slate-200/70 dark:border-slate-800 bg-white dark:bg-slate-950/70 dark:backdrop-blur-md transition-colors duration-200 px-3 pt-3 pb-2 w-full !important overflow-visible" data-controller='load-lucid-icons'>
     <% priority_classes =
          case deal.priority_level
          when 'low'
