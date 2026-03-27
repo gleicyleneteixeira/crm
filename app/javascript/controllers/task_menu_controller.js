@@ -71,15 +71,18 @@ export default class extends Controller {
     const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
     
     const menuWidth = 160;
-    const menuHeight = 200;
+    const menuHeight = 180; // Approximate height
     
-    let top = rect.bottom + scrollY + 8;
+    // DROPUP: Force opening upwards since the clock is at the base
+    let top = rect.top + scrollY - menuHeight - 12;
     let left = rect.right + scrollX - menuWidth;
     
-    // Safety check for screen edges
-    if (rect.bottom + menuHeight > window.innerHeight) {
-        top = rect.top + scrollY - menuHeight - 8;
+    // Safety check: if hitting the very top of the screen, fallback to dropdown
+    if (top < scrollY + 10) {
+        top = rect.bottom + scrollY + 8;
     }
+    
+    // Horizontal adjustment
     if (left < 10) left = 10;
     if (left + menuWidth > window.innerWidth - 10) {
         left = window.innerWidth - menuWidth - 10;
@@ -95,7 +98,8 @@ export default class extends Controller {
 
     // If click is inside menu (and not a menuitem), don't close
     if (event && event.type === "click" && menu.contains(event.target)) {
-        if (!event.target.closest('[role="menuitem"]')) return;
+        const item = event.target.closest('[role="menuitem"]');
+        if (!item) return;
     }
 
     menu.classList.add("hidden");
