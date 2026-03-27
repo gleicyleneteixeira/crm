@@ -25,7 +25,8 @@ export default class extends Controller {
   toggleMenu(event) {
     if (event) {
         event.preventDefault();
-        event.stopPropagation();
+        // Remove stopPropagation to allow document listeners (from other instances) to catch the click
+        // event.stopPropagation();
     }
     
     if (this.menuTarget.classList.contains("hidden")) {
@@ -88,10 +89,16 @@ export default class extends Controller {
   }
 
   closeMenu(event) {
-    // If it's a click INSIDE the menu, don't close (unless it's a menu item)
-    if (event && event.type === "click" && this.menuTarget.contains(event.target)) {
-        // If clicking a menu item, we DO want to close
-        if (!event.target.closest('[role="menuitem"]')) return;
+    // If it's a click, check if we should ignore it
+    if (event && event.type === "click") {
+        // 1. Ignore clicks INSIDE the menu (unless it's a menu item)
+        if (this.menuTarget.contains(event.target)) {
+            if (!event.target.closest('[role="menuitem"]')) return;
+        }
+        
+        // 2. Ignore clicks on the ICON button itself (toggleMenu handles this)
+        const icon = this.hasIconTarget ? this.iconTarget : this.element;
+        if (icon.contains(event.target)) return;
     }
 
     if (this.hasMenuTarget) {
