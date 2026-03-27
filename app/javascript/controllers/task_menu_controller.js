@@ -11,83 +11,107 @@ export default class extends Controller {
 
   connect() {
     this.closeMenuHandler = this.closeMenu.bind(this);
+    this.menuId = `task-menu-dropdown-${this.eventIdValue}`;
+    this.isMenuOpen = false;
+    
+    // ZOMBIE CLEANUP: Remove any orphaned menus from previous renders
+    const existing = document.body.querySelector(`#${this.menuId}`);
+    if (existing && existing.parentNode === document.body) {
+      document.body.removeChild(existing);
+    }
   }
 
   disconnect() {
-    this.closeMenu();
+    if (this.isMenuOpen) this.closeMenu();
   }
 
   toggleMenu(event) {
     if (event) {
-        event.preventDefault();
-        event.stopPropagation();
+      event.preventDefault();
+      event.stopPropagation();
     }
-    
-    if (this.hasMenuTarget) {
-      if (this.menuTarget.classList.contains("hidden")) {
-        this.openMenu();
-      } else {
-        this.closeMenu();
-      }
+
+    if (this.isMenuOpen) {
+      this.closeMenu();
+    } else {
+      this.openMenu();
     }
   }
 
   openMenu() {
     if (!this.hasMenuTarget) return;
 
-    // 1. Boost card/container z-index to fly over neighbors
-    const card = this.element.closest('.rounded-xl, .rounded-lg, [id^="deal_"], [id^="event_"]');
-    if (card) {
-        card.style.zIndex = "9999";
-        card.style.position = "relative";
-        // Remove overflow:hidden to allow menu to exit the card boundaries
-        card.classList.remove("overflow-hidden");
-        card.style.overflow = "visible";
-    }
-    
-    // Also boost the controller element itself
-    this.element.style.zIndex = "9999";
-    this.element.style.position = "relative";
+    const menu = this.menuTarget;
+    const icon = this.hasIconTarget ? this.iconTarget : this.element;
+    const rect = icon.getBoundingClientRect();
 
-    // 2. Show and position absolutely relative to the anchored icon/pill
-    this.menuTarget.classList.remove("hidden");
-    this.menuTarget.style.display = "block";
-    this.menuTarget.style.visibility = "visible";
-    this.menuTarget.style.opacity = "1";
-    this.menuTarget.style.position = "absolute";
-    this.menuTarget.style.zIndex = "9999";
-    
-    // Position Dropup (Above)
-    this.menuTarget.style.bottom = "100%";
-    this.menuTarget.style.right = "0";
-    this.menuTarget.style.marginBottom = "8px";
-    this.menuTarget.style.top = "auto"; // Ensure it doesn't try to open downwards
+    // 1. Portal Move
+    this.originalParent = menu.parentNode;
+    document.body.appendChild(menu);
+    this.isMenuOpen = true;
 
-    // 3. Global listeners
+    // 2. Fixed Positioning & High Z-Index
+    menu.classList.remove("hidden");
+    menu.style.display = "block";
+    menu.style.position = "fixed";
+    menu.style.zIndex = "999999";
+    menu.style.opacity = "1";
+    menu.style.visibility = "visible";
+
+    this.applyPosition(menu, rect);
+
+    // 3. Listeners
     setTimeout(() => {
-        document.addEventListener("click", this.closeMenuHandler);
+      document.addEventListener("click", this.closeMenuHandler);
     }, 50);
   }
 
+  applyPosition(menu, rect) {
+    const menuWidth = 160;
+    const menuHeight = 160; // Approximate
+    const gap = 6;
+
+    // Default: Below, right-aligned with the icon/button
+    let top = rect.bottom + gap;
+    let left = rect.right - menuWidth;
+
+    // Boundary Check: If hitting the bottom of viewport, open UP
+    if (top + menuHeight > window.innerHeight) {
+      top = rect.top - menuHeight - gap;
+    }
+
+    // Boundary Check: Ensure it doesn't bleed off the left
+    if (left < 10) left = 10;
+    // Ensure it doesn't bleed off the right
+    if (left + menuWidth > window.innerWidth - 10) {
+      left = window.innerWidth - menuWidth - 10;
+    }
+
+    menu.style.top = `${top}px`;
+    menu.style.left = `${left}px`;
+  }
+
   closeMenu(event) {
+    // If clicking INSIDE the menu (not on a menuitem), don't close
     if (event && event.type === "click" && this.hasMenuTarget && this.menuTarget.contains(event.target)) {
-        if (!event.target.closest('[role="menuitem"]')) return;
+      if (!event.target.closest('[role="menuitem"]')) return;
     }
 
-    if (this.hasMenuTarget) {
-      this.menuTarget.classList.add("hidden");
+    if (this.hasMenuTarget && this.isMenuOpen) {
+      const menu = this.menuTarget;
+      menu.classList.add("hidden");
+      
+      // Return to original parent
+      if (this.originalParent && menu.parentNode === document.body) {
+        this.originalParent.appendChild(menu);
+      }
+      this.isMenuOpen = false;
     }
-
-    // 4. Restore original state of card
-    const card = this.element.closest('.rounded-xl, .rounded-lg, [id^="deal_"], [id^="event_"]');
-    if (card) {
-        card.style.zIndex = "";
-        card.style.overflow = "";
-    }
-    this.element.style.zIndex = "";
 
     document.removeEventListener("click", this.closeMenuHandler);
   }
+
+  // --- Task Actions ---
 
   async completeTask(event) {
     event.preventDefault();
