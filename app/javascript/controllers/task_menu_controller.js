@@ -96,41 +96,36 @@ export default class extends Controller {
     if (event) event.preventDefault();
     this.closeMenu();
 
-    if (this.hasEditFormTarget) {
-      const form = this.editFormTarget;
-      
-      // SUPREME PORTAL: Find the Stage Root (the card list 'ul')
-      // This ensures the form is 'Above' the column and doesn't squeeze the card
-      const stageRoot = this.element.closest('ul[id^="deals_stage_"]');
-      const card = this.element.closest('li[id^="deal_"]');
-      
-      if (stageRoot && card) {
-        if (form.parentElement !== stageRoot) {
-          stageRoot.appendChild(form);
-          this.rebindTeleportedActions(form);
-        }
+    // Use find because targets break after teleportation
+    const form = this.hasEditFormTarget ? this.editFormTarget : this.teleportedForm;
+    if (!form) return;
 
-        form.classList.remove("hidden");
-        form.style.display = "block";
-        form.style.position = "absolute";
-        
-        // Position relative to the Card within the scrolling Stage
-        // This ensures perfect Scroll Sync natively
-        const rect = card.getBoundingClientRect();
-        const stageRect = stageRoot.getBoundingClientRect();
-        
-        form.style.top = (card.offsetTop + 40) + "px";
-        form.style.left = "10px"; // Fixed within the column width
-        form.style.width = "240px"; // Compact Supreme width
-        form.style.zIndex = "999999";
-        
-        if (this.hasDisplayTarget) this.displayTarget.style.visibility = "hidden";
-        
-        const input = form.querySelector('input[type="text"]');
-        if (input) input.focus();
-
-        document.addEventListener("click", this.closeMenuHandler);
+    // SUPREME PORTAL: Find the Stage Root (the card list 'ul')
+    const stageRoot = this.element.closest('ul[id^="deals_stage_"]');
+    const card = this.element.closest('li[id^="deal_"]');
+    
+    if (stageRoot && card) {
+      if (form.parentElement !== stageRoot) {
+        this.teleportedForm = form; // Save persistent reference
+        stageRoot.appendChild(form);
+        this.rebindTeleportedActions(form);
       }
+
+      form.classList.remove("hidden");
+      form.style.display = "block";
+      form.style.position = "absolute";
+      
+      form.style.top = (card.offsetTop + 40) + "px";
+      form.style.left = "10px"; // Fixed within the column width
+      form.style.width = "240px"; // Compact Supreme width
+      form.style.zIndex = "999999";
+      
+      if (this.hasDisplayTarget) this.displayTarget.style.visibility = "hidden";
+      
+      const input = form.querySelector('input[type="text"]');
+      if (input) input.focus();
+
+      document.addEventListener("click", this.closeMenuHandler);
     }
   }
 
@@ -138,18 +133,25 @@ export default class extends Controller {
     // Manual binding because teleporting breaks standard Stimulus action tree
     const cancelBtn = formElement.querySelector('button[type="button"]');
     if (cancelBtn) {
-      cancelBtn.onclick = (e) => { e.preventDefault(); this.fallbackCancel(); };
+      cancelBtn.onclick = (e) => { 
+        e.preventDefault(); 
+        e.stopPropagation();
+        this.fallbackCancel(); 
+      };
     }
 
     const form = formElement.querySelector('form');
     if (form) {
-      form.onsubmit = (e) => { e.preventDefault(); this.submitEdit(e); };
+      form.onsubmit = (e) => { 
+        e.preventDefault(); 
+        this.submitEdit(e); 
+      };
     }
   }
 
   fallbackCancel() {
-    if (this.hasEditFormTarget) {
-      const form = this.editFormTarget;
+    const form = this.teleportedForm || (this.hasEditFormTarget ? this.editFormTarget : null);
+    if (form) {
       form.classList.add("hidden");
       form.style.display = "none";
       if (this.hasDisplayTarget) this.displayTarget.style.visibility = "";
@@ -160,7 +162,8 @@ export default class extends Controller {
 
   async submitEdit(event) {
     if (event) event.preventDefault();
-    const formElement = this.editFormTarget.querySelector('form');
+    const form = this.teleportedForm || (this.hasEditFormTarget ? this.editFormTarget : null);
+    const formElement = form?.querySelector('form');
     if (!formElement) return;
 
     const formData = new FormData(formElement);
