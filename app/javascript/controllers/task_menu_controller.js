@@ -11,13 +11,12 @@ export default class extends Controller {
 
   connect() {
     this.closeMenuHandler = this.closeMenu.bind(this);
-    this.scrollHandler = this.handleScroll.bind(this);
     
     // Global uniqueness: Listen for other menus opening
     this.externalOpenHandler = (e) => {
       if (e.detail && e.detail.eventId !== this.eventIdValue) {
         this.closeMenu();
-        this.cancelEdit(); 
+        this.fallbackCancel(); 
       }
     };
     window.addEventListener("task-menu:opened", this.externalOpenHandler);
@@ -25,9 +24,9 @@ export default class extends Controller {
 
   disconnect() {
     this.closeMenu();
-    this.cancelEdit();
+    this.fallbackCancel();
     window.removeEventListener("task-menu:opened", this.externalOpenHandler);
-    window.removeEventListener("scroll", this.scrollHandler, true);
+    if (this.scrollHandler) window.removeEventListener("scroll", this.scrollHandler, true);
   }
 
   // --- Core Lifecycle ---
@@ -35,6 +34,7 @@ export default class extends Controller {
   toggleMenu(event) {
     if (event) {
       event.preventDefault();
+      event.stopPropagation();
     }
 
     if (this.hasMenuTarget) {
@@ -50,17 +50,10 @@ export default class extends Controller {
   openMenu() {
     if (!this.hasMenuTarget) return;
 
-    // Dispatch global event to close other menus/forms
     window.dispatchEvent(new CustomEvent("task-menu:opened", { detail: { eventId: this.eventIdValue } }));
 
     const menu = this.menuTarget;
-    
-    const card = this.getCardContainer();
-    if (card) {
-        card.style.zIndex = "99999"; 
-        card.style.position = "relative";
-        card.style.overflow = "visible"; 
-    }
+    this.element.style.zIndex = "99999"; 
     
     menu.classList.remove("hidden");
     menu.style.display = "block";
@@ -68,28 +61,22 @@ export default class extends Controller {
     menu.style.zIndex = "99999";
     menu.style.top = "100%";
     menu.style.right = "0";
-    menu.style.marginTop = "4px";
-    menu.style.visibility = "visible";
-    menu.style.opacity = "1";
 
-    // Add listeners
     setTimeout(() => {
       document.addEventListener("click", this.closeMenuHandler);
     }, 1);
   }
 
   closeMenu(event) {
-    // SENSOR INTELIGENTE: Ignorar se o clique foi dentro da instância ou se é um calendário/data
     if (event && event.type === "click") {
-       // 1. Se clicar dentro do controller, não fecha (a menos que seja um comando de menu)
-       if (this.element.contains(event.target)) {
-          if (!event.target.closest('[role="menuitem"]')) return;
-       }
+       if (this.hasDisplayTarget && this.displayTarget.contains(event.target)) return;
 
-       // 2. Se for um picker de data (nativo), ignorar para não fechar por engano
-       if (event.target.closest('input[type="datetime-local"]') || event.target.tagName === 'INPUT') {
-          return;
-       }
+       // Smart Click-Outside (Calendar Aware)
+       const isInsideOverlay = (this.hasMenuTarget && this.menuTarget.contains(event.target)) || 
+                               (this.hasEditFormTarget && this.editFormTarget.contains(event.target)) ||
+                               (event.target.closest('.flatpickr-calendar') || event.target.closest('input[type="datetime-local"]'));
+       
+       if (isInsideOverlay && !event.target.closest('[role="menuitem"]')) return;
     }
 
     if (this.hasMenuTarget) {
@@ -104,103 +91,83 @@ export default class extends Controller {
     document.removeEventListener("click", this.closeMenuHandler);
   }
 
-  handleScroll() {
-    // No more aggressive auto-close on scroll if the user wants relative anchoring.
-    // Instead, we just ensure the Z-index is maintained or we close if the card is literally out of view (optional).
-    // For now, let's keep it simple: the local absolute anchor handles scroll naturally.
-  }
-
-  // --- Task Actions ---
-
-  async completeTask(event) {
-    event.preventDefault();
-    this.closeMenu();
-    
-    if (this.hasIconTarget) {
-      this.iconTarget.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-emerald-500"></i>';
-      if (window.lucide) window.lucide.createIcons();
-    }
-
-    const formData = new FormData();
-    formData.append("event[done]", "true");
-    await this.performRequest(this.updateUrlValue, "PATCH", formData);
-  }
-
-  async reopenTask(event) {
-    event.preventDefault();
-    this.closeMenu();
-
-    if (this.hasIconTarget) {
-      this.iconTarget.innerHTML = '<i data-lucide="clock-4" class="w-4 h-4 text-sky-500"></i>';
-      if (window.lucide) window.lucide.createIcons();
-    }
-
-    const formData = new FormData();
-    formData.append("event[done]", "false");
-    await this.performRequest(this.updateUrlValue, "PATCH", formData);
-  }
+  // --- Gold Standard: Smart Teleport ---
 
   showEdit(event) {
-    event.preventDefault();
-    this.closeMenu(); 
+    if (event) event.preventDefault();
+    this.closeMenu();
 
     if (this.hasEditFormTarget) {
       const form = this.editFormTarget;
+      const cardRoot = this.element.closest('.rounded-xl');
       
-      // ANCORAGEM LOCAL: Não movemos mais para o body.
-      // Isso garante que os botões (Stimulus) e o Scroll funcionem naturalmente.
+      if (cardRoot && form.parentElement !== cardRoot) {
+        // TELEPORT: Move form to card root to protect layout
+        cardRoot.appendChild(form);
+        cardRoot.style.position = "relative";
+        cardRoot.style.overflow = "visible";
+        this.rebindTeleportedActions(form);
+      }
+
       form.classList.remove("hidden");
       form.style.display = "block";
+      form.style.position = "absolute";
+      form.style.top = "40px"; // Gold Standard offset
+      form.style.left = "20px";
       form.style.zIndex = "999999";
       
-      this.displayTarget.style.visibility = "hidden";
+      if (cardRoot) cardRoot.style.zIndex = "999999";
+      if (this.hasDisplayTarget) this.displayTarget.style.visibility = "hidden";
       
-      if (this.hasInputTarget) this.inputTarget.focus();
+      const input = form.querySelector('input[type="text"]');
+      if (input) input.focus();
 
-      // Monitoramos o clique fora especificamente para a edição
       document.addEventListener("click", this.closeMenuHandler);
     }
   }
 
-  cancelEdit(event) {
-    if (event) event.preventDefault();
+  rebindTeleportedActions(formElement) {
+    // Manual binding because teleporting breaks standard Stimulus action tree
+    const cancelBtn = formElement.querySelector('button[type="button"]');
+    if (cancelBtn) {
+      cancelBtn.onclick = (e) => { e.preventDefault(); this.fallbackCancel(); };
+    }
+
+    const form = formElement.querySelector('form');
+    if (form) {
+      form.onsubmit = (e) => { e.preventDefault(); this.submitEdit(e); };
+    }
+  }
+
+  fallbackCancel() {
     if (this.hasEditFormTarget) {
       const form = this.editFormTarget;
       form.classList.add("hidden");
       form.style.display = "none";
-      this.displayTarget.style.visibility = "";
+      if (this.hasDisplayTarget) this.displayTarget.style.visibility = "";
+      this.cleanupCardState();
     }
-    this.cleanupCardState();
     document.removeEventListener("click", this.closeMenuHandler);
   }
 
   async submitEdit(event) {
-    event.preventDefault();
+    if (event) event.preventDefault();
     const formElement = this.editFormTarget.querySelector('form');
+    if (!formElement) return;
+
     const formData = new FormData(formElement);
     await this.performRequest(this.updateUrlValue, "PATCH", formData);
-    this.cancelEdit();
-  }
-
-  async deleteTask(event) {
-    event.preventDefault();
-    if (!confirm("Tem certeza que deseja excluir esta tarefa?")) return;
-    this.closeMenu();
-    await this.performRequest(this.deleteUrlValue, "DELETE");
+    this.fallbackCancel();
   }
 
   // --- Helpers ---
 
-  getCardContainer() {
-    return this.element.closest('.rounded-xl, .rounded-lg, li[id^="deal_"], div[id^="event_"]');
-  }
-
   cleanupCardState() {
-    const card = this.getCardContainer();
+    const card = this.element.closest('.rounded-xl');
     if (card) {
-        card.style.zIndex = "";
-        card.style.overflow = "";
+      card.style.zIndex = "";
     }
+    this.element.style.zIndex = "";
   }
 
   isEditing() {
