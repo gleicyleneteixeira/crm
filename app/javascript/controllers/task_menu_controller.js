@@ -11,18 +11,11 @@ export default class extends Controller {
 
   connect() {
     this.closeMenuHandler = this.closeMenu.bind(this);
-    this.menuId = `task-menu-dropdown-${this.eventIdValue}`;
-    this.isMenuOpen = false;
-    
-    // ZOMBIE CLEANUP: Remove any orphaned menus from previous renders
-    const existing = document.body.querySelector(`#${this.menuId}`);
-    if (existing && existing.parentNode === document.body) {
-      document.body.removeChild(existing);
-    }
+    this.isOpen = false;
   }
 
   disconnect() {
-    if (this.isMenuOpen) this.closeMenu();
+    this.closeMenu();
   }
 
   toggleMenu(event) {
@@ -31,7 +24,7 @@ export default class extends Controller {
       event.stopPropagation();
     }
 
-    if (this.isMenuOpen) {
+    if (this.isOpen) {
       this.closeMenu();
     } else {
       this.openMenu();
@@ -42,76 +35,53 @@ export default class extends Controller {
     if (!this.hasMenuTarget) return;
 
     const menu = this.menuTarget;
-    const icon = this.hasIconTarget ? this.iconTarget : this.element;
-    const rect = icon.getBoundingClientRect();
-
-    // 1. Portal Move
-    this.originalParent = menu.parentNode;
-    document.body.appendChild(menu);
-    this.isMenuOpen = true;
-
-    // 2. Fixed Positioning & High Z-Index
+    
+    // 1. Boost card/container z-index to fly over neighbors
+    const card = this.element.closest('.rounded-xl, .rounded-lg, li[id^="deal_"], div[id^="event_"]');
+    if (card) {
+        card.style.zIndex = "99999"; 
+        card.style.position = "relative";
+        card.style.overflow = "visible"; // Essential to show the menu outside card boundaries
+    }
+    
+    // 2. Simple Absolute Positioning (anchored to the controller/pill)
     menu.classList.remove("hidden");
     menu.style.display = "block";
-    menu.style.position = "fixed";
-    menu.style.zIndex = "999999";
-    menu.style.opacity = "1";
+    menu.style.position = "absolute";
+    menu.style.zIndex = "99999";
+    menu.style.top = "100%";
+    menu.style.right = "0";
+    menu.style.marginTop = "8px";
     menu.style.visibility = "visible";
+    menu.style.opacity = "1";
+    this.isOpen = true;
 
-    this.applyPosition(menu, rect);
-
-    // 3. Listeners
+    // 3. Global listener for closing
     setTimeout(() => {
       document.addEventListener("click", this.closeMenuHandler);
     }, 50);
   }
 
-  applyPosition(menu, rect) {
-    const menuWidth = 160;
-    const menuHeight = 160; // Approximate
-    const gap = 6;
-
-    // Default: Below, right-aligned with the icon/button
-    let top = rect.bottom + gap;
-    let left = rect.right - menuWidth;
-
-    // Boundary Check: If hitting the bottom of viewport, open UP
-    if (top + menuHeight > window.innerHeight) {
-      top = rect.top - menuHeight - gap;
-    }
-
-    // Boundary Check: Ensure it doesn't bleed off the left
-    if (left < 10) left = 10;
-    // Ensure it doesn't bleed off the right
-    if (left + menuWidth > window.innerWidth - 10) {
-      left = window.innerWidth - menuWidth - 10;
-    }
-
-    menu.style.top = `${top}px`;
-    menu.style.left = `${left}px`;
-  }
-
   closeMenu(event) {
-    // If clicking INSIDE the menu (not on a menuitem), don't close
+    // Keep open if clicking inside the menu (unless a menu item)
     if (event && event.type === "click" && this.hasMenuTarget && this.menuTarget.contains(event.target)) {
       if (!event.target.closest('[role="menuitem"]')) return;
     }
 
-    if (this.hasMenuTarget && this.isMenuOpen) {
-      const menu = this.menuTarget;
-      menu.classList.add("hidden");
-      
-      // Return to original parent
-      if (this.originalParent && menu.parentNode === document.body) {
-        this.originalParent.appendChild(menu);
-      }
-      this.isMenuOpen = false;
+    if (this.hasMenuTarget) {
+      this.menuTarget.classList.add("hidden");
     }
+
+    // 4. Restore original state of card
+    const card = this.element.closest('.rounded-xl, .rounded-lg, li[id^="deal_"], div[id^="event_"]');
+    if (card) {
+        card.style.zIndex = "";
+        card.style.overflow = "";
+    }
+    this.isOpen = false;
 
     document.removeEventListener("click", this.closeMenuHandler);
   }
-
-  // --- Task Actions ---
 
   async completeTask(event) {
     event.preventDefault();
