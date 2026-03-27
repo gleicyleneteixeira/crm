@@ -33,11 +33,10 @@ export default class extends Controller {
   toggleMenu(event) {
     if (event) {
       event.preventDefault();
-      // No stopPropagation here - let the flow be natural or managed by logic
     }
 
     if (this.hasMenuTarget) {
-      const isCurrentlyOpen = !this.menuTarget.classList.contains("hidden");
+      const isCurrentlyOpen = this.menuTarget.style.display === "block" || !this.menuTarget.classList.contains("hidden");
       if (isCurrentlyOpen) {
         this.closeMenu();
       } else {
@@ -68,28 +67,27 @@ export default class extends Controller {
     menu.style.zIndex = "99999";
     menu.style.top = "100%";
     menu.style.right = "0";
-    menu.style.marginTop = "8px";
+    menu.style.marginTop = "4px";
     menu.style.visibility = "visible";
     menu.style.opacity = "1";
 
-    // Add listener on next tick to avoid catching the same click
+    // Add listener on next tick
     setTimeout(() => {
       document.addEventListener("click", this.closeMenuHandler);
     }, 1);
   }
 
   closeMenu(event) {
-    // SENSOR: Check if clicking inside the elements of THIS instance
+    // SENSOR: Check if clicking inside this instance
     if (event && event.type === "click" && this.element.contains(event.target)) {
-       // If it's a menu action link, proceed with closing, otherwise stay open
        if (!event.target.closest('[role="menuitem"]')) return;
     }
 
     if (this.hasMenuTarget) {
       this.menuTarget.classList.add("hidden");
+      this.menuTarget.style.display = "none"; // Force hidden via style to override any block
     }
 
-    // Only cleanup card state if NOT in cloud-edit mode
     if (!this.isEditing()) {
       this.cleanupCardState();
     }
@@ -129,23 +127,30 @@ export default class extends Controller {
 
   showEdit(event) {
     event.preventDefault();
+    
+    // CASCADE: Hide the menu forcefully before showing edit
     this.closeMenu(); 
 
     if (this.hasEditFormTarget) {
       const form = this.editFormTarget;
       const rect = this.displayTarget.getBoundingClientRect();
       
-      // PORTAL: Move form to body for "Cloud" behavior (No deformation)
+      // FIXED PORTAL: Completely move to body and use fixed coordinates
+      // This is the ONLY way to be 100% sure it doesn't affect column width
       document.body.appendChild(form);
       
       form.classList.remove("hidden");
-      form.style.display = "block";
-      form.style.position = "fixed";
-      form.style.zIndex = "999999";
-      form.style.top = `${rect.top}px`;
-      form.style.left = `${rect.left - 10}px`; // Adjust slightly to center or match cloud feel
+      Object.assign(form.style, {
+        display: "block",
+        position: "fixed",
+        zIndex: "999999",
+        top: `${rect.top}px`,
+        left: `${rect.left - 10}px`,
+        width: "auto",
+        maxWidth: "280px"
+      });
       
-      // Preserve card space with visibility (though form is gone, keeps card static)
+      // Keep card space reserved but hide icon
       this.displayTarget.style.visibility = "hidden";
       
       if (this.hasInputTarget) this.inputTarget.focus();
@@ -160,9 +165,8 @@ export default class extends Controller {
       form.style.display = "none";
       form.style.position = "";
       
-      // Move back to original element for Turbo consistency
+      // Restore for Turbo parity
       this.element.appendChild(form);
-      
       this.displayTarget.style.visibility = "";
     }
     this.cleanupCardState();
@@ -198,8 +202,7 @@ export default class extends Controller {
   }
 
   isEditing() {
-    // Check if form is in body or locally visible
-    return this.hasEditFormTarget && !this.editFormTarget.classList.contains("hidden");
+    return this.hasEditFormTarget && this.editFormTarget.style.display === "block";
   }
 
   async performRequest(url, method, body = null) {
