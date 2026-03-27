@@ -11,24 +11,32 @@ export default class extends Controller {
 
   connect() {
     this.closeMenuHandler = this.closeMenu.bind(this);
+    
+    // Global uniqueness: Listen for other menus opening
+    this.externalOpenHandler = (e) => {
+      if (e.detail && e.detail.eventId !== this.eventIdValue) {
+        this.closeMenu();
+        this.cancelEdit(); // Also close edit forms if another task's menu is opened
+      }
+    };
+    window.addEventListener("task-menu:opened", this.externalOpenHandler);
   }
 
   disconnect() {
     this.closeMenu();
+    window.removeEventListener("task-menu:opened", this.externalOpenHandler);
   }
 
-  // --- Core Lifecycle/Display ---
+  // --- Core Lifecycle ---
 
   toggleMenu(event) {
     if (event) {
       event.preventDefault();
-      event.stopPropagation(); // Essential: prevent the document click listener from firing for this click
+      event.stopPropagation();
     }
 
     if (this.hasMenuTarget) {
-      // Truth Source: The 'hidden' class on the menu target
       const isCurrentlyOpen = !this.menuTarget.classList.contains("hidden");
-      
       if (isCurrentlyOpen) {
         this.closeMenu();
       } else {
@@ -40,17 +48,19 @@ export default class extends Controller {
   openMenu() {
     if (!this.hasMenuTarget) return;
 
+    // Dispatch global event to close other menus/forms
+    window.dispatchEvent(new CustomEvent("task-menu:opened", { detail: { eventId: this.eventIdValue } }));
+
     const menu = this.menuTarget;
     
-    // 1. Boost parent card z-index (Overlap Safety)
-    const card = this.element.closest('.rounded-xl, .rounded-lg, li[id^="deal_"], div[id^="event_"]');
+    // Boost parent container z-index
+    const card = this.getCardContainer();
     if (card) {
         card.style.zIndex = "99999"; 
         card.style.position = "relative";
         card.style.overflow = "visible"; 
     }
     
-    // 2. Local Anchored Positioning (No movement)
     menu.classList.remove("hidden");
     menu.style.display = "block";
     menu.style.position = "absolute";
@@ -61,13 +71,10 @@ export default class extends Controller {
     menu.style.visibility = "visible";
     menu.style.opacity = "1";
 
-    // 3. Sensor: Click Outside listener
-    // Use capture to catch events before they bubble if needed, but simple listener usually works
     document.addEventListener("click", this.closeMenuHandler);
   }
 
   closeMenu(event) {
-    // SENSOR: Don't close if clicking INSIDE the menu (unless it's a specific menuitem link)
     if (event && event.type === "click" && this.hasMenuTarget && this.menuTarget.contains(event.target)) {
       if (!event.target.closest('[role="menuitem"]')) return;
     }
@@ -76,17 +83,15 @@ export default class extends Controller {
       this.menuTarget.classList.add("hidden");
     }
 
-    // 4. Reset Parent Card (Cleanup)
-    const card = this.element.closest('.rounded-xl, .rounded-lg, li[id^="deal_"], div[id^="event_"]');
-    if (card) {
-        card.style.zIndex = "";
-        card.style.overflow = "";
+    // Only cleanup card state if NOT in edit mode
+    if (!this.isEditing()) {
+      this.cleanupCardState();
     }
 
     document.removeEventListener("click", this.closeMenuHandler);
   }
 
-  // --- Task Operations (Keep Logic Intact) ---
+  // --- Task Actions ---
 
   async completeTask(event) {
     event.preventDefault();
@@ -118,11 +123,24 @@ export default class extends Controller {
 
   showEdit(event) {
     event.preventDefault();
-    this.closeMenu();
     
+    // Cascade Close: Hide the menu before showing the edit form
+    this.closeMenu(); 
+
     if (this.hasEditFormTarget) {
       this.displayTarget.classList.add("hidden");
       this.editFormTarget.classList.remove("hidden");
+      this.editFormTarget.style.display = "block";
+      this.editFormTarget.style.zIndex = "99999";
+      
+      // Ensure the card stays on top for the edit form
+      const card = this.getCardContainer();
+      if (card) {
+          card.style.zIndex = "99999";
+          card.style.position = "relative";
+          card.style.overflow = "visible";
+      }
+      
       if (this.hasInputTarget) this.inputTarget.focus();
     }
   }
@@ -133,6 +151,7 @@ export default class extends Controller {
       this.editFormTarget.classList.add("hidden");
       this.displayTarget.classList.remove("hidden");
     }
+    this.cleanupCardState();
   }
 
   async submitEdit(event) {
@@ -147,6 +166,24 @@ export default class extends Controller {
     if (!confirm("Tem certeza que deseja excluir esta tarefa?")) return;
     this.closeMenu();
     await this.performRequest(this.deleteUrlValue, "DELETE");
+  }
+
+  // --- Helpers ---
+
+  getCardContainer() {
+    return this.element.closest('.rounded-xl, .rounded-lg, li[id^="deal_"], div[id^="event_"]');
+  }
+
+  cleanupCardState() {
+    const card = this.getCardContainer();
+    if (card) {
+        card.style.zIndex = "";
+        card.style.overflow = "";
+    }
+  }
+
+  isEditing() {
+    return this.hasEditFormTarget && !this.editFormTarget.classList.contains("hidden");
   }
 
   async performRequest(url, method, body = null) {
