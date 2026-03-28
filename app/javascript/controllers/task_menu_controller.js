@@ -133,9 +133,12 @@ export default class extends Controller {
     // Manual binding because teleporting breaks standard Stimulus action tree
     const cancelBtn = formElement.querySelector('button[type="button"]');
     if (cancelBtn) {
+      // Use arrow function AND check for nulls
       cancelBtn.onclick = (e) => { 
-        e.preventDefault(); 
-        e.stopPropagation();
+        if (e) {
+          e.preventDefault(); 
+          e.stopPropagation();
+        }
         this.fallbackCancel(); 
       };
     }
@@ -143,21 +146,57 @@ export default class extends Controller {
     const form = formElement.querySelector('form');
     if (form) {
       form.onsubmit = (e) => { 
-        e.preventDefault(); 
+        if (e) e.preventDefault(); 
         this.submitEdit(e); 
       };
     }
   }
 
   fallbackCancel() {
+    // Check teleported ref FIRST, then targets as fallback
     const form = this.teleportedForm || (this.hasEditFormTarget ? this.editFormTarget : null);
     if (form) {
       form.classList.add("hidden");
-      form.style.display = "none";
-      if (this.hasDisplayTarget) this.displayTarget.style.visibility = "";
+      form.style.setProperty("display", "none", "important"); // Force hide
+      
+      if (this.hasDisplayTarget) {
+        this.displayTarget.style.visibility = "visible";
+        this.displayTarget.style.display = ""; 
+      }
       this.cleanupCardState();
     }
     document.removeEventListener("click", this.closeMenuHandler);
+    this.element.style.zIndex = ""; 
+  }
+
+  async completeTask(event) {
+    if (event) event.preventDefault();
+    this.closeMenu();
+    
+    const formData = new FormData();
+    formData.append("event[done]", "true");
+    
+    await this.performRequest(this.updateUrlValue, "PATCH", formData);
+  }
+
+  async reopenTask(event) {
+    if (event) event.preventDefault();
+    this.closeMenu();
+    
+    const formData = new FormData();
+    formData.append("event[done]", "false");
+    
+    await this.performRequest(this.updateUrlValue, "PATCH", formData);
+  }
+
+  async deleteTask(event) {
+    if (event) {
+      event.preventDefault();
+      if (!confirm("Tem certeza que deseja excluir este agendamento?")) return;
+    }
+    
+    this.closeMenu();
+    await this.performRequest(this.deleteUrlValue, "DELETE");
   }
 
   async submitEdit(event) {
