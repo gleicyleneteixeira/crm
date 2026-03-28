@@ -24,8 +24,18 @@ export default class extends Controller {
 
   disconnect() {
     this.closeMenu();
-    this.fallbackCancel();
+    this.cleanupOrphanedForm();
     window.removeEventListener("task-menu:opened", this.externalOpenHandler);
+  }
+
+  cleanupOrphanedForm() {
+    // CRITICAL: Remove the teleported form from its portal location (the Stage Root)
+    // This prevents orphan forms from blocking future 'Editar' actions after Turbo updates
+    const orphan = document.getElementById(`edit-form-portal-${this.eventIdValue}`);
+    if (orphan) {
+      orphan.remove();
+    }
+    this.teleportedForm = null;
   }
 
   // --- Core Lifecycle ---
@@ -73,6 +83,7 @@ export default class extends Controller {
        // Smart Click-Outside (Calendar Aware)
        const isInsideOverlay = (this.hasMenuTarget && this.menuTarget.contains(event.target)) || 
                                (this.hasEditFormTarget && this.editFormTarget.contains(event.target)) ||
+                               (this.teleportedForm && this.teleportedForm.contains(event.target)) ||
                                (event.target.closest('.flatpickr-calendar') || event.target.closest('input[type="datetime-local"]'));
        
        if (isInsideOverlay && !event.target.closest('[role="menuitem"]')) return;
@@ -96,33 +107,37 @@ export default class extends Controller {
     if (event) event.preventDefault();
     this.closeMenu();
 
-    // Use find because targets break after teleportation
-    const form = this.hasEditFormTarget ? this.editFormTarget : this.teleportedForm;
-    if (!form) return;
+    // Use specific ID to find form in case Stimulus targets are lost due to Turbo update
+    const form = this.hasEditFormTarget ? this.editFormTarget : document.getElementById(`edit-form-portal-${this.eventIdValue}`);
+    if (!form && !this.hasEditFormTarget) return; // Silent fail if truly missing
+    
+    const activeForm = form || this.editFormTarget;
 
     // SUPREME PORTAL: Find the Stage Root (the card list 'ul')
     const stageRoot = this.element.closest('ul[id^="deals_stage_"]');
     const card = this.element.closest('li[id^="deal_"]');
     
     if (stageRoot && card) {
-      if (form.parentElement !== stageRoot) {
-        this.teleportedForm = form; // Save persistent reference
-        stageRoot.appendChild(form);
-        this.rebindTeleportedActions(form);
+      if (activeForm.parentElement !== stageRoot) {
+        this.cleanupOrphanedForm(); // Ensure no duplicates
+        activeForm.id = `edit-form-portal-${this.eventIdValue}`;
+        this.teleportedForm = activeForm; 
+        stageRoot.appendChild(activeForm);
+        this.rebindTeleportedActions(activeForm);
       }
 
-      form.classList.remove("hidden");
-      form.style.display = "block";
-      form.style.position = "absolute";
+      activeForm.classList.remove("hidden");
+      activeForm.style.display = "block";
+      activeForm.style.position = "absolute";
       
-      form.style.top = (card.offsetTop + 40) + "px";
-      form.style.left = "10px"; // Fixed within the column width
-      form.style.width = "240px"; // Compact Supreme width
-      form.style.zIndex = "999999";
+      activeForm.style.top = (card.offsetTop + 40) + "px";
+      activeForm.style.left = "10px"; 
+      activeForm.style.width = "240px"; 
+      activeForm.style.zIndex = "999999";
       
       if (this.hasDisplayTarget) this.displayTarget.style.visibility = "hidden";
       
-      const input = form.querySelector('input[type="text"]');
+      const input = activeForm.querySelector('input[type="text"]');
       if (input) input.focus();
 
       document.addEventListener("click", this.closeMenuHandler);
@@ -130,10 +145,8 @@ export default class extends Controller {
   }
 
   rebindTeleportedActions(formElement) {
-    // Manual binding because teleporting breaks standard Stimulus action tree
     const cancelBtn = formElement.querySelector('button[type="button"]');
     if (cancelBtn) {
-      // Use arrow function AND check for nulls
       cancelBtn.onclick = (e) => { 
         if (e) {
           e.preventDefault(); 
@@ -153,11 +166,10 @@ export default class extends Controller {
   }
 
   fallbackCancel() {
-    // Check teleported ref FIRST, then targets as fallback
-    const form = this.teleportedForm || (this.hasEditFormTarget ? this.editFormTarget : null);
+    const form = this.teleportedForm || document.getElementById(`edit-form-portal-${this.eventIdValue}`) || (this.hasEditFormTarget ? this.editFormTarget : null);
     if (form) {
       form.classList.add("hidden");
-      form.style.setProperty("display", "none", "important"); // Force hide
+      form.style.setProperty("display", "none", "important"); 
       
       if (this.hasDisplayTarget) {
         this.displayTarget.style.visibility = "visible";
@@ -201,7 +213,7 @@ export default class extends Controller {
 
   async submitEdit(event) {
     if (event) event.preventDefault();
-    const form = this.teleportedForm || (this.hasEditFormTarget ? this.editFormTarget : null);
+    const form = this.teleportedForm || document.getElementById(`edit-form-portal-${this.eventIdValue}`) || (this.hasEditFormTarget ? this.editFormTarget : null);
     const formElement = form?.querySelector('form');
     if (!formElement) return;
 
@@ -213,11 +225,12 @@ export default class extends Controller {
   // --- Helpers ---
 
   cleanupCardState() {
-    // No specific card state cleanup needed since work is Stage-anchored
+    this.element.style.zIndex = "";
   }
 
   isEditing() {
-    return this.hasEditFormTarget && this.editFormTarget.style.display === "block";
+    const form = this.teleportedForm || document.getElementById(`edit-form-portal-${this.eventIdValue}`) || (this.hasEditFormTarget ? this.editFormTarget : null);
+    return form && form.style.display === "block";
   }
 
   async performRequest(url, method, body = null) {
