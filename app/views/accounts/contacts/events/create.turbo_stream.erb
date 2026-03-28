@@ -3,6 +3,12 @@
     <%= render '/components/skeleton/event_form' %>
   <% end %>
 <% end %>
+<% if @event.deal.present? %>
+  <%= turbo_stream.replace dom_id(@event.deal) do %>
+    <%= render 'accounts/pipelines/deal', deal: @event.deal %>
+  <% end %>
+<% end %>
+
 <% if @event.done? %>
   <%= turbo_stream.replace "events_done_#{@event.contact.id}" do %>
     <%= turbo_frame_tag "events_done_#{@event.contact.id}", src: events_done_account_deal_path(current_user.account, @event.deal), loading: :lazy do  %>
@@ -18,4 +24,8 @@
       <%= render '/components/skeleton/event_card', from_me: true, done: false %>
     <% end %>
   <% end %>
+<% end %>
+
+<%= turbo_stream.replace :modal do %>
+  <%= turbo_frame_tag :modal %>
 <% end %>
