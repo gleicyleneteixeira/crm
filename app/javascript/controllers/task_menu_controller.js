@@ -29,11 +29,9 @@ export default class extends Controller {
   }
 
   cleanupOrphanedForm() {
-    // CRITICAL: Remove the teleported form from its portal location (the Stage Root)
-    // This prevents orphan forms from blocking future 'Editar' actions after Turbo updates
-    const orphan = document.getElementById(`edit-form-portal-${this.eventIdValue}`);
-    if (orphan) {
-      orphan.remove();
+    const portalForm = document.getElementById(`edit-form-portal-${this.eventIdValue}`);
+    if (portalForm) {
+      portalForm.remove();
     }
     this.teleportedForm = null;
   }
@@ -80,10 +78,10 @@ export default class extends Controller {
     if (event && event.type === "click") {
        if (this.hasDisplayTarget && this.displayTarget.contains(event.target)) return;
 
-       // Smart Click-Outside (Calendar Aware)
+       const portalForm = document.getElementById(`edit-form-portal-${this.eventIdValue}`);
        const isInsideOverlay = (this.hasMenuTarget && this.menuTarget.contains(event.target)) || 
                                (this.hasEditFormTarget && this.editFormTarget.contains(event.target)) ||
-                               (this.teleportedForm && this.teleportedForm.contains(event.target)) ||
+                               (portalForm && portalForm.contains(event.target)) ||
                                (event.target.closest('.flatpickr-calendar') || event.target.closest('input[type="datetime-local"]'));
        
        if (isInsideOverlay && !event.target.closest('[role="menuitem"]')) return;
@@ -101,25 +99,24 @@ export default class extends Controller {
     document.removeEventListener("click", this.closeMenuHandler);
   }
 
-  // --- Supreme Standard: Stage Portal ---
+  // --- Smart Context Awareness: Kanban vs Frame ---
 
   showEdit(event) {
     if (event) event.preventDefault();
     this.closeMenu();
 
-    // Use specific ID to find form in case Stimulus targets are lost due to Turbo update
-    const form = this.hasEditFormTarget ? this.editFormTarget : document.getElementById(`edit-form-portal-${this.eventIdValue}`);
-    if (!form && !this.hasEditFormTarget) return; // Silent fail if truly missing
-    
-    const activeForm = form || this.editFormTarget;
+    const portalForm = document.getElementById(`edit-form-portal-${this.eventIdValue}`);
+    const activeForm = this.hasEditFormTarget ? this.editFormTarget : portalForm;
+    if (!activeForm) return;
 
-    // SUPREME PORTAL: Find the Stage Root (the card list 'ul')
+    // Detect Environment
     const stageRoot = this.element.closest('ul[id^="deals_stage_"]');
     const card = this.element.closest('li[id^="deal_"]');
     
     if (stageRoot && card) {
+      // --- KANBAN MODE (Supreme Stage Portal) ---
       if (activeForm.parentElement !== stageRoot) {
-        this.cleanupOrphanedForm(); // Ensure no duplicates
+        this.cleanupOrphanedForm();
         activeForm.id = `edit-form-portal-${this.eventIdValue}`;
         this.teleportedForm = activeForm; 
         stageRoot.appendChild(activeForm);
@@ -129,19 +126,26 @@ export default class extends Controller {
       activeForm.classList.remove("hidden");
       activeForm.style.display = "block";
       activeForm.style.position = "absolute";
-      
       activeForm.style.top = (card.offsetTop + 40) + "px";
       activeForm.style.left = "10px"; 
       activeForm.style.width = "240px"; 
       activeForm.style.zIndex = "999999";
-      
-      if (this.hasDisplayTarget) this.displayTarget.style.visibility = "hidden";
-      
-      const input = activeForm.querySelector('input[type="text"]');
-      if (input) input.focus();
-
-      document.addEventListener("click", this.closeMenuHandler);
+    } else {
+      // --- FRAME/HISTORY MODE (Classic Flat) ---
+      // No teleportation needed as there's no layout squeezing in this view
+      activeForm.classList.remove("hidden");
+      activeForm.style.display = "block";
+      activeForm.style.position = "absolute";
+      activeForm.style.top = "100%";
+      activeForm.style.right = "0";
+      activeForm.style.width = "240px";
+      activeForm.style.zIndex = "999999";
     }
+
+    if (this.hasDisplayTarget) this.displayTarget.style.visibility = "hidden";
+    const input = activeForm.querySelector('input[type="text"]');
+    if (input) input.focus();
+    document.addEventListener("click", this.closeMenuHandler);
   }
 
   rebindTeleportedActions(formElement) {
@@ -166,7 +170,9 @@ export default class extends Controller {
   }
 
   fallbackCancel() {
-    const form = this.teleportedForm || document.getElementById(`edit-form-portal-${this.eventIdValue}`) || (this.hasEditFormTarget ? this.editFormTarget : null);
+    const portalForm = document.getElementById(`edit-form-portal-${this.eventIdValue}`);
+    const form = this.teleportedForm || portalForm || (this.hasEditFormTarget ? this.editFormTarget : null);
+    
     if (form) {
       form.classList.add("hidden");
       form.style.setProperty("display", "none", "important"); 
@@ -213,8 +219,9 @@ export default class extends Controller {
 
   async submitEdit(event) {
     if (event) event.preventDefault();
-    const form = this.teleportedForm || document.getElementById(`edit-form-portal-${this.eventIdValue}`) || (this.hasEditFormTarget ? this.editFormTarget : null);
-    const formElement = form?.querySelector('form');
+    const portalForm = document.getElementById(`edit-form-portal-${this.eventIdValue}`);
+    const formContext = this.teleportedForm || portalForm || (this.hasEditFormTarget ? this.editFormTarget : null);
+    const formElement = formContext?.querySelector('form');
     if (!formElement) return;
 
     const formData = new FormData(formElement);
@@ -229,7 +236,8 @@ export default class extends Controller {
   }
 
   isEditing() {
-    const form = this.teleportedForm || document.getElementById(`edit-form-portal-${this.eventIdValue}`) || (this.hasEditFormTarget ? this.editFormTarget : null);
+    const portalForm = document.getElementById(`edit-form-portal-${this.eventIdValue}`);
+    const form = this.teleportedForm || portalForm || (this.hasEditFormTarget ? this.editFormTarget : null);
     return form && form.style.display === "block";
   }
 
