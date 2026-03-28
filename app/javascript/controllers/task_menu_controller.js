@@ -71,6 +71,7 @@ export default class extends Controller {
       menu.id = `task-menu-portal-${this.eventIdValue}`;
       this.teleportedMenu = menu;
       document.body.appendChild(menu);
+      this.rebindMenuActions(menu);
     }
 
     menu.classList.remove("hidden");
@@ -142,6 +143,38 @@ export default class extends Controller {
       document.removeEventListener("keydown", this.escapeHandler);
       this.escapeHandler = null;
     }
+  }
+
+  rebindMenuActions(menuElement) {
+    const actionMap = {
+      "task-menu#reopenTask": this.reopenTask.bind(this),
+      "task-menu#completeTask": this.completeTask.bind(this),
+      "task-menu#showEdit": this.showEdit.bind(this),
+      "task-menu#deleteTask": this.deleteTask.bind(this)
+    };
+
+    const allItems = menuElement.querySelectorAll("[data-action]");
+
+    allItems.forEach((item) => {
+      if (item.dataset.bound === "true") return;
+
+      const actions = item.getAttribute("data-action");
+      if (!actions) return;
+
+      Object.entries(actionMap).forEach(([actionName, handler]) => {
+        if (actions.includes(actionName)) {
+          item.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handler(e);
+          });
+        }
+      });
+
+      item.dataset.bound = "true";
+    });
+
+    if (window.lucide) window.lucide.createIcons();
   }
 
   // --- Adaptive Portal: Kanban Stage vs Frame Card ---
