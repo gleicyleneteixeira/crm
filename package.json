@@ -6,6 +6,7 @@
     "heroku-prebuild": "yarn build"
   },
   "dependencies": {
+    "@floating-ui/dom": "^1.7.6",
     "@fullcalendar/core": "6.1.17",
     "@fullcalendar/interaction": "6.1.17",
     "@fullcalendar/list": "6.1.17",

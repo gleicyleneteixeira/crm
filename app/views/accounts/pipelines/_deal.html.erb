@@ -127,6 +127,17 @@
             <%= render "accounts/events/task_menu", event: event, show_date: true, minimal: true %>
           </div>
 
+        <% else %>
+          <%= link_to new_account_contact_event_path((defined?(Current) && Current.account || deal.account),
+                                                     deal.contact,
+                                                     kind: 'activity',
+                                                     pipeline: deal.pipeline,
+                                                     deal_id: deal.id),
+                      data: { turbo_frame: :modal },
+                      class: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-slate-500/40 text-[11px] text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800" do %>
+            <i data-lucide="plus" class="w-3 h-3"></i>
+            <span>Nova tarefa</span>
+          <% end %>
         <% end %>
       </div>
     </div>

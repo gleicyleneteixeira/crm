@@ -1,5 +1,6 @@
 import { Controller } from "@hotwired/stimulus";
 import * as Turbo from "@hotwired/turbo";
+import { computePosition, flip, shift, offset, autoUpdate } from "@floating-ui/dom";
 
 export default class extends Controller {
   static targets = ["display", "editForm", "input", "icon", "menu"];
@@ -24,6 +25,7 @@ export default class extends Controller {
   disconnect() {
     this.closeMenu();
     this.cleanupTeleportedElements();
+    if (this.cleanupAutoUpdate) this.cleanupAutoUpdate();
     window.removeEventListener("task-menu:opened", this.externalOpenHandler);
   }
 
@@ -62,52 +64,43 @@ export default class extends Controller {
     window.dispatchEvent(new CustomEvent("task-menu:opened", { detail: { eventId: this.eventIdValue } }));
 
     const menu = this.menuTarget;
-    const stageRoot = this.element.closest('ul[id^="deals_stage_"]');
-    const kanbanCard = this.element.closest('li[id^="deal_"]');
-    const frameCard = this.element.closest('.rounded-lg');
     const trigger = this.hasDisplayTarget ? this.displayTarget : this.element;
 
-    // --- TELEPORT LOGIC ---
-    if (stageRoot && kanbanCard) {
-      if (menu.parentElement !== stageRoot) {
-        menu.id = `task-menu-portal-${this.eventIdValue}`;
-        this.teleportedMenu = menu;
-        stageRoot.appendChild(menu);
-      }
-      
-      const triggerRect = trigger.getBoundingClientRect();
-      const rootRect = stageRoot.getBoundingClientRect();
-      
-      menu.classList.remove("hidden");
-      menu.style.display = "block";
-      menu.style.position = "absolute";
-      menu.style.top = (triggerRect.bottom - rootRect.top + stageRoot.scrollTop) + "px";
-      menu.style.left = (triggerRect.left - rootRect.left + 5) + "px";
-      menu.style.zIndex = "999999";
-      menu.style.width = "160px";
-    } else if (frameCard) {
-      if (menu.parentElement !== frameCard) {
-        menu.id = `task-menu-portal-${this.eventIdValue}`;
-        this.teleportedMenu = menu;
-        frameCard.appendChild(menu);
-      }
-      menu.classList.remove("hidden");
-      menu.style.display = "block";
-      menu.style.position = "absolute";
-      menu.style.top = "30px";
-      menu.style.right = "10px";
-      menu.style.zIndex = "999999";
-    } else {
-      menu.classList.remove("hidden");
-      menu.style.display = "block";
-      menu.style.position = "absolute";
-      menu.style.top = "100%";
-      menu.style.right = "0";
-      menu.style.zIndex = "999999";
+    // --- PORTAL LOGIC ---
+    if (menu.parentElement !== document.body) {
+      menu.id = `task-menu-portal-${this.eventIdValue}`;
+      this.teleportedMenu = menu;
+      document.body.appendChild(menu);
     }
+
+    menu.classList.remove("hidden");
+    menu.style.display = "block";
+    menu.style.position = "fixed";
+    menu.style.zIndex = "9999";
+    menu.style.width = "160px";
+
+    // --- FLOATING UI INTELLIGENCE ---
+    this.cleanupAutoUpdate = autoUpdate(trigger, menu, () => {
+      computePosition(trigger, menu, {
+        placement: "bottom-end",
+        strategy: "fixed",
+        middleware: [
+          offset(8),
+          flip(),
+          shift({ padding: 10 })
+        ]
+      }).then(({ x, y }) => {
+        Object.assign(menu.style, {
+          left: `${x}px`,
+          top: `${y}px`,
+        });
+      });
+    });
 
     setTimeout(() => {
       document.addEventListener("click", this.closeMenuHandler);
+      this.escapeHandler = (e) => { if (e.key === "Escape") this.closeMenu(); };
+      document.addEventListener("keydown", this.escapeHandler);
     }, 1);
   }
 
@@ -124,9 +117,20 @@ export default class extends Controller {
        if (isInsideOverlay && !event.target.closest('[role="menuitem"]')) return;
     }
 
-    if (this.hasMenuTarget) {
-      this.menuTarget.classList.add("hidden");
-      this.menuTarget.style.display = "none";
+    const menu = this.teleportedMenu || (this.hasMenuTarget ? this.menuTarget : null);
+    if (menu) {
+      menu.classList.add("hidden");
+      menu.style.display = "none";
+      
+      // Senior Cleanup: Remove from DOM to keep body clean
+      if (menu.parentElement === document.body) {
+        menu.remove();
+      }
+    }
+
+    if (this.cleanupAutoUpdate) {
+      this.cleanupAutoUpdate();
+      this.cleanupAutoUpdate = null;
     }
 
     if (!this.isEditing()) {
@@ -134,6 +138,10 @@ export default class extends Controller {
     }
 
     document.removeEventListener("click", this.closeMenuHandler);
+    if (this.escapeHandler) {
+      document.removeEventListener("keydown", this.escapeHandler);
+      this.escapeHandler = null;
+    }
   }
 
   // --- Adaptive Portal: Kanban Stage vs Frame Card ---
