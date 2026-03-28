@@ -12,7 +12,6 @@ export default class extends Controller {
   connect() {
     this.closeMenuHandler = this.closeMenu.bind(this);
     
-    // Global uniqueness: Listen for other menus opening
     this.externalOpenHandler = (e) => {
       if (e.detail && e.detail.eventId !== this.eventIdValue) {
         this.closeMenu();
@@ -99,7 +98,7 @@ export default class extends Controller {
     document.removeEventListener("click", this.closeMenuHandler);
   }
 
-  // --- Smart Context Awareness: Kanban vs Frame ---
+  // --- Adaptive Portal: Kanban Stage vs Frame Card ---
 
   showEdit(event) {
     if (event) event.preventDefault();
@@ -109,12 +108,13 @@ export default class extends Controller {
     const activeForm = this.hasEditFormTarget ? this.editFormTarget : portalForm;
     if (!activeForm) return;
 
-    // Detect Environment
+    // Detect Contexts
     const stageRoot = this.element.closest('ul[id^="deals_stage_"]');
-    const card = this.element.closest('li[id^="deal_"]');
+    const kanbanCard = this.element.closest('li[id^="deal_"]');
+    const frameCard = this.element.closest('.rounded-lg'); // History/Event card root
     
-    if (stageRoot && card) {
-      // --- KANBAN MODE (Supreme Stage Portal) ---
+    if (stageRoot && kanbanCard) {
+      // --- KANBAN MODE ---
       if (activeForm.parentElement !== stageRoot) {
         this.cleanupOrphanedForm();
         activeForm.id = `edit-form-portal-${this.eventIdValue}`;
@@ -126,18 +126,35 @@ export default class extends Controller {
       activeForm.classList.remove("hidden");
       activeForm.style.display = "block";
       activeForm.style.position = "absolute";
-      activeForm.style.top = (card.offsetTop + 40) + "px";
+      activeForm.style.top = (kanbanCard.offsetTop + 40) + "px";
       activeForm.style.left = "10px"; 
       activeForm.style.width = "240px"; 
       activeForm.style.zIndex = "999999";
+    } else if (frameCard) {
+      // --- FRAME/HISTORY MODE ---
+      // Teleport to Frame Card for clean relative anchoring
+      if (activeForm.parentElement !== frameCard) {
+        this.cleanupOrphanedForm();
+        activeForm.id = `edit-form-portal-${this.eventIdValue}`;
+        this.teleportedForm = activeForm; 
+        frameCard.appendChild(activeForm);
+        this.rebindTeleportedActions(activeForm);
+      }
+
+      activeForm.classList.remove("hidden");
+      activeForm.style.display = "block";
+      activeForm.style.position = "absolute";
+      activeForm.style.top = "40px"; // Float below the header
+      activeForm.style.left = "10px"; // Align near the icon
+      activeForm.style.width = "240px";
+      activeForm.style.zIndex = "999999";
     } else {
-      // --- FRAME/HISTORY MODE (Classic Flat) ---
-      // No teleportation needed as there's no layout squeezing in this view
+      // --- FALLBACK ---
       activeForm.classList.remove("hidden");
       activeForm.style.display = "block";
       activeForm.style.position = "absolute";
       activeForm.style.top = "100%";
-      activeForm.style.right = "0";
+      activeForm.style.left = "0";
       activeForm.style.width = "240px";
       activeForm.style.zIndex = "999999";
     }
