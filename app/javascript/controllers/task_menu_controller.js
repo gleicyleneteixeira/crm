@@ -23,16 +23,19 @@ export default class extends Controller {
 
   disconnect() {
     this.closeMenu();
-    this.cleanupOrphanedForm();
+    this.cleanupTeleportedElements();
     window.removeEventListener("task-menu:opened", this.externalOpenHandler);
   }
 
-  cleanupOrphanedForm() {
+  cleanupTeleportedElements() {
     const portalForm = document.getElementById(`edit-form-portal-${this.eventIdValue}`);
-    if (portalForm) {
-      portalForm.remove();
-    }
+    if (portalForm) portalForm.remove();
+    
+    const portalMenu = document.getElementById(`task-menu-portal-${this.eventIdValue}`);
+    if (portalMenu) portalMenu.remove();
+
     this.teleportedForm = null;
+    this.teleportedMenu = null;
   }
 
   // --- Core Lifecycle ---
@@ -59,14 +62,49 @@ export default class extends Controller {
     window.dispatchEvent(new CustomEvent("task-menu:opened", { detail: { eventId: this.eventIdValue } }));
 
     const menu = this.menuTarget;
-    this.element.style.zIndex = "99999"; 
-    
-    menu.classList.remove("hidden");
-    menu.style.display = "block";
-    menu.style.position = "absolute";
-    menu.style.zIndex = "99999";
-    menu.style.top = "100%";
-    menu.style.right = "0";
+    const stageRoot = this.element.closest('ul[id^="deals_stage_"]');
+    const kanbanCard = this.element.closest('li[id^="deal_"]');
+    const frameCard = this.element.closest('.rounded-lg');
+    const trigger = this.hasDisplayTarget ? this.displayTarget : this.element;
+
+    // --- TELEPORT LOGIC ---
+    if (stageRoot && kanbanCard) {
+      if (menu.parentElement !== stageRoot) {
+        menu.id = `task-menu-portal-${this.eventIdValue}`;
+        this.teleportedMenu = menu;
+        stageRoot.appendChild(menu);
+      }
+      
+      const triggerRect = trigger.getBoundingClientRect();
+      const rootRect = stageRoot.getBoundingClientRect();
+      
+      menu.classList.remove("hidden");
+      menu.style.display = "block";
+      menu.style.position = "absolute";
+      menu.style.top = (triggerRect.bottom - rootRect.top + stageRoot.scrollTop) + "px";
+      menu.style.left = (triggerRect.left - rootRect.left + 5) + "px";
+      menu.style.zIndex = "999999";
+      menu.style.width = "160px";
+    } else if (frameCard) {
+      if (menu.parentElement !== frameCard) {
+        menu.id = `task-menu-portal-${this.eventIdValue}`;
+        this.teleportedMenu = menu;
+        frameCard.appendChild(menu);
+      }
+      menu.classList.remove("hidden");
+      menu.style.display = "block";
+      menu.style.position = "absolute";
+      menu.style.top = "30px";
+      menu.style.right = "10px";
+      menu.style.zIndex = "999999";
+    } else {
+      menu.classList.remove("hidden");
+      menu.style.display = "block";
+      menu.style.position = "absolute";
+      menu.style.top = "100%";
+      menu.style.right = "0";
+      menu.style.zIndex = "999999";
+    }
 
     setTimeout(() => {
       document.addEventListener("click", this.closeMenuHandler);
@@ -116,7 +154,7 @@ export default class extends Controller {
     if (stageRoot && kanbanCard) {
       // --- KANBAN MODE ---
       if (activeForm.parentElement !== stageRoot) {
-        this.cleanupOrphanedForm();
+        this.cleanupTeleportedElements();
         activeForm.id = `edit-form-portal-${this.eventIdValue}`;
         this.teleportedForm = activeForm; 
         stageRoot.appendChild(activeForm);
@@ -134,7 +172,7 @@ export default class extends Controller {
       // --- FRAME/HISTORY MODE ---
       // Teleport to Frame Card for clean relative anchoring
       if (activeForm.parentElement !== frameCard) {
-        this.cleanupOrphanedForm();
+        this.cleanupTeleportedElements();
         activeForm.id = `edit-form-portal-${this.eventIdValue}`;
         this.teleportedForm = activeForm; 
         frameCard.appendChild(activeForm);
