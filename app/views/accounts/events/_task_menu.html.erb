@@ -83,12 +83,22 @@
       </a>
     <% end %>
 
-    <a href="#" class="flex items-center gap-2 px-3 py-1.5 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" 
-       role="menuitem" 
-       data-action="click->task-menu#showEdit">
-      <i data-lucide="pencil" class="w-3.5 h-3.5 text-sky-500"></i>
-      <span>Editar</span>
-    </a>
+    <% if minimal %>
+      <a href="#" class="flex items-center gap-2 px-3 py-1.5 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" 
+         role="menuitem" 
+         data-action="click->task-menu#showEdit">
+        <i data-lucide="pencil" class="w-3.5 h-3.5 text-sky-500"></i>
+        <span>Editar</span>
+      </a>
+    <% else %>
+      <%= link_to edit_account_contact_event_path(event.account, event.contact, event, deal_id: event.deal_id), 
+          class: "flex items-center gap-2 px-3 py-1.5 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors",
+          role: "menuitem",
+          data: { turbo_frame: "modal", action: "click->task-menu#closeMenu" } do %>
+        <i data-lucide="pencil" class="w-3.5 h-3.5 text-sky-500"></i>
+        <span>Editar</span>
+      <% end %>
+    <% end %>
 
     <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
 
