@@ -81,4 +81,18 @@
     </div>
   </div>
 <% end %>
-<%= turbo_frame_tag :modal %>
+<%# Global Premium Floating Overlay (Centered) %>
+<div data-controller="task-centered">
+  <div id="task-centered-backdrop" 
+       data-task-centered-target="backdrop" 
+       class="task-centered-backdrop transition-opacity duration-300">
+  </div>
+
+  <div id="task-centered-overlay" 
+       data-task-centered-target="overlay" 
+       class="task-centered-overlay transition-all duration-300 transform scale-95 opacity-0 hidden">
+    <%= turbo_frame_tag :modal, 
+                        data: { task_centered_target: "frame", action: "turbo:frame-load->task-centered#show" } %>
+  </div>
+</div>
+

@@ -1,0 +1,118 @@
+/* Task Centered Floating Overlay */
+.task-centered-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.7); /* No blur, just dark */
+  z-index: 2147483646; /* One below the overlay */
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.task-centered-overlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.95);
+  background-color: #0F172A;
+  border: 1px solid #1E293B;
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  max-width: 600px;
+  width: 90vw;
+  max-height: 85vh;
+  z-index: 2147483647; /* Max Possible Z-Index */
+  display: none;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Visibility State */
+.task-centered-overlay.active,
+.task-centered-backdrop.active {
+  display: block;
+  opacity: 1;
+}
+
+.task-centered-overlay.active {
+  transform: translate(-50%, -50%) scale(1);
+  display: flex;
+}
+
+/* Scrollable Form Content */
+.task-centered-overlay turbo-frame {
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Dark Form Elements Overrides */
+.task-centered-overlay header {
+  background-color: #1E293B !important;
+  border-bottom: 1px solid #334155 !important;
+}
+
+.task-centered-overlay header p, 
+.task-centered-overlay header span {
+  color: #F1F5F9 !important;
+}
+
+.task-centered-overlay .bg-light-palette-p5,
+.task-centered-overlay .bg-light-palette-p4,
+.task-centered-overlay .bg-brand-palette-08 {
+  background-color: #0F172A !important;
+}
+
+.task-centered-overlay .border-light-palette-p3,
+.task-centered-overlay .border-neutral-100 {
+  border-color: #334155 !important;
+}
+
+.task-centered-overlay .text-dark-gray-palette-p1,
+.task-centered-overlay .text-dark-gray-palette-p3 {
+  color: #CBD5E1 !important;
+}
+
+.task-centered-overlay label {
+  color: #94A3B8 !important;
+  font-weight: 600 !important;
+}
+
+.task-centered-overlay .form-input,
+.task-centered-overlay input[type="text"],
+.task-centered-overlay textarea,
+.task-centered-overlay select {
+  background-color: rgba(30, 41, 59, 0.5) !important;
+  border: 1px solid #334155 !important;
+  color: #F1F5F9 !important;
+  border-radius: 8px !important;
+}
+
+.task-centered-overlay input:focus,
+.task-centered-overlay textarea:focus {
+  border-color: #38BDF8 !important;
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.1) !important;
+}
+
+.task-centered-overlay .btn-primary {
+  background-color: #0284C7 !important;
+  color: white !important;
+  font-weight: 700 !important;
+  padding: 0.625rem 1.25rem !important;
+  border-radius: 8px !important;
+}
+
+.task-centered-overlay .trix-content {
+  color: #F1F5F9 !important;
+}
+
+.task-centered-overlay .trix-toolbar {
+  background-color: #1E293B !important;
+  border-bottom: 1px solid #334155 !important;
+}
+
+.task-centered-overlay .trix-button {
+  filter: invert(1) brightness(1.5);
+}
