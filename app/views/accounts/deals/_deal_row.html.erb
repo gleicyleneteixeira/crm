@@ -29,10 +29,21 @@
             ● <%= Deal.human_enum_name(:status, deal.status) %>
           </span>
           <% if deal.next_event_planned? %>
-            <span class="text-slate-300">|</span>
-            <div class="flex items-center">
-              <%= render "accounts/events/task_menu", event: deal.next_event_planned, show_date: true, minimal: true %>
-
+            <% event = deal.next_event_planned %>
+            <%# Farol de Cores (Pill Strategy from Kanban) %>
+            <% pill_classes =
+                 if event.overdue?
+                   'bg-red-500/10 text-red-400 border-red-500/40'
+                 elsif event.done?
+                   'bg-emerald-500/5 text-emerald-400 border-emerald-500/20'
+                 elsif event.scheduled_at&.to_date == Time.zone.today
+                   'bg-amber-500/10 text-amber-300 border-amber-500/40'
+                 else
+                   'bg-sky-500/10 text-sky-300 border-sky-500/40'
+                 end %>
+            <span class="text-slate-300 mx-1">|</span>
+            <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[11px] font-medium <%= pill_classes %>">
+               <%= render "accounts/events/task_menu", event: event, show_date: true, minimal: true %>
             </div>
           <% end %>
         </div>
