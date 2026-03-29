@@ -74,7 +74,7 @@
         </div>
       </div>
     </div>
-    <%= link_to account_deal_path(deal.account, deal), data: { turbo_frame: :_top, as_icon: true }, class: 'flex items-center justify-center rounded text-slate-400 w-8 h-8 hover:bg-slate-100 dark:hover:bg-slate-700 transition-opacity duration-300 opacity-0' do %>
+    <%= link_to account_deal_path(deal.account, deal), data: { turbo_frame: :_top, as_icon: 'true' }, class: 'flex items-center justify-center rounded text-slate-400 w-8 h-8 hover:bg-slate-100 dark:hover:bg-slate-700 transition-opacity duration-300 opacity-0' do %>
       <i data-lucide="arrow-right" class="w-5 h-5"></i>
     <% end %>
   </div>

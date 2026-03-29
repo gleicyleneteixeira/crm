@@ -1,6 +1,5 @@
 import { Controller } from "@hotwired/stimulus";
 import * as Turbo from "@hotwired/turbo";
-import { computePosition, flip, shift, offset, autoUpdate } from "@floating-ui/dom";
 
 export default class extends Controller {
   static targets = ["display", "editForm", "input", "icon", "menu"];
@@ -11,7 +10,6 @@ export default class extends Controller {
   };
 
   connect() {
-    this.menuOpen = false;
     this.closeMenuHandler = this.closeMenu.bind(this);
     
     this.externalOpenHandler = (e) => {
@@ -20,33 +18,21 @@ export default class extends Controller {
         this.fallbackCancel(); 
       }
     };
-    window.addEventListener("task-menu:open", this.externalOpenHandler);
-
-    // Suporte para revelação tipo "Valor do Negócio"
-    const badgeContainer = this.element.closest('[data-as-badge="true"]');
-    if (badgeContainer) {
-      badgeContainer.classList.remove('opacity-0');
-    }
+    window.addEventListener("task-menu:opened", this.externalOpenHandler);
   }
 
   disconnect() {
     this.closeMenu();
-    this.cleanupTeleportedElements();
-    if (this.cleanupAutoUpdate) this.cleanupAutoUpdate();
+    this.cleanupOrphanedForm();
     window.removeEventListener("task-menu:opened", this.externalOpenHandler);
   }
 
-  cleanupTeleportedElements() {
-    const portalMenu = document.getElementById(`task-menu-portal-${this.eventIdValue}`);
-    if (portalMenu) {
-      if (this.hasMenuTarget) {
-         this.element.appendChild(portalMenu);
-      } else {
-         portalMenu.remove();
-      }
+  cleanupOrphanedForm() {
+    const portalForm = document.getElementById(`edit-form-portal-${this.eventIdValue}`);
+    if (portalForm) {
+      portalForm.remove();
     }
-
-    this.teleportedMenu = null;
+    this.teleportedForm = null;
   }
 
   // --- Core Lifecycle ---
@@ -57,124 +43,59 @@ export default class extends Controller {
       event.stopPropagation();
     }
 
-    if (this.menuOpen) {
-      this.closeMenu();
-    } else {
-      this.openMenu();
+    if (this.hasMenuTarget) {
+      const isCurrentlyOpen = this.menuTarget.style.display === "block" || !this.menuTarget.classList.contains("hidden");
+      if (isCurrentlyOpen) {
+        this.closeMenu();
+      } else {
+        this.openMenu();
+      }
     }
   }
 
   openMenu() {
-    if (!this.hasMenuTarget || this.menuOpen) return;
-    this.menuOpen = true;
+    if (!this.hasMenuTarget) return;
 
     window.dispatchEvent(new CustomEvent("task-menu:opened", { detail: { eventId: this.eventIdValue } }));
 
     const menu = this.menuTarget;
-    const trigger = this.hasDisplayTarget ? this.displayTarget : this.element;
-
-    // --- PORTAL LOGIC: MOVE TO BODY ---
-    if (menu.parentElement !== document.body) {
-      menu.id = `task-menu-portal-${this.eventIdValue}`;
-      this.teleportedMenu = menu;
-      document.body.appendChild(menu);
-      this.rebindMenuActions(menu);
-    }
-
+    this.element.style.zIndex = "99999"; 
+    
     menu.classList.remove("hidden");
     menu.style.display = "block";
-    menu.style.position = "fixed";
-    menu.style.zIndex = "9999999"; // Ultra high
-    menu.style.width = "160px";
-
-    // --- FLOATING UI INTELLIGENCE ---
-    this.cleanupAutoUpdate = autoUpdate(trigger, menu, () => {
-      computePosition(trigger, menu, {
-        placement: "bottom-end",
-        strategy: "fixed",
-        middleware: [
-          offset(8),
-          flip(),
-          shift({ padding: 10 })
-        ]
-      }).then(({ x, y }) => {
-        Object.assign(menu.style, {
-          left: `${x}px`,
-          top: `${y}px`,
-        });
-      });
-    }, { animationFrame: true });
+    menu.style.position = "absolute";
+    menu.style.zIndex = "99999";
+    menu.style.top = "100%";
+    menu.style.right = "0";
 
     setTimeout(() => {
       document.addEventListener("click", this.closeMenuHandler);
-      this.escapeHandler = (e) => { if (e.key === "Escape") this.closeMenu(); };
-      document.addEventListener("keydown", this.escapeHandler);
     }, 1);
   }
 
   closeMenu(event) {
     if (event && event.type === "click") {
        if (this.hasDisplayTarget && this.displayTarget.contains(event.target)) return;
-       const menu = this.teleportedMenu || (this.hasMenuTarget ? this.menuTarget : null);
-       if (menu && menu.contains(event.target) && !event.target.closest('[role="menuitem"]')) return;
+
+       const portalForm = document.getElementById(`edit-form-portal-${this.eventIdValue}`);
+       const isInsideOverlay = (this.hasMenuTarget && this.menuTarget.contains(event.target)) || 
+                               (this.hasEditFormTarget && this.editFormTarget.contains(event.target)) ||
+                               (portalForm && portalForm.contains(event.target)) ||
+                               (event.target.closest('.flatpickr-calendar') || event.target.closest('input[type="datetime-local"]'));
+       
+       if (isInsideOverlay && !event.target.closest('[role="menuitem"]')) return;
     }
 
-    const menu = this.teleportedMenu || (this.hasMenuTarget ? this.menuTarget : null);
-    if (menu) {
-      menu.classList.add("hidden");
-      menu.style.display = "none";
-      
-      // Portal Return: Instead of .remove(), return to parent
-      if (menu.parentElement === document.body) {
-        this.element.appendChild(menu);
-      }
+    if (this.hasMenuTarget) {
+      this.menuTarget.classList.add("hidden");
+      this.menuTarget.style.display = "none";
     }
 
-    if (this.cleanupAutoUpdate) {
-      this.cleanupAutoUpdate();
-      this.cleanupAutoUpdate = null;
+    if (!this.isEditing()) {
+      this.cleanupCardState();
     }
-
-    this.menuOpen = false;
-    this.cleanupCardState();
 
     document.removeEventListener("click", this.closeMenuHandler);
-    if (this.escapeHandler) {
-      document.removeEventListener("keydown", this.escapeHandler);
-      this.escapeHandler = null;
-    }
-  }
-
-  rebindMenuActions(menuElement) {
-    const actionMap = {
-      "task-menu#reopenTask": this.reopenTask.bind(this),
-      "task-menu#completeTask": this.completeTask.bind(this),
-      "task-menu#showEdit": this.showEdit.bind(this),
-      "task-menu#deleteTask": this.deleteTask.bind(this)
-    };
-
-    const allItems = menuElement.querySelectorAll("[data-action]");
-
-    allItems.forEach((item) => {
-      if (item.dataset.bound === "true") return;
-
-      const actions = item.getAttribute("data-action");
-      if (!actions) return;
-
-      Object.entries(actionMap).forEach(([actionName, handler]) => {
-        if (actions.includes(actionName)) {
-          item.addEventListener("click", (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            handler(e);
-          });
-        }
-      });
-
-      item.dataset.bound = "true";
-    });
-
-    if (window.lucide) window.lucide.createIcons();
   }
 
   // --- Adaptive Portal: Kanban Stage vs Frame Card ---
@@ -183,55 +104,75 @@ export default class extends Controller {
     if (event) event.preventDefault();
     this.closeMenu();
 
-    const editForm = this.hasEditFormTarget ? this.editFormTarget : null;
-    if (!editForm) return;
+    const portalForm = document.getElementById(`edit-form-portal-${this.eventIdValue}`);
+    const activeForm = this.hasEditFormTarget ? this.editFormTarget : portalForm;
+    if (!activeForm) return;
 
-    // --- UNIVERSAL PORTAL STRATEGY (Body Fixed) ---
-    if (editForm.parentElement !== document.body) {
-      this.teleportedForm = editForm; 
-      document.body.appendChild(editForm);
-      this.rebindTeleportedActions(editForm);
+    // Detect Contexts
+    const stageRoot = this.element.closest('ul[id^="deals_stage_"]');
+    const kanbanCard = this.element.closest('li[id^="deal_"]');
+    const frameCard = this.element.closest('.rounded-lg'); // History/Event card root
+    
+    if (stageRoot && kanbanCard) {
+      // --- KANBAN MODE ---
+      if (activeForm.parentElement !== stageRoot) {
+        this.cleanupOrphanedForm();
+        activeForm.id = `edit-form-portal-${this.eventIdValue}`;
+        this.teleportedForm = activeForm; 
+        stageRoot.appendChild(activeForm);
+        this.rebindTeleportedActions(activeForm);
+      }
+
+      activeForm.classList.remove("hidden");
+      activeForm.style.display = "block";
+      activeForm.style.position = "absolute";
+      activeForm.style.top = (kanbanCard.offsetTop + 40) + "px";
+      activeForm.style.left = "10px"; 
+      activeForm.style.width = "240px"; 
+      activeForm.style.zIndex = "999999";
+    } else if (frameCard) {
+      // --- FRAME/HISTORY MODE ---
+      // Teleport to Frame Card for clean relative anchoring
+      if (activeForm.parentElement !== frameCard) {
+        this.cleanupOrphanedForm();
+        activeForm.id = `edit-form-portal-${this.eventIdValue}`;
+        this.teleportedForm = activeForm; 
+        frameCard.appendChild(activeForm);
+        this.rebindTeleportedActions(activeForm);
+      }
+
+      activeForm.classList.remove("hidden");
+      activeForm.style.display = "block";
+      activeForm.style.position = "absolute";
+      activeForm.style.top = "40px"; // Float below the header
+      activeForm.style.left = "10px"; // Align near the icon
+      activeForm.style.width = "240px";
+      activeForm.style.zIndex = "999999";
+    } else {
+      // --- FALLBACK ---
+      activeForm.classList.remove("hidden");
+      activeForm.style.display = "block";
+      activeForm.style.position = "absolute";
+      activeForm.style.top = "100%";
+      activeForm.style.left = "0";
+      activeForm.style.width = "240px";
+      activeForm.style.zIndex = "999999";
     }
 
-    // Always position relative to the trigger (the clock icon)
-    const rect = this.element.getBoundingClientRect();
-    Object.assign(editForm.style, {
-      display: "block",
-      position: "fixed",
-      top: `${rect.bottom + 5}px`, // Just below the clock
-      left: `${rect.left - 200}px`, // Align somewhat to the left since it's 240px wide
-      width: "240px",
-      zIndex: "2147483647", // Maximum possible Z-index
-      pointerEvents: "auto"
-    });
-
-    // Ensure it doesn't overflow screen left
-    const finalRect = editForm.getBoundingClientRect();
-    if (finalRect.left < 10) editForm.style.left = "10px";
-    if (finalRect.right > window.innerWidth) editForm.style.left = `${window.innerWidth - 250}px`;
-
-    editForm.classList.remove("hidden");
     if (this.hasDisplayTarget) this.displayTarget.style.visibility = "hidden";
-    
-    const input = editForm.querySelector('input[type="text"]');
-    if (input) setTimeout(() => input.focus(), 50);
-
-    setTimeout(() => {
-      this.clickOutsideEditHandler = (e) => {
-        if (editForm && !editForm.contains(e.target) && !this.element.contains(e.target)) {
-          this.fallbackCancel();
-        }
-      };
-      document.addEventListener("click", this.clickOutsideEditHandler);
-    }, 10);
+    const input = activeForm.querySelector('input[type="text"]');
+    if (input) input.focus();
+    document.addEventListener("click", this.closeMenuHandler);
   }
 
   rebindTeleportedActions(formElement) {
     const cancelBtn = formElement.querySelector('button[type="button"]');
     if (cancelBtn) {
       cancelBtn.onclick = (e) => { 
-        e.preventDefault(); 
-        e.stopPropagation();
+        if (e) {
+          e.preventDefault(); 
+          e.stopPropagation();
+        }
         this.fallbackCancel(); 
       };
     }
@@ -239,32 +180,28 @@ export default class extends Controller {
     const form = formElement.querySelector('form');
     if (form) {
       form.onsubmit = (e) => { 
-        e.preventDefault(); 
+        if (e) e.preventDefault(); 
         this.submitEdit(e); 
       };
     }
   }
-  
+
   fallbackCancel() {
-    const form = this.teleportedForm || (this.hasEditFormTarget ? this.editFormTarget : null);
+    const portalForm = document.getElementById(`edit-form-portal-${this.eventIdValue}`);
+    const form = this.teleportedForm || portalForm || (this.hasEditFormTarget ? this.editFormTarget : null);
     
     if (form) {
       form.classList.add("hidden");
-      form.style.display = "none";
+      form.style.setProperty("display", "none", "important"); 
       
-      // Portal Return
-      if (form.parentElement !== this.element) {
-        this.element.appendChild(form);
-      }
-
       if (this.hasDisplayTarget) {
         this.displayTarget.style.visibility = "visible";
+        this.displayTarget.style.display = ""; 
       }
+      this.cleanupCardState();
     }
-    
-    document.removeEventListener("click", this.clickOutsideEditHandler);
-    this.menuOpen = false;
-    this.cleanupCardState();
+    document.removeEventListener("click", this.closeMenuHandler);
+    this.element.style.zIndex = ""; 
   }
 
   async completeTask(event) {
@@ -299,7 +236,9 @@ export default class extends Controller {
 
   async submitEdit(event) {
     if (event) event.preventDefault();
-    const formElement = (this.teleportedForm || this.editFormTarget).querySelector('form');
+    const portalForm = document.getElementById(`edit-form-portal-${this.eventIdValue}`);
+    const formContext = this.teleportedForm || portalForm || (this.hasEditFormTarget ? this.editFormTarget : null);
+    const formElement = formContext?.querySelector('form');
     if (!formElement) return;
 
     const formData = new FormData(formElement);
@@ -311,6 +250,12 @@ export default class extends Controller {
 
   cleanupCardState() {
     this.element.style.zIndex = "";
+  }
+
+  isEditing() {
+    const portalForm = document.getElementById(`edit-form-portal-${this.eventIdValue}`);
+    const form = this.teleportedForm || portalForm || (this.hasEditFormTarget ? this.editFormTarget : null);
+    return form && form.style.display === "block";
   }
 
   async performRequest(url, method, body = null) {

@@ -1,13 +1,18 @@
 import { Controller } from "@hotwired/stimulus";
-import lucide from "lucide/dist/umd/lucide"
 
 export default class extends Controller {
   connect() {
-    lucide.createIcons();
-    
-    // Suporte para revelação tipo "Valor do Negócio"
-    this.element.querySelectorAll('[data-as-icon="true"]').forEach(el => {
-      el.classList.remove('opacity-0');
-    });
+    // 1. Generate Lucide icons first
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
+
+    // 2. Reveal elements (Icons and Badges) after a small delay to ensure icons are rendered
+    setTimeout(() => {
+      this.element.querySelectorAll('[data-as-icon="true"], [data-as-badge="true"]').forEach(el => {
+        el.classList.remove('opacity-0');
+        el.style.opacity = "1";
+      });
+    }, 50);
   }
 }
