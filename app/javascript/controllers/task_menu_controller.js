@@ -20,7 +20,13 @@ export default class extends Controller {
         this.fallbackCancel(); 
       }
     };
-    window.addEventListener("task-menu:opened", this.externalOpenHandler);
+    window.addEventListener("task-menu:open", this.externalOpenHandler);
+
+    // Suporte para revelação tipo "Valor do Negócio"
+    const badgeContainer = this.element.closest('[data-as-badge="true"]');
+    if (badgeContainer) {
+      badgeContainer.classList.remove('opacity-0');
+    }
   }
 
   disconnect() {
