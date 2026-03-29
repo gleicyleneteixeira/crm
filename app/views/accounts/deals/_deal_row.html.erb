@@ -37,7 +37,7 @@
                  elsif event.done?
                    'bg-emerald-500/5 text-emerald-400 border-emerald-500/20'
                  elsif event.scheduled_at&.to_date == Time.zone.today
-                   'bg-amber-500/10 text-amber-300 border-amber-500/30'
+                   'bg-amber-500/10 text-amber-300 border-amber-500/40'
                  else
                    'bg-sky-500/10 text-sky-400 border-sky-500/30'
                  end %>
@@ -74,10 +74,8 @@
         </div>
       </div>
     </div>
-    <%= link_to account_deal_path(deal.account, deal), data: {turbo_frame: :_top} , class: 'flex items-center justify-center rounded text-slate-400 w-8 h-8 hover:bg-slate-100 dark:hover:bg-slate-700' do %>
-       <div data-as-icon="true" class="opacity-0 transition-opacity">
-         <i data-lucide="arrow-right" class="w-5 h-5"></i>
-      </div>
+    <%= link_to account_deal_path(deal.account, deal), data: { turbo_frame: :_top, as_icon: true }, class: 'flex items-center justify-center rounded text-slate-400 w-8 h-8 hover:bg-slate-100 dark:hover:bg-slate-700 transition-opacity duration-300 opacity-0' do %>
+      <i data-lucide="arrow-right" class="w-5 h-5"></i>
     <% end %>
   </div>
 <% end %>
