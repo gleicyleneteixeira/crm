@@ -86,6 +86,10 @@ export default class extends Controller {
       this.frameTarget.src = "";
       this.frameTarget.innerHTML = "";
     }
+
+    // Senior Sync: notify other controllers that we are closed 
+    // (e.g. to restore clock icon visibility)
+    window.dispatchEvent(new CustomEvent("task-overlay:closed"));
   }
 
   cleanup() {

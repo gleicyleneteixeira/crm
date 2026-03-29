@@ -11,6 +11,7 @@ export default class extends Controller {
   };
 
   connect() {
+    this.menuOpen = false;
     this.closeMenuHandler = this.closeMenu.bind(this);
     
     this.externalOpenHandler = (e) => {
@@ -30,13 +31,15 @@ export default class extends Controller {
   }
 
   cleanupTeleportedElements() {
-    const portalForm = document.getElementById(`edit-form-portal-${this.eventIdValue}`);
-    if (portalForm) portalForm.remove();
-    
     const portalMenu = document.getElementById(`task-menu-portal-${this.eventIdValue}`);
-    if (portalMenu) portalMenu.remove();
+    if (portalMenu) {
+      if (this.hasMenuTarget) {
+         this.element.appendChild(portalMenu);
+      } else {
+         portalMenu.remove();
+      }
+    }
 
-    this.teleportedForm = null;
     this.teleportedMenu = null;
   }
 
@@ -48,25 +51,23 @@ export default class extends Controller {
       event.stopPropagation();
     }
 
-    if (this.hasMenuTarget) {
-      const isCurrentlyOpen = this.menuTarget.style.display === "block" || !this.menuTarget.classList.contains("hidden");
-      if (isCurrentlyOpen) {
-        this.closeMenu();
-      } else {
-        this.openMenu();
-      }
+    if (this.menuOpen) {
+      this.closeMenu();
+    } else {
+      this.openMenu();
     }
   }
 
   openMenu() {
-    if (!this.hasMenuTarget) return;
+    if (!this.hasMenuTarget || this.menuOpen) return;
+    this.menuOpen = true;
 
     window.dispatchEvent(new CustomEvent("task-menu:opened", { detail: { eventId: this.eventIdValue } }));
 
     const menu = this.menuTarget;
     const trigger = this.hasDisplayTarget ? this.displayTarget : this.element;
 
-    // --- PORTAL LOGIC ---
+    // --- PORTAL LOGIC: MOVE TO BODY ---
     if (menu.parentElement !== document.body) {
       menu.id = `task-menu-portal-${this.eventIdValue}`;
       this.teleportedMenu = menu;
@@ -77,7 +78,7 @@ export default class extends Controller {
     menu.classList.remove("hidden");
     menu.style.display = "block";
     menu.style.position = "fixed";
-    menu.style.zIndex = "9999";
+    menu.style.zIndex = "9999999"; // Ultra high
     menu.style.width = "160px";
 
     // --- FLOATING UI INTELLIGENCE ---
@@ -96,7 +97,7 @@ export default class extends Controller {
           top: `${y}px`,
         });
       });
-    });
+    }, { animationFrame: true });
 
     setTimeout(() => {
       document.addEventListener("click", this.closeMenuHandler);
@@ -108,14 +109,8 @@ export default class extends Controller {
   closeMenu(event) {
     if (event && event.type === "click") {
        if (this.hasDisplayTarget && this.displayTarget.contains(event.target)) return;
-
-       const portalForm = document.getElementById(`edit-form-portal-${this.eventIdValue}`);
-       const isInsideOverlay = (this.hasMenuTarget && this.menuTarget.contains(event.target)) || 
-                               (this.hasEditFormTarget && this.editFormTarget.contains(event.target)) ||
-                               (portalForm && portalForm.contains(event.target)) ||
-                               (event.target.closest('.flatpickr-calendar') || event.target.closest('input[type="datetime-local"]'));
-       
-       if (isInsideOverlay && !event.target.closest('[role="menuitem"]')) return;
+       const menu = this.teleportedMenu || (this.hasMenuTarget ? this.menuTarget : null);
+       if (menu && menu.contains(event.target) && !event.target.closest('[role="menuitem"]')) return;
     }
 
     const menu = this.teleportedMenu || (this.hasMenuTarget ? this.menuTarget : null);
@@ -123,9 +118,9 @@ export default class extends Controller {
       menu.classList.add("hidden");
       menu.style.display = "none";
       
-      // Senior Cleanup: Remove from DOM to keep body clean
+      // Portal Return: Instead of .remove(), return to parent
       if (menu.parentElement === document.body) {
-        menu.remove();
+        this.element.appendChild(menu);
       }
     }
 
@@ -134,9 +129,8 @@ export default class extends Controller {
       this.cleanupAutoUpdate = null;
     }
 
-    if (!this.isEditing()) {
-      this.cleanupCardState();
-    }
+    this.menuOpen = false;
+    this.cleanupCardState();
 
     document.removeEventListener("click", this.closeMenuHandler);
     if (this.escapeHandler) {
@@ -182,105 +176,23 @@ export default class extends Controller {
   showEdit(event) {
     if (event) event.preventDefault();
     this.closeMenu();
-
-    const portalForm = document.getElementById(`edit-form-portal-${this.eventIdValue}`);
-    const activeForm = this.hasEditFormTarget ? this.editFormTarget : portalForm;
-    if (!activeForm) return;
-
-    // Detect Contexts
-    const stageRoot = this.element.closest('ul[id^="deals_stage_"]');
-    const kanbanCard = this.element.closest('li[id^="deal_"]');
-    const frameCard = this.element.closest('.rounded-lg'); // History/Event card root
     
-    if (stageRoot && kanbanCard) {
-      // --- KANBAN MODE ---
-      if (activeForm.parentElement !== stageRoot) {
-        this.cleanupTeleportedElements();
-        activeForm.id = `edit-form-portal-${this.eventIdValue}`;
-        this.teleportedForm = activeForm; 
-        stageRoot.appendChild(activeForm);
-        this.rebindTeleportedActions(activeForm);
-      }
-
-      activeForm.classList.remove("hidden");
-      activeForm.style.display = "block";
-      activeForm.style.position = "absolute";
-      activeForm.style.top = (kanbanCard.offsetTop + 40) + "px";
-      activeForm.style.left = "10px"; 
-      activeForm.style.width = "240px"; 
-      activeForm.style.zIndex = "999999";
-    } else if (frameCard) {
-      // --- FRAME/HISTORY MODE ---
-      // Teleport to Frame Card for clean relative anchoring
-      if (activeForm.parentElement !== frameCard) {
-        this.cleanupTeleportedElements();
-        activeForm.id = `edit-form-portal-${this.eventIdValue}`;
-        this.teleportedForm = activeForm; 
-        frameCard.appendChild(activeForm);
-        this.rebindTeleportedActions(activeForm);
-      }
-
-      activeForm.classList.remove("hidden");
-      activeForm.style.display = "block";
-      activeForm.style.position = "absolute";
-      activeForm.style.top = "40px"; // Float below the header
-      activeForm.style.left = "10px"; // Align near the icon
-      activeForm.style.width = "240px";
-      activeForm.style.zIndex = "999999";
-    } else {
-      // --- FALLBACK ---
-      activeForm.classList.remove("hidden");
-      activeForm.style.display = "block";
-      activeForm.style.position = "absolute";
-      activeForm.style.top = "100%";
-      activeForm.style.left = "0";
-      activeForm.style.width = "240px";
-      activeForm.style.zIndex = "999999";
-    }
-
+    // The Edit form targets the global :modal frame, 
+    // which is now handled by task_centered_controller.js
     if (this.hasDisplayTarget) this.displayTarget.style.visibility = "hidden";
-    const input = activeForm.querySelector('input[type="text"]');
-    if (input) input.focus();
-    document.addEventListener("click", this.closeMenuHandler);
+    
+    // Listen for the overlay closing to restore visual state
+    window.addEventListener("task-overlay:closed", () => {
+      if (this.hasDisplayTarget) this.displayTarget.style.visibility = "visible";
+    }, { once: true });
   }
 
   rebindTeleportedActions(formElement) {
-    const cancelBtn = formElement.querySelector('button[type="button"]');
-    if (cancelBtn) {
-      cancelBtn.onclick = (e) => { 
-        if (e) {
-          e.preventDefault(); 
-          e.stopPropagation();
-        }
-        this.fallbackCancel(); 
-      };
-    }
-
-    const form = formElement.querySelector('form');
-    if (form) {
-      form.onsubmit = (e) => { 
-        if (e) e.preventDefault(); 
-        this.submitEdit(e); 
-      };
-    }
+    // Redundant - removed in favor of global centered overlay
   }
-
+  
   fallbackCancel() {
-    const portalForm = document.getElementById(`edit-form-portal-${this.eventIdValue}`);
-    const form = this.teleportedForm || portalForm || (this.hasEditFormTarget ? this.editFormTarget : null);
-    
-    if (form) {
-      form.classList.add("hidden");
-      form.style.setProperty("display", "none", "important"); 
-      
-      if (this.hasDisplayTarget) {
-        this.displayTarget.style.visibility = "visible";
-        this.displayTarget.style.display = ""; 
-      }
-      this.cleanupCardState();
-    }
-    document.removeEventListener("click", this.closeMenuHandler);
-    this.element.style.zIndex = ""; 
+    this.closeMenu();
   }
 
   async completeTask(event) {
@@ -314,27 +226,13 @@ export default class extends Controller {
   }
 
   async submitEdit(event) {
-    if (event) event.preventDefault();
-    const portalForm = document.getElementById(`edit-form-portal-${this.eventIdValue}`);
-    const formContext = this.teleportedForm || portalForm || (this.hasEditFormTarget ? this.editFormTarget : null);
-    const formElement = formContext?.querySelector('form');
-    if (!formElement) return;
-
-    const formData = new FormData(formElement);
-    await this.performRequest(this.updateUrlValue, "PATCH", formData);
-    this.fallbackCancel();
+    // Redundant - handled by Turbo and task_centered_controller
   }
 
   // --- Helpers ---
 
   cleanupCardState() {
     this.element.style.zIndex = "";
-  }
-
-  isEditing() {
-    const portalForm = document.getElementById(`edit-form-portal-${this.eventIdValue}`);
-    const form = this.teleportedForm || portalForm || (this.hasEditFormTarget ? this.editFormTarget : null);
-    return form && form.style.display === "block";
   }
 
   async performRequest(url, method, body = null) {
