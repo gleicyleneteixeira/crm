@@ -4,5 +4,6 @@ import lucide from "lucide/dist/umd/lucide"
 export default class extends Controller {
   connect() {
     lucide.createIcons();
+    this.element.dataset.lucideReady = 'true';
   }
 }
