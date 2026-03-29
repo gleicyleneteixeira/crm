@@ -37,9 +37,9 @@
                  elsif event.done?
                    'bg-emerald-500/5 text-emerald-400 border-emerald-500/20'
                  elsif event.scheduled_at&.to_date == Time.zone.today
-                   'bg-amber-500/10 text-amber-300 border-amber-500/40'
+                   'bg-amber-500/10 text-amber-300 border-amber-500/30'
                  else
-                   'bg-sky-500/10 text-sky-300 border-sky-500/40'
+                   'bg-sky-500/10 text-sky-400 border-sky-500/30'
                  end %>
             <span class="text-slate-300 mx-1">|</span>
             <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[11px] font-medium <%= pill_classes %>">
