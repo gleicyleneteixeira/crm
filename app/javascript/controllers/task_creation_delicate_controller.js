@@ -35,7 +35,7 @@ export default class extends Controller {
     Object.assign(form.style, {
       display: "block",
       position: "fixed",
-      top: `${rect.bottom + 10}px`,
+      top: `${rect.bottom + 5}px`, // Just below the trigger
       left: `${rect.left}px`,
       width: "240px",
       zIndex: "2147483647",

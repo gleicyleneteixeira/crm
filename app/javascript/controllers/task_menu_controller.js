@@ -180,47 +180,29 @@ export default class extends Controller {
     const editForm = this.hasEditFormTarget ? this.editFormTarget : null;
     if (!editForm) return;
 
-    // Detect Contexts
-    const stageRoot = this.element.closest('ul[id^="deals_stage_"]');
-    const kanbanCard = this.element.closest('li[id^="deal_"]');
-    const frameCard = this.element.closest('.rounded-lg');
-    
-    // --- PORTAL TO PARENT CONTEXT ---
-    if (stageRoot && kanbanCard) {
-      if (editForm.parentElement !== document.body) {
-        this.teleportedForm = editForm; 
-        document.body.appendChild(editForm);
-        this.rebindTeleportedActions(editForm);
-      }
-
-      const rect = kanbanCard.getBoundingClientRect();
-      Object.assign(editForm.style, {
-        display: "block",
-        position: "fixed",
-        top: `${rect.top + 40}px`,
-        left: `${rect.left + 10}px`,
-        width: "240px",
-        zIndex: "2147483647", // Maximum possible Z-index
-        pointerEvents: "auto"
-      });
-    } else if (frameCard) {
-      if (editForm.parentElement !== document.body) {
-        this.teleportedForm = editForm; 
-        document.body.appendChild(editForm);
-        this.rebindTeleportedActions(editForm);
-      }
-
-      const rect = frameCard.getBoundingClientRect();
-      Object.assign(editForm.style, {
-        display: "block",
-        position: "fixed",
-        top: `${rect.top + 40}px`,
-        left: `${rect.left + 10}px`,
-        width: "240px",
-        zIndex: "2147483647",
-        pointerEvents: "auto"
-      });
+    // --- UNIVERSAL PORTAL STRATEGY (Body Fixed) ---
+    if (editForm.parentElement !== document.body) {
+      this.teleportedForm = editForm; 
+      document.body.appendChild(editForm);
+      this.rebindTeleportedActions(editForm);
     }
+
+    // Always position relative to the trigger (the clock icon)
+    const rect = this.element.getBoundingClientRect();
+    Object.assign(editForm.style, {
+      display: "block",
+      position: "fixed",
+      top: `${rect.bottom + 5}px`, // Just below the clock
+      left: `${rect.left - 200}px`, // Align somewhat to the left since it's 240px wide
+      width: "240px",
+      zIndex: "2147483647", // Maximum possible Z-index
+      pointerEvents: "auto"
+    });
+
+    // Ensure it doesn't overflow screen left
+    const finalRect = editForm.getBoundingClientRect();
+    if (finalRect.left < 10) editForm.style.left = "10px";
+    if (finalRect.right > window.innerWidth) editForm.style.left = `${window.innerWidth - 250}px`;
 
     editForm.classList.remove("hidden");
     if (this.hasDisplayTarget) this.displayTarget.style.visibility = "hidden";
