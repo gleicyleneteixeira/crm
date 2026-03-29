@@ -187,34 +187,38 @@ export default class extends Controller {
     
     // --- PORTAL TO PARENT CONTEXT ---
     if (stageRoot && kanbanCard) {
-      if (editForm.parentElement !== stageRoot) {
+      if (editForm.parentElement !== document.body) {
         this.teleportedForm = editForm; 
-        stageRoot.appendChild(editForm);
+        document.body.appendChild(editForm);
         this.rebindTeleportedActions(editForm);
       }
 
+      const rect = kanbanCard.getBoundingClientRect();
       Object.assign(editForm.style, {
         display: "block",
-        position: "absolute",
-        top: `${kanbanCard.offsetTop + 40}px`,
-        left: "10px",
+        position: "fixed",
+        top: `${rect.top + 40}px`,
+        left: `${rect.left + 10}px`,
         width: "240px",
-        zIndex: "9999999"
+        zIndex: "2147483647", // Maximum possible Z-index
+        pointerEvents: "auto"
       });
     } else if (frameCard) {
-      if (editForm.parentElement !== frameCard) {
+      if (editForm.parentElement !== document.body) {
         this.teleportedForm = editForm; 
-        frameCard.appendChild(editForm);
+        document.body.appendChild(editForm);
         this.rebindTeleportedActions(editForm);
       }
 
+      const rect = frameCard.getBoundingClientRect();
       Object.assign(editForm.style, {
         display: "block",
-        position: "absolute",
-        top: "40px",
-        left: "10px",
+        position: "fixed",
+        top: `${rect.top + 40}px`,
+        left: `${rect.left + 10}px`,
         width: "240px",
-        zIndex: "9999999"
+        zIndex: "2147483647",
+        pointerEvents: "auto"
       });
     }
 

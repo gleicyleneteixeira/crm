@@ -20,10 +20,58 @@
       <div class="">
         <div class="gap-8">
           <%# Card de Nova Mensagem/Evento - Adicionado dark:bg-slate-900 %>
-          <div class="bg-light-palette-p5 dark:bg-slate-900 border-2 border-neutral-150 border-light-palette-p3 dark:border-slate-800 rounded ">
-            <%= turbo_frame_tag dom_id(Event.new), src: new_account_contact_event_path(account_id: current_user.account, contact_id: @deal.contact.id, deal_id: @deal.id), loading: :lazy do %>
-              <%= render '/components/skeleton/event_form' %>
-            <% end %>
+          <%# Delicate Task Creation Trigger %>
+          <div data-controller="task-creation-delicate" 
+               data-task-creation-delicate-url-value="<%= account_contact_events_path(account_id: current_user.account, contact_id: @deal.contact.id, deal_id: @deal.id) %>"
+               class="relative">
+            
+            <button type="button" 
+                    data-task-creation-delicate-target="trigger"
+                    data-action="click->task-creation-delicate#toggle"
+                    class="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-lg border border-slate-700 transition-all active:scale-95 shadow-lg shadow-black/20">
+              <i data-lucide="plus" class="w-3.5 h-3.5 text-sky-400"></i>
+              <span>Nova atividade</span>
+            </button>
+
+            <%# THE DELICATE BOX (REDUCED) %>
+            <div data-task-creation-delicate-target="form" 
+                 class="hidden w-[240px] bg-slate-900 border border-slate-700 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-4 cursor-default pointer-events-auto transition-all duration-300">
+              
+              <%= form_with model: Event.new, url: account_contact_events_path(account_id: current_user.account, contact_id: @deal.contact.id, deal_id: @deal.id), method: :post, data: { action: "submit->task-creation-delicate#submit" } do |f| %>
+                <div class="flex flex-col gap-3">
+                  <div class="flex justify-between items-center mb-0.5">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Novo Agendamento</p>
+                    <div class="flex gap-1.5">
+                       <span class="w-2 h-2 rounded-full bg-sky-500"></span>
+                       <span class="w-2 h-2 rounded-full bg-slate-700"></span>
+                    </div>
+                  </div>
+                  
+                  <div class="space-y-2">
+                    <%= f.text_field :title, 
+                        class: "w-full text-xs h-9 px-3 bg-black/40 border border-slate-700/50 rounded-lg text-slate-100 placeholder:text-slate-600 focus:ring-1 focus:ring-sky-500/50 focus:border-sky-500/50 transition-all outline-none", 
+                        placeholder: "O que agendar?", 
+                        data: { task_creation_delicate_target: "input" } %>
+                    
+                    <div class="relative">
+                      <%= f.datetime_local_field :scheduled_at, 
+                          value: Time.current.strftime("%Y-%m-%dT%H:%M"), 
+                          class: "w-full text-xs h-9 px-3 bg-black/40 border border-slate-700/50 rounded-lg text-slate-100 focus:ring-1 focus:ring-sky-500/50 focus:border-sky-500/50 transition-all outline-none" %>
+                    </div>
+                  </div>
+
+                  <div class="flex justify-end items-center gap-3 mt-1 pt-2 border-t border-slate-800">
+                    <button type="button" 
+                            data-action="click->task-creation-delicate#close" 
+                            class="text-[11px] font-medium text-slate-400 hover:text-slate-200 transition-colors">
+                      Cancelar
+                    </button>
+                    <%= f.submit "Criar", 
+                        class: "bg-sky-600 hover:bg-sky-500 text-white text-[11px] font-bold px-4 py-1.5 rounded-lg shadow-lg shadow-sky-900/20 transition-all active:scale-95 cursor-pointer" %>
+                  </div>
+                </div>
+              <% end %>
+            </div>
           </div>
         </div>
 
