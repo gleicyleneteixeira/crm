@@ -176,23 +176,103 @@ export default class extends Controller {
   showEdit(event) {
     if (event) event.preventDefault();
     this.closeMenu();
+
+    const editForm = this.hasEditFormTarget ? this.editFormTarget : null;
+    if (!editForm) return;
+
+    // Detect Contexts
+    const stageRoot = this.element.closest('ul[id^="deals_stage_"]');
+    const kanbanCard = this.element.closest('li[id^="deal_"]');
+    const frameCard = this.element.closest('.rounded-lg');
     
-    // The Edit form targets the global :modal frame, 
-    // which is now handled by task_centered_controller.js
+    // --- PORTAL TO PARENT CONTEXT ---
+    if (stageRoot && kanbanCard) {
+      if (editForm.parentElement !== stageRoot) {
+        this.teleportedForm = editForm; 
+        stageRoot.appendChild(editForm);
+        this.rebindTeleportedActions(editForm);
+      }
+
+      Object.assign(editForm.style, {
+        display: "block",
+        position: "absolute",
+        top: `${kanbanCard.offsetTop + 40}px`,
+        left: "10px",
+        width: "240px",
+        zIndex: "9999999"
+      });
+    } else if (frameCard) {
+      if (editForm.parentElement !== frameCard) {
+        this.teleportedForm = editForm; 
+        frameCard.appendChild(editForm);
+        this.rebindTeleportedActions(editForm);
+      }
+
+      Object.assign(editForm.style, {
+        display: "block",
+        position: "absolute",
+        top: "40px",
+        left: "10px",
+        width: "240px",
+        zIndex: "9999999"
+      });
+    }
+
+    editForm.classList.remove("hidden");
     if (this.hasDisplayTarget) this.displayTarget.style.visibility = "hidden";
     
-    // Listen for the overlay closing to restore visual state
-    window.addEventListener("task-overlay:closed", () => {
-      if (this.hasDisplayTarget) this.displayTarget.style.visibility = "visible";
-    }, { once: true });
+    const input = editForm.querySelector('input[type="text"]');
+    if (input) setTimeout(() => input.focus(), 50);
+
+    setTimeout(() => {
+      this.clickOutsideEditHandler = (e) => {
+        if (editForm && !editForm.contains(e.target) && !this.element.contains(e.target)) {
+          this.fallbackCancel();
+        }
+      };
+      document.addEventListener("click", this.clickOutsideEditHandler);
+    }, 10);
   }
 
   rebindTeleportedActions(formElement) {
-    // Redundant - removed in favor of global centered overlay
+    const cancelBtn = formElement.querySelector('button[type="button"]');
+    if (cancelBtn) {
+      cancelBtn.onclick = (e) => { 
+        e.preventDefault(); 
+        e.stopPropagation();
+        this.fallbackCancel(); 
+      };
+    }
+
+    const form = formElement.querySelector('form');
+    if (form) {
+      form.onsubmit = (e) => { 
+        e.preventDefault(); 
+        this.submitEdit(e); 
+      };
+    }
   }
   
   fallbackCancel() {
-    this.closeMenu();
+    const form = this.teleportedForm || (this.hasEditFormTarget ? this.editFormTarget : null);
+    
+    if (form) {
+      form.classList.add("hidden");
+      form.style.display = "none";
+      
+      // Portal Return
+      if (form.parentElement !== this.element) {
+        this.element.appendChild(form);
+      }
+
+      if (this.hasDisplayTarget) {
+        this.displayTarget.style.visibility = "visible";
+      }
+    }
+    
+    document.removeEventListener("click", this.clickOutsideEditHandler);
+    this.menuOpen = false;
+    this.cleanupCardState();
   }
 
   async completeTask(event) {
@@ -226,7 +306,13 @@ export default class extends Controller {
   }
 
   async submitEdit(event) {
-    // Redundant - handled by Turbo and task_centered_controller
+    if (event) event.preventDefault();
+    const formElement = (this.teleportedForm || this.editFormTarget).querySelector('form');
+    if (!formElement) return;
+
+    const formData = new FormData(formElement);
+    await this.performRequest(this.updateUrlValue, "PATCH", formData);
+    this.fallbackCancel();
   }
 
   // --- Helpers ---
