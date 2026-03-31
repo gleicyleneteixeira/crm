@@ -234,7 +234,7 @@ class Event < ApplicationRecord
     elsif overdue?
       'text-red-500'
     elsif due_today?
-      'text-yellow-500'
+      'text-amber-500'
     else
       'text-emerald-500' # No prazo
     end
