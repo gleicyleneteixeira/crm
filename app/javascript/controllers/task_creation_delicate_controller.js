@@ -10,6 +10,7 @@ export default class extends Controller {
   connect() {
     this.formOpen = false;
     this.boundSubmit = this.submit.bind(this);
+    this.activeFormElement = null;
   }
 
   toggle(event) {
@@ -24,20 +25,21 @@ export default class extends Controller {
     if (this.formOpen) return;
     this.formOpen = true;
 
-    const form = this.formTarget;
+    // Capture the element REFERENCE before stimulus targets stop working after portal
+    this.activeFormElement = this.formTarget;
     const trigger = this.triggerTarget;
 
     // Portal to body for zero-clipping and zero-layout-shift
-    if (form.parentElement !== document.body) {
-      document.body.appendChild(form);
+    if (this.activeFormElement.parentElement !== document.body) {
+      document.body.appendChild(this.activeFormElement);
     }
 
     // MANUALLY BIND SUBMIT: Because the portal move breaks standard Stimulus actions
-    const formElement = form.querySelector('form');
+    const formElement = this.activeFormElement.querySelector('form');
     if (formElement) formElement.addEventListener('submit', this.boundSubmit);
 
     const rect = trigger.getBoundingClientRect();
-    Object.assign(form.style, {
+    Object.assign(this.activeFormElement.style, {
       display: "block",
       position: "fixed",
       top: `${rect.bottom + 5}px`, // Just below the trigger
@@ -47,14 +49,14 @@ export default class extends Controller {
       pointerEvents: "auto"
     });
 
-    form.classList.remove("hidden");
+    this.activeFormElement.classList.remove("hidden");
     
-    const input = form.querySelector('input[type="text"]');
+    const input = this.activeFormElement.querySelector('input[type="text"]');
     if (input) setTimeout(() => input.focus(), 50);
 
     // Click outside handler
     this.clickOutsideHandler = (e) => {
-      if (form && !form.contains(e.target) && !this.element.contains(e.target)) {
+      if (this.activeFormElement && !this.activeFormElement.contains(e.target) && !this.element.contains(e.target)) {
         this.close();
       }
     };
@@ -68,30 +70,31 @@ export default class extends Controller {
   }
 
   close() {
-    if (!this.formOpen) return;
+    if (!this.formOpen || !this.activeFormElement) return;
     this.formOpen = false;
 
-    const form = this.formTarget;
-
     // CLEANUP SUBMIT BINDING
-    const formElement = form.querySelector('form');
+    const formElement = this.activeFormElement.querySelector('form');
     if (formElement) formElement.removeEventListener('submit', this.boundSubmit);
 
-    form.classList.add("hidden");
-    form.style.display = "none";
+    this.activeFormElement.classList.add("hidden");
+    this.activeFormElement.style.display = "none";
 
     // Return to trigger parent to preserve connection
-    if (form.parentElement !== this.element) {
-      this.element.appendChild(form);
+    if (this.activeFormElement.parentElement !== this.element) {
+      this.element.appendChild(this.activeFormElement);
     }
 
     document.removeEventListener("click", this.clickOutsideHandler);
     document.removeEventListener("keydown", this.escHandler);
+    this.activeFormElement = null;
   }
 
   async submit(event) {
     if (event) event.preventDefault();
-    const formElement = this.formTarget.querySelector('form');
+    if (!this.activeFormElement) return;
+    
+    const formElement = this.activeFormElement.querySelector('form');
     if (!formElement) return;
 
     const formData = new FormData(formElement);
