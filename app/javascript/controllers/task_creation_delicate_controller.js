@@ -10,7 +10,6 @@ export default class extends Controller {
   connect() {
     this.formOpen = false;
     this.boundSubmit = this.submit.bind(this);
-    this.boundPositionUpdate = this.updatePosition.bind(this);
     this.activeFormElement = null;
   }
 
@@ -36,19 +35,28 @@ export default class extends Controller {
 
     // Capture references
     this.activeFormElement = this.formTarget;
-    const trigger = this.triggerTarget;
     const portal = document.getElementById('portal-root') || document.body;
 
-    // 1. Portal Move
-    if (this.activeFormElement.parentElement !== portal) {
-      portal.appendChild(this.activeFormElement);
+    // 1. POSITIONING STRATEGY
+    if (this.isMobile()) {
+      // MOBILE: Portal to Root (BottomSheet)
+      if (this.activeFormElement.parentElement !== portal) {
+        portal.appendChild(this.activeFormElement);
+      }
+    } else {
+      // DESKTOP: Physical Attachment (No Portal to avoid jitter)
+      // Boost Z-index of the CARD itself
+      this.element.style.zIndex = "2147483647";
+      // Ensure form is inside card for absolute sync
+      if (this.activeFormElement.parentElement !== this.element) {
+        this.element.appendChild(this.activeFormElement);
+      }
     }
 
     // 2. Event Binding (Manual)
     const formElement = this.activeFormElement.querySelector('form');
     if (formElement) {
       formElement.addEventListener('submit', this.boundSubmit);
-      // Ensure all internal clicks don't propagate to triggers
       this.activeFormElement.addEventListener('click', (e) => e.stopPropagation());
     }
 
@@ -73,19 +81,13 @@ export default class extends Controller {
       if (e.key === "Escape") this.close();
     };
     document.addEventListener("keydown", this.escHandler);
-
-    // 6. Scroll tracking for Desktop
-    if (!this.isMobile()) {
-      window.addEventListener("scroll", this.boundPositionUpdate, true); // capture phase
-      window.addEventListener("resize", this.boundPositionUpdate);
-    }
   }
 
   updatePosition() {
     if (!this.activeFormElement || !this.formOpen) return;
 
     if (this.isMobile()) {
-      // BOTTOM SHEET MODE
+      // BOTTOM SHEET MODE (Fixed to Viewport)
       Object.assign(this.activeFormElement.style, {
         position: "fixed",
         bottom: "0",
@@ -99,26 +101,24 @@ export default class extends Controller {
         boxShadow: "0 -10px 40px rgba(0,0,0,0.5)"
       });
     } else {
-      // ANCHORED POPOVER MODE
+      // ATTACHED POPOVER MODE (Absolute to Card)
       const trigger = this.triggerTarget;
-      const rect = trigger.getBoundingClientRect();
-      const formWidth = 240;
+      const triggerRect = trigger.getBoundingClientRect();
+      const cardRect = this.element.getBoundingClientRect();
       
-      // Calculate best fit (default below, if too low then above)
-      let top = rect.bottom + 8;
-      if (top + 200 > window.innerHeight) {
-        top = rect.top - 200 - 8;
-      }
+      // Calculate relative position to card
+      const top = triggerRect.bottom - cardRect.top + 8;
+      const left = triggerRect.left - cardRect.left;
 
       Object.assign(this.activeFormElement.style, {
-        position: "fixed",
+        position: "absolute",
         top: `${top}px`,
-        left: `${rect.left}px`,
-        width: `${formWidth}px`,
+        left: `${left}px`,
+        width: "240px",
         bottom: "auto",
         zIndex: "2147483647",
         borderRadius: "12px",
-        boxShadow: "0 20px 50px rgba(0,0,0,0.5)"
+        boxShadow: "0 20px 50px rgba(0,0,0,0.8)"
       });
     }
   }
@@ -127,6 +127,9 @@ export default class extends Controller {
     if (!this.formOpen || !this.activeFormElement) return;
     this.formOpen = false;
 
+    // Reset Card Z-index
+    this.element.style.zIndex = "";
+
     // Cleanup Events
     const formElement = this.activeFormElement.querySelector('form');
     if (formElement) formElement.removeEventListener('submit', this.boundSubmit);
@@ -134,15 +137,13 @@ export default class extends Controller {
     this.activeFormElement.classList.add("hidden");
     this.activeFormElement.style.display = "none";
 
-    // Return to original parent to preserve stimulus connection
+    // Return to original container to preserve sequence
     if (this.activeFormElement.parentElement !== this.element) {
       this.element.appendChild(this.activeFormElement);
     }
 
     document.removeEventListener("click", this.clickOutsideHandler);
     document.removeEventListener("keydown", this.escHandler);
-    window.removeEventListener("scroll", this.boundPositionUpdate, true);
-    window.removeEventListener("resize", this.boundPositionUpdate);
     
     this.activeFormElement = null;
   }
@@ -158,7 +159,6 @@ export default class extends Controller {
     const formElement = this.activeFormElement.querySelector('form');
     if (!formElement) return;
 
-    // Mark loading state
     const submitBtn = formElement.querySelector('input[type="submit"], button[type="submit"]');
     if (submitBtn) {
       submitBtn.disabled = true;
@@ -188,7 +188,6 @@ export default class extends Controller {
         this.close();
       } else {
         console.error("Submission failed");
-        // Re-enable button on error
         if (submitBtn) {
           submitBtn.disabled = false;
           if (submitBtn.tagName === 'INPUT') submitBtn.value = submitBtn.originalText;
