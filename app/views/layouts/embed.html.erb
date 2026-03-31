@@ -17,7 +17,7 @@
     </style>
     <%= yield :stylesheets %>
   </head>
-  <body data-user-locale="<%= current_user&.language || '' %>" data-account-currency="<%= Current.account&.currency_code || '' %>" class="bg-brand-palette-01 min-h-screen antialiased text-slate-200">
+  <body data-user-locale="<%= current_user&.language || '' %>" data-account-currency="<%= Current.account&.currency_code || '' %>" class="bg-brand-palette-01 min-h-screen antialiased text-slate-200 is-embedded">
     <%= render partial: 'components/flash_message', locals: { message: flash[:notice] } %>
     <%= content_for?(:content) ? yield(:content) : yield %>
     <%= turbo_frame_tag "modal" %>
