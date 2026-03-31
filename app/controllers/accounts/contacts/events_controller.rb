@@ -16,11 +16,11 @@ class Accounts::Contacts::EventsController < InternalController
 
     if @event.save
       respond_to do |format|
+        format.turbo_stream
         format.html do
           redirect_to(new_account_contact_event_path(account_id: current_user.account, contact_id: @event.deal.contact.id,
                                                      deal_id: @event.deal.id))
         end
-        format.turbo_stream
       end
     else
       render :new, status: :unprocessable_entity
