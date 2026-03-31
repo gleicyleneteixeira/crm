@@ -21,5 +21,6 @@
     <%= render partial: 'components/flash_message', locals: { message: flash[:notice] } %>
     <%= content_for?(:content) ? yield(:content) : yield %>
     <%= yield :javascripts %>
+    <div id="portal-root"></div>
   </body>
 </html>
