@@ -12,7 +12,7 @@ class Accounts::Contacts::EventsController < InternalController
   def edit; end
 
   def create
-    @event = EventBuilder.new(current_user, event_params).build
+    @event = EventBuilder.new(current_user, event_params.merge(params.permit(:deal_id, :contact_id))).build
 
     if @event.save
       respond_to do |format|
