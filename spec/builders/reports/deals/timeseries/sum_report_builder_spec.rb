@@ -2,20 +2,23 @@ require 'rails_helper'
 
 RSpec.describe Reports::Deals::Timeseries::SumReportBuilder do
   let(:account) { create(:account) }
-  let(:start_date) { Date.today.beginning_of_month } 
-  let(:end_date) { Date.today.end_of_month } 
+
+  before { travel_to Time.zone.local(2026, 3, 15, 12, 0, 0) }
+
+  let(:start_date) { Date.today.beginning_of_month }
+  let(:end_date) { Date.today.end_of_month }
   let(:range) { start_date..end_date }
   let!(:deal1) do
-    create(:deal, :won, account:, won_at: start_date + 1.day,
-                        created_at: start_date - 2.days, total_deal_products_amount_in_cents: 1000)
+    create(:deal, :won, account:, won_at: Time.current.beginning_of_month + 1.day,
+                        created_at: Time.current.beginning_of_month - 2.days, total_deal_products_amount_in_cents: 1000)
   end
   let!(:deal2) do
-    create(:deal, :won, account:, won_at: start_date + 2.days,
-                        created_at: start_date - 2.days, total_deal_products_amount_in_cents: 4000)
+    create(:deal, :won, account:, won_at: Time.current.beginning_of_month + 2.days,
+                        created_at: Time.current.beginning_of_month - 2.days, total_deal_products_amount_in_cents: 4000)
   end
   let!(:deal3) do
-    create(:deal, :won, account:, won_at: start_date + 10.days,
-                        created_at: start_date - 20.days, total_deal_products_amount_in_cents: 5000)
+    create(:deal, :won, account:, won_at: Time.current.beginning_of_month + 10.days,
+                        created_at: Time.current.beginning_of_month - 20.days, total_deal_products_amount_in_cents: 5000)
   end
   let(:won_deals) { Deal.won }
 
@@ -45,9 +48,9 @@ RSpec.describe Reports::Deals::Timeseries::SumReportBuilder do
           expected_result = (start_date..end_date).each_with_object({}) do |date, hash|
             hash[date] = 0
           end
-          expected_result[start_date + 1.day] = 1000 
-          expected_result[start_date + 2.days] = 4000 
-          expected_result[start_date + 10.days] = 5000 
+          expected_result[start_date + 1.day] = 1000
+          expected_result[start_date + 2.days] = 4000
+          expected_result[start_date + 10.days] = 5000
 
           instance = described_class.new(account, params)
           expect(instance.send(:grouped_count)).to eq(expected_result)
@@ -57,7 +60,7 @@ RSpec.describe Reports::Deals::Timeseries::SumReportBuilder do
       context 'groups by period (month) with sum' do
         let(:group_by) { 'month' }
         let(:expected_result) do
-          { start_date.beginning_of_month => 10_000 } 
+          { start_date.beginning_of_month => 10_000 }
         end
         it do
           instance = described_class.new(account, params)
@@ -68,7 +71,7 @@ RSpec.describe Reports::Deals::Timeseries::SumReportBuilder do
       context 'groups by period (year) with sum' do
         let(:group_by) { 'year' }
         let(:expected_result) do
-          { start_date.beginning_of_year => 10_000 } 
+          { start_date.beginning_of_year => 10_000 }
         end
         it do
           instance = described_class.new(account, params)
@@ -87,9 +90,9 @@ RSpec.describe Reports::Deals::Timeseries::SumReportBuilder do
             hash[date] = 0
           end
 
-          expected_result[start_date] = 1000 
-          expected_result[start_date + 1.day] = 4000 
-          expected_result[start_date + 9.days] = 5000 
+          expected_result[start_date] = 1000
+          expected_result[start_date + 1.day] = 4000
+          expected_result[start_date + 9.days] = 5000
 
           instance = described_class.new(account, params)
           expect(instance.send(:grouped_count)).to eq(expected_result)
