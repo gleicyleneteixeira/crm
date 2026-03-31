@@ -9,6 +9,7 @@ export default class extends Controller {
 
   connect() {
     this.formOpen = false;
+    this.boundSubmit = this.submit.bind(this);
   }
 
   toggle(event) {
@@ -30,6 +31,10 @@ export default class extends Controller {
     if (form.parentElement !== document.body) {
       document.body.appendChild(form);
     }
+
+    // MANUALLY BIND SUBMIT: Because the portal move breaks standard Stimulus actions
+    const formElement = form.querySelector('form');
+    if (formElement) formElement.addEventListener('submit', this.boundSubmit);
 
     const rect = trigger.getBoundingClientRect();
     Object.assign(form.style, {
@@ -67,6 +72,11 @@ export default class extends Controller {
     this.formOpen = false;
 
     const form = this.formTarget;
+
+    // CLEANUP SUBMIT BINDING
+    const formElement = form.querySelector('form');
+    if (formElement) formElement.removeEventListener('submit', this.boundSubmit);
+
     form.classList.add("hidden");
     form.style.display = "none";
 
