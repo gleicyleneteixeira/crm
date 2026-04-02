@@ -81,6 +81,7 @@
             <%= form_with model: Event.new, url: account_contact_events_path(account_id: deal.account, contact_id: deal.contact.id, deal_id: deal.id), method: :post, id: dom_id(Event.new, :chatwoot_delicate), data: { turbo: false } do |f| %>
               <%= f.hidden_field :contact_id, value: deal.contact.id %>
               <%= f.hidden_field :deal_id, value: deal.id %>
+              <%= f.hidden_field :kind, value: 'activity' %>
               
               <div class="flex flex-col gap-3">
                 <div class="flex justify-between items-center mb-0.5">
