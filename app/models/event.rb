@@ -231,10 +231,10 @@ class Event < ApplicationRecord
   def status_color
     if done?
       'text-emerald-500'
-    elsif due_today?
-      'text-amber-500'
     elsif overdue?
       'text-red-500'
+    elsif due_today?
+      'text-amber-500'
     else
       'text-emerald-500' # No prazo
     end
