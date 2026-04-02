@@ -60,6 +60,10 @@ export default class extends Controller {
 
     const menu = this.menuTarget;
     this.element.style.zIndex = "99999"; 
+
+    // Elevate the entire card to avoid being covered by siblings
+    const card = this.element.closest('li[id^="deal_"]') || this.element.closest('.rounded-lg');
+    if (card) card.style.zIndex = "99999";
     
     menu.classList.remove("hidden");
     menu.style.display = "block";
@@ -250,6 +254,8 @@ export default class extends Controller {
 
   cleanupCardState() {
     this.element.style.zIndex = "";
+    const card = this.element.closest('li[id^="deal_"]') || this.element.closest('.rounded-lg');
+    if (card) card.style.zIndex = "";
   }
 
   isEditing() {
