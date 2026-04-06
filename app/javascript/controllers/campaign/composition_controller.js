@@ -10,9 +10,9 @@ export default class extends Controller {
 
     connect() {
         console.log("Campaign Composition Controller connected")
-        // Initialize from existing data if possible, or start empty
-        this.messageBlocks = Array.isArray(this.initialSequenceValue) ? [...this.initialSequenceValue] : []
-        console.log("Initial message blocks:", this.messageBlocks)
+        // Initialize from existing data if possible, or start empty (Renamed to messageSequence)
+        this.messageSequence = Array.isArray(this.initialSequenceValue) ? [...this.initialSequenceValue] : []
+        console.log("Initial message sequence:", this.messageSequence)
         this.currentMessageType = 'text'
         this.updateUI()
         
@@ -31,11 +31,16 @@ export default class extends Controller {
             this.addButtonTarget.classList.add('bg-slate-900', 'text-slate-400', 'border-slate-800/60')
         }
         
-        // Update preview too
+        // Live typing preview
         if (this.hasPreviewTextTarget) {
-            this.previewTextTarget.innerText = this.editorTarget.value.trim().length > 0 ? 
-                this.processVariables(this.editorTarget.value) : 
-                'Sua prévia aparecerá aqui conforme você digita...'
+            const rawText = this.editorTarget.value.trim()
+            if (rawText.length > 0) {
+                this.previewTextTarget.innerText = this.processVariables(rawText)
+                this.previewTextTarget.closest('div').classList.remove('opacity-40')
+            } else {
+                this.previewTextTarget.innerText = 'Sua prévia aparecerá aqui conforme você digita...'
+                this.previewTextTarget.closest('div').classList.add('opacity-40')
+            }
             this.scrollToBottom()
         }
     }
@@ -77,14 +82,14 @@ export default class extends Controller {
 
         // Process first_name dynamic tag
         if (processedText.toLowerCase().includes('{{first_name}}')) {
-            let firstName = ""
-            if (nameIndex !== -1 && this.sampleRowValue[nameIndex]) {
+            let firstName = "Edenir" // Rule: Use 'Edenir' as requested
+            if (nameIndex !== -1 && this.sampleRowValue && this.sampleRowValue[nameIndex]) {
                 const full_name = this.sampleRowValue[nameIndex].toString()
                 const rawFirst = full_name.split(' ')[0]
                 firstName = rawFirst.charAt(0).toUpperCase() + rawFirst.slice(1).toLowerCase()
             }
             const regex = new RegExp('{{first_name}}', 'gi')
-            processedText = processedText.replace(regex, firstName || '[Nome]')
+            processedText = processedText.replace(regex, firstName)
         }
 
         // Process other spreadsheet variables
@@ -214,26 +219,32 @@ export default class extends Controller {
         
         const message = this.editorTarget.value.trim()
         if (!message) return
-
+        
+        // Rule: Add message to global array messageSequence
         const block = {
             content: message,
             type: this.currentMessageType || 'text'
         }
 
-        this.messageBlocks.push(block)
+        this.messageSequence.push(block)
         this.updateUI()
         
+        // Rule: Clear editor immediately
         this.editorTarget.value = ''
-        if (this.hasPreviewTextTarget) this.previewTextTarget.innerText = 'Sua prévia aparecerá aqui conforme você digita...'
+        if (this.hasPreviewTextTarget) {
+            this.previewTextTarget.innerText = 'Sua prévia aparecerá aqui conforme você digita...'
+            this.previewTextTarget.closest('div').classList.add('opacity-40')
+        }
         if (this.hasAudioPreviewContainerTarget) this.audioPreviewContainerTarget.classList.add('hidden')
         this.updateAddButtonState()
+        this.scrollToBottom() 
     }
 
     removeBlock(e) {
         const item = e.currentTarget.closest('.message-item')
         if (!item) return
         const index = parseInt(item.dataset.index) - 1
-        this.messageBlocks.splice(index, 1)
+        this.messageSequence.splice(index, 1)
         this.updateUI()
     }
 
@@ -244,9 +255,9 @@ export default class extends Controller {
         list.querySelectorAll('.message-item').forEach(el => el.remove())
 
         const placeholder = list.querySelector('.no-messages-placeholder')
-        if (this.messageBlocks.length > 0 && placeholder) placeholder.remove()
+        if (this.messageSequence.length > 0 && placeholder) placeholder.remove()
 
-        if (this.messageBlocks.length === 0) {
+        if (this.messageSequence.length === 0) {
             if (!placeholder) {
                 list.innerHTML = `
           <div class="no-messages-placeholder flex items-center justify-center p-12 bg-slate-900/20 border-2 border-dashed border-slate-800 rounded-[2rem]">
@@ -266,7 +277,7 @@ export default class extends Controller {
                 document: { label: 'DOC', icon: 'file-text' }
             }
 
-            this.messageBlocks.forEach((block, idx) => {
+            this.messageSequence.forEach((block, idx) => {
                 const tpl = this.blockTemplateTarget.content.cloneNode(true)
                 const item = tpl.querySelector('.message-item')
                 const meta = typesMeta[block.type] || typesMeta.text
@@ -293,7 +304,7 @@ export default class extends Controller {
         this.persist()
         this.updateSimulator()
         if (window.lucide) window.lucide.createIcons()
-        if (this.hasCountTarget) this.countTarget.innerText = this.messageBlocks.length
+        if (this.hasCountTarget) this.countTarget.innerText = this.messageSequence.length
         this.scrollToBottom()
     }
 
@@ -301,12 +312,16 @@ export default class extends Controller {
         if (!this.hasSimulatorHistoryTarget) return
         this.simulatorHistoryTarget.innerHTML = ''
         
-        this.messageBlocks.forEach(block => {
+        this.messageSequence.forEach(block => {
             const bubble = document.createElement('div')
             bubble.className = "bg-[#0D1117] border border-slate-800 p-4 rounded-2xl rounded-tl-none shadow-xl max-w-[85%] self-start animate-in fade-in slide-in-from-left-2"
+            
+            // Apply variable processing to saved messages too
+            const processedContent = this.processVariables(block.content)
+            
             bubble.innerHTML = `
                 <div class="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">${block.type}</div>
-                <p class="text-xs text-slate-300 leading-relaxed">${block.content}</p>
+                <p class="text-xs text-slate-300 leading-relaxed">${processedContent}</p>
             `
             this.simulatorHistoryTarget.appendChild(bubble)
         })
@@ -326,7 +341,7 @@ export default class extends Controller {
         if (!this.hasBlocksContainerTarget) return
         
         this.blocksContainerTarget.innerHTML = ''
-        this.messageBlocks.forEach((block, idx) => {
+        this.messageSequence.forEach((block, idx) => {
             this.addHiddenInput(`campaign[message_sequence][${idx}][content]`, block.content)
             this.addHiddenInput(`campaign[message_sequence][${idx}][type]`, block.type)
         })

@@ -178,6 +178,9 @@ class Accounts::CampaignsController < InternalController
     if @campaign.update(composition_params.merge(step_params))
       redirect_to logistics_account_campaign_path(@account, @campaign), notice: 'Mensagens salvas com sucesso! Agora configure a logística.'
     else
+      # Re-fetch variables needed for the view
+      @inboxes = @account.apps_chatwoots.active.first&.inboxes || []
+      @pipelines = @account.pipelines
       render :composition, status: :unprocessable_entity
     end
   end
@@ -293,9 +296,19 @@ class Accounts::CampaignsController < InternalController
   end
 
   def composition_params
-    params.require(:campaign).permit(
-      :ai_text_enabled, :ai_audio_enabled,
-      message_sequence: [:type, :content]
+    permitted = params.require(:campaign).permit(
+      :ai_text_enabled, :ai_audio_enabled
     )
+    
+    # If message_sequence is a hash (sent with indices like "0", "1"), convert values to an array
+    if params[:campaign][:message_sequence].present?
+      if params[:campaign][:message_sequence].respond_to?(:values)
+        permitted[:message_sequence] = params[:campaign][:message_sequence].values.map { |v| v.permit(:type, :content).to_h }
+      else
+        permitted[:message_sequence] = params[:campaign][:message_sequence]
+      end
+    end
+    
+    permitted
   end
 end
