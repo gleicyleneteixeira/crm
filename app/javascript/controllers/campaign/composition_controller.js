@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-    static targets = ["previewText", "blocksContainer", "messagesList", "blockTemplate", "aiButton", "audioButton", "aiVariationsContainer", "aiVariationsList", "audioPreviewContainer", "audioPlayer", "addButton", "emojiPicker", "fileInput", "editor", "count", "simulatorHistory", "simulatorBody"]
+    static targets = ["previewText", "blocksContainer", "messagesList", "blockTemplate", "aiButton", "audioButton", "aiVariationsContainer", "aiVariationsList", "audioPreviewContainer", "audioPlayer", "addButton", "emojiPicker", "fileInput", "editor", "count", "simulatorHistory", "simulatorBody", "status"]
     static values = {
         headers: Array,
         sampleRow: Array,
@@ -355,9 +355,51 @@ export default class extends Controller {
             if (window.lucide) window.lucide.createIcons()
             if (this.hasCountTarget) this.countTarget.innerText = this.messageSequence.length
             this.scrollToBottom()
+            
+            // Trigger Autosave after UI update
+            this.autosave()
         } catch (error) {
             console.error("Erro crítico no updateUI:", error)
         }
+    }
+
+    autosave() {
+        if (this.autosaveTimeout) clearTimeout(this.autosaveTimeout)
+        
+        this.autosaveTimeout = setTimeout(async () => {
+            if (!this.hasStatusTarget) return
+            
+            const originalStatus = this.statusTarget.innerHTML
+            this.statusTarget.innerHTML = `<i class="w-3 h-3 animate-spin inline-block mr-1" data-lucide="refresh-cw"></i> Salvando...`
+            if (window.lucide) window.lucide.createIcons()
+
+            try {
+                const formData = new FormData(document.getElementById('campaign-form'))
+                const response = await fetch(window.location.pathname + '/update_composition', {
+                    method: 'PATCH',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: formData
+                })
+
+                const data = await response.json()
+                if (data.status === 'success') {
+                    this.statusTarget.innerHTML = `<i class="w-3 h-3 inline-block mr-1 text-emerald-500" data-lucide="check"></i> Rascunho Salvo às ${data.saved_at}`
+                    this.statusTarget.classList.add('text-emerald-500')
+                    this.statusTarget.classList.remove('text-amber-500', 'text-red-500')
+                } else {
+                    throw new Error(data.errors?.join(', ') || 'Erro ao salvar')
+                }
+            } catch (error) {
+                console.error("Autosave failed:", error)
+                this.statusTarget.innerHTML = `<i class="w-3 h-3 inline-block mr-1 text-red-500" data-lucide="alert-circle"></i> Erro ao Salvar`
+                this.statusTarget.classList.add('text-red-500')
+            } finally {
+                if (window.lucide) window.lucide.createIcons()
+            }
+        }, 1500) // 1.5s debounce
     }
 
     updateSimulator() {

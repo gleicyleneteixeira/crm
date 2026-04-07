@@ -175,13 +175,17 @@ class Accounts::CampaignsController < InternalController
     # Atualiza para o próximo passo se for rascunho
     step_params = @campaign.draft? ? { current_step: 3 } : {}
     
-    if @campaign.update(composition_params.merge(step_params))
-      redirect_to logistics_account_campaign_path(@account, @campaign), notice: 'Mensagens salvas com sucesso! Agora configure a logística.'
-    else
-      # Re-fetch variables needed for the view
-      @inboxes = @account.apps_chatwoots.active.first&.inboxes || []
-      @pipelines = @account.pipelines
-      render :composition, status: :unprocessable_entity
+    respond_to do |format|
+      if @campaign.update(composition_params.merge(step_params))
+        format.html { redirect_to logistics_account_campaign_path(@account, @campaign), notice: 'Mensagens salvas com sucesso! Agora configure a logística.' }
+        format.json { render json: { status: 'success', saved_at: Time.current.strftime("%H:%M") } }
+      else
+        # Re-fetch variables needed for the view
+        @inboxes = @account.apps_chatwoots.active.first&.inboxes || []
+        @pipelines = @account.pipelines
+        format.html { render :composition, status: :unprocessable_entity }
+        format.json { render json: { errors: @campaign.errors.full_messages }, status: :unprocessable_entity }
+      end
     end
   end
 
