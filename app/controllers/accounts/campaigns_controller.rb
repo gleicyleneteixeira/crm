@@ -1,5 +1,5 @@
 class Accounts::CampaignsController < InternalController
-  before_action :set_campaign, only: %i[show edit update destroy composition update_composition process_campaign]
+  before_action :set_campaign, only: %i[show edit update destroy composition update_composition process_campaign logistics update_logistics automation update_automation]
 
   def index
     @campaigns = @account.campaigns.where.not(status: :draft).order(created_at: :desc)
