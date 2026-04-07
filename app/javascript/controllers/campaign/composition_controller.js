@@ -14,9 +14,13 @@ export default class extends Controller {
         this.messageSequence = Array.isArray(this.initialSequenceValue) ? [...this.initialSequenceValue] : []
         console.log("Initial message sequence:", this.messageSequence)
         this.currentMessageType = 'text'
+        
         this.updateUI()
         
         if (window.lucide) window.lucide.createIcons()
+
+        // Debug global
+        window.campaignCtrl = this
     }
 
     updateAddButtonState() {
@@ -214,30 +218,49 @@ export default class extends Controller {
     }
 
     addBlock() {
-        console.log("addBlock clicked")
-        if (!this.hasEditorTarget) return
+        console.log("Tentando adicionar mensagem...")
+        if (!this.hasEditorTarget) {
+            console.error("Alvo 'editor' não encontrado")
+            return
+        }
         
         const message = this.editorTarget.value.trim()
-        if (!message) return
-        
-        // Rule: Add message to global array messageSequence
-        const block = {
-            content: message,
-            type: this.currentMessageType || 'text'
+        if (!message) {
+            console.warn("Mensagem vazia ignorada")
+            return
         }
 
-        this.messageSequence.push(block)
-        this.updateUI()
-        
-        // Rule: Clear editor immediately
-        this.editorTarget.value = ''
-        if (this.hasPreviewTextTarget) {
-            this.previewTextTarget.innerText = 'Sua prévia aparecerá aqui conforme você digita...'
-            this.previewTextTarget.closest('div').classList.add('opacity-40')
+        try {
+            // Rule: Add message to global array messageSequence
+            const block = {
+                content: message,
+                type: this.currentMessageType || 'text'
+            }
+
+            this.messageSequence.push(block)
+            console.log("Mensagem adicionada ao array:", this.messageSequence.length)
+            
+            // Rule: Clear editor immediately after successful push
+            this.editorTarget.value = ''
+            
+            if (this.hasPreviewTextTarget) {
+                this.previewTextTarget.innerText = 'Sua prévia aparecerá aqui conforme você digita...'
+                const parentDiv = this.previewTextTarget.closest('div')
+                if (parentDiv) parentDiv.classList.add('opacity-40')
+            }
+            if (this.hasAudioPreviewContainerTarget) this.audioPreviewContainerTarget.classList.add('hidden')
+            
+            // Trigger UI update
+            this.updateUI()
+            this.updateAddButtonState()
+            this.scrollToBottom()
+            
+            console.log("Sequência de adição concluída com sucesso.")
+        } catch (error) {
+            console.error("Erro ao adicionar mensagem:", error)
+            // Fallback clear to ensure the UI doesn't look stuck
+            this.editorTarget.value = ''
         }
-        if (this.hasAudioPreviewContainerTarget) this.audioPreviewContainerTarget.classList.add('hidden')
-        this.updateAddButtonState()
-        this.scrollToBottom() 
     }
 
     removeBlock(e) {
@@ -249,63 +272,80 @@ export default class extends Controller {
     }
 
     updateUI() {
-        if (!this.hasMessagesListTarget) return
-        
-        const list = this.messagesListTarget
-        list.querySelectorAll('.message-item').forEach(el => el.remove())
-
-        const placeholder = list.querySelector('.no-messages-placeholder')
-        if (this.messageSequence.length > 0 && placeholder) placeholder.remove()
-
-        if (this.messageSequence.length === 0) {
-            if (!placeholder) {
-                list.innerHTML = `
-          <div class="no-messages-placeholder flex items-center justify-center p-12 bg-slate-900/20 border-2 border-dashed border-slate-800 rounded-[2rem]">
-            <div class="text-center text-slate-600">
-               <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-4 opacity-20"></i>
-               <p class="text-xs font-bold uppercase tracking-widest">Nenhuma mensagem adicionada</p>
-            </div>
-          </div>
-        `
+        try {
+            if (!this.hasMessagesListTarget) {
+                console.warn("Alvo 'messagesList' não encontrado na view.")
+                return
             }
-        } else {
-            const typesMeta = {
-                text: { label: 'TEXTO', icon: 'text' },
-                image: { label: 'IMAGEM', icon: 'image' },
-                audio: { label: 'ÁUDIO', icon: 'mic' },
-                video: { label: 'VÍDEO', icon: 'video' },
-                document: { label: 'DOC', icon: 'file-text' }
-            }
+            
+            const list = this.messagesListTarget
+            // Clean previous items but maintain placeholder logic
+            list.querySelectorAll('.message-item').forEach(el => el.remove())
 
-            this.messageSequence.forEach((block, idx) => {
-                const tpl = this.blockTemplateTarget.content.cloneNode(true)
-                const item = tpl.querySelector('.message-item')
-                const meta = typesMeta[block.type] || typesMeta.text
+            const placeholder = list.querySelector('.no-messages-placeholder')
+            
+            if (this.messageSequence.length === 0) {
+                if (!placeholder) {
+                    list.innerHTML = `
+                        <div class="no-messages-placeholder flex items-center justify-center p-12 bg-slate-900/20 border-2 border-dashed border-slate-800 rounded-[2rem]">
+                            <div class="text-center text-slate-600">
+                                <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-4 opacity-20"></i>
+                                <p class="text-xs font-bold uppercase tracking-widest">Nenhuma mensagem adicionada</p>
+                            </div>
+                        </div>
+                    `
+                }
+            } else {
+                if (placeholder) placeholder.remove()
 
-                item.dataset.index = idx + 1
-                const indexTag = item.querySelector('.index-tag')
-                if (indexTag) indexTag.innerText = idx + 1
-                
-                item.querySelector('.message-preview-line').innerText = block.content
-                item.querySelector('.type-tag').innerText = meta.label
-                
-                const iconWrapper = item.querySelector('.index-wrapper')
-                if (iconWrapper) {
-                    const icon = document.createElement('i')
-                    icon.dataset.lucide = meta.icon
-                    icon.className = "w-3 h-3 ml-1"
-                    iconWrapper.appendChild(icon)
+                const typesMeta = {
+                    text: { label: 'TEXTO', icon: 'text' },
+                    image: { label: 'IMAGEM', icon: 'image' },
+                    audio: { label: 'ÁUDIO', icon: 'mic' },
+                    video: { label: 'VÍDEO', icon: 'video' },
+                    document: { label: 'DOC', icon: 'file-text' }
                 }
 
-                list.appendChild(item)
-            })
-        }
+                this.messageSequence.forEach((block, idx) => {
+                    if (!this.hasBlockTemplateTarget) return
+                    
+                    const tpl = this.blockTemplateTarget.content.cloneNode(true)
+                    const item = tpl.querySelector('.message-item')
+                    if (!item) return
 
-        this.persist()
-        this.updateSimulator()
-        if (window.lucide) window.lucide.createIcons()
-        if (this.hasCountTarget) this.countTarget.innerText = this.messageSequence.length
-        this.scrollToBottom()
+                    const meta = typesMeta[block.type] || typesMeta.text
+
+                    item.dataset.index = idx + 1
+                    const indexTag = item.querySelector('.index-tag')
+                    if (indexTag) indexTag.innerText = idx + 1
+                    
+                    const previewText = item.querySelector('.message-preview-line')
+                    if (previewText) previewText.innerText = block.content
+                    
+                    const typeTag = item.querySelector('.type-tag')
+                    if (typeTag) typeTag.innerText = meta.label
+                    
+                    const iconWrapper = item.querySelector('.index-wrapper')
+                    if (iconWrapper) {
+                        const icon = document.createElement('i')
+                        icon.dataset.lucide = meta.icon
+                        icon.className = "w-3 h-3 ml-1"
+                        iconWrapper.appendChild(icon)
+                    }
+
+                    list.appendChild(item)
+                })
+            }
+
+            this.persist()
+            this.updateSimulator()
+            
+            if (window.lucide) window.lucide.createIcons()
+            if (this.hasCountTarget) this.countTarget.innerText = this.messageSequence.length
+            this.scrollToBottom()
+        } catch (error) {
+            console.error("Erro crítico no updateUI:", error)
+        }
     }
 
     updateSimulator() {
