@@ -10,8 +10,11 @@ export default class extends Controller {
 
     connect() {
         console.log("Campaign Composition Controller connected")
-        // Initialize from existing data if possible, or start empty (Renamed to messageSequence)
-        this.messageSequence = Array.isArray(this.initialSequenceValue) ? [...this.initialSequenceValue] : []
+        
+        // Robust Initialization: Always ensure messageSequence is an array
+        const initial = this.initialSequenceValue
+        this.messageSequence = Array.isArray(initial) ? [...initial] : []
+        
         console.log("Initial message sequence:", this.messageSequence)
         this.currentMessageType = 'text'
         
@@ -219,6 +222,12 @@ export default class extends Controller {
 
     addBlock() {
         console.log("Tentando adicionar mensagem...")
+        
+        // Safety check: Avoid 'undefined' push error
+        if (!this.messageSequence) {
+            console.warn("messageSequence estava undefined, reinicializando...")
+            this.messageSequence = []
+        }
         if (!this.hasEditorTarget) {
             console.error("Alvo 'editor' não encontrado")
             return
@@ -273,6 +282,9 @@ export default class extends Controller {
 
     updateUI() {
         try {
+            // Safety check for UI update
+            if (!this.messageSequence) this.messageSequence = []
+            
             if (!this.hasMessagesListTarget) {
                 console.warn("Alvo 'messagesList' não encontrado na view.")
                 return
