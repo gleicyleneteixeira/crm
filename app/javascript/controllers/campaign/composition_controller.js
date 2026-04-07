@@ -404,7 +404,8 @@ export default class extends Controller {
 
             try {
                 const formData = new FormData(document.getElementById('campaign-form'))
-                const response = await fetch(window.location.pathname + '/update_composition', {
+                const url = `/accounts/${this.getAccountId()}/campaigns/${this.getId()}/update_composition`
+                const response = await fetch(url, {
                     method: 'PATCH',
                     headers: {
                         'Accept': 'application/json',
