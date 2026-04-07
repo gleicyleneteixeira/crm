@@ -295,13 +295,18 @@
 
   <template data-campaign--composition-target="blockTemplate">
     <div class="message-item bg-[#161B22] border border-slate-800 rounded-2xl p-4 flex items-center gap-6 group hover:border-emerald-500/30 transition-all animate-in zoom-in-95" data-index="INDEX">
-       <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-black text-[10px] index-wrapper">
-         <span class="index-tag">INDEX</span>
-       </div>
-       <div class="flex-1">
-          <p class="text-xs text-white font-bold truncate message-preview-line">CONTENT</p>
-          <span class="text-[9px] text-slate-500 font-bold uppercase type-tag">TEXTO</span>
-       </div>
+        <div class="flex items-center gap-4 flex-1">
+           <div class="p-2 drag-handle cursor-grab active:cursor-grabbing text-slate-700 hover:text-slate-500 transition-colors">
+             <i data-lucide="grip-vertical" class="w-4 h-4"></i>
+           </div>
+           <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-black text-[10px] index-wrapper">
+             <span class="index-tag">INDEX</span>
+           </div>
+           <div class="flex-1">
+              <p class="text-xs text-white font-bold truncate message-preview-line">CONTENT</p>
+              <span class="text-[9px] text-slate-500 font-bold uppercase type-tag">TEXTO</span>
+           </div>
+        </div>
         <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <button type="button" data-action="click->campaign--composition#removeBlock" class="p-2 bg-[#0D1117] text-slate-400 hover:text-red-500 rounded-lg transition-colors">
             <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -318,4 +323,23 @@
   .custom-scrollbar::-webkit-scrollbar { width: 5px; }
   .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
   .custom-scrollbar::-webkit-scrollbar-thumb { background: #1F2937; border-radius: 10px; }
+
+  /* SortableJS Styles */
+  .sortable-ghost {
+    opacity: 0.4;
+    border: 2px dashed #10B981 !important;
+    background: rgba(16, 185, 129, 0.05) !important;
+  }
+  
+  .sortable-chosen {
+    background: #1C232B !important;
+    border-color: #10B981 !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+  }
+  
+  .sortable-drag {
+    opacity: 0.9;
+    transform: scale(1.02);
+    z-index: 100;
+  }
 </style>

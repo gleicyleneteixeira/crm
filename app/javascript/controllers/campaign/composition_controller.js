@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import Sortable from "sortablejs"
 
 export default class extends Controller {
     static targets = ["previewText", "blocksContainer", "messagesList", "blockTemplate", "aiButton", "audioButton", "aiVariationsContainer", "aiVariationsList", "audioPreviewContainer", "audioPlayer", "addButton", "emojiPicker", "fileInput", "editor", "count", "simulatorHistory", "simulatorBody", "status"]
@@ -24,6 +25,34 @@ export default class extends Controller {
 
         // Debug global
         window.campaignCtrl = this
+
+        this.initSortable()
+    }
+
+    initSortable() {
+        if (!this.hasMessagesListTarget) return
+        
+        this.sortable = Sortable.create(this.messagesListTarget, {
+            animation: 150,
+            handle: ".drag-handle",
+            draggable: ".message-item",
+            ghostClass: "sortable-ghost",
+            chosenClass: "sortable-chosen",
+            dragClass: "sortable-drag",
+            onEnd: (evt) => {
+                const oldIndex = evt.oldIndex
+                const newIndex = evt.newIndex
+                
+                if (oldIndex === newIndex) return
+                
+                // Reorder the messageSequence array
+                const movedItem = this.messageSequence.splice(oldIndex, 1)[0]
+                this.messageSequence.splice(newIndex, 0, movedItem)
+                
+                // Update UI (Refresh indices, simulator, and trigger autosave)
+                this.updateUI()
+            }
+        })
     }
 
     updateAddButtonState() {
