@@ -20,7 +20,7 @@ class Apps::Chatwoot < ApplicationRecord
   belongs_to :chatwoot_push_deals_pipeline, class_name: 'Pipeline', foreign_key: 'chatwoot_push_deals_pipeline_id', optional: true
   belongs_to :chatwoot_push_deals_stage, class_name: 'Stage', foreign_key: 'chatwoot_push_deals_stage_id', optional: true
 
-  scope :actives, -> { where(active: true) }
+  scope :actives, -> { active }
   normalizes :chatwoot_endpoint_url, with: ->(value) { value&.gsub(/\/+\z/, '') }
 
   enum status: {

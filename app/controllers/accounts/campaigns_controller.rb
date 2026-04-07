@@ -166,7 +166,6 @@ class Accounts::CampaignsController < InternalController
 
 
   def composition
-    @campaign = @account.campaigns.find(params[:id])
     @inboxes = @account.apps_chatwoots.active.first&.inboxes || []
     @pipelines = @account.pipelines
   end
@@ -294,6 +293,9 @@ class Accounts::CampaignsController < InternalController
       ai_randomization: cp[:ai_randomization].to_s == 'true' || cp[:ai_randomization].to_s == '1',
       current_step: cp[:current_step] || 1,
       chatwoot_inbox_ids: cp[:chatwoot_inbox_ids] || [],
+      batch_delay: cp[:batch_delay],
+      inbox_rotation_rule: cp[:inbox_rotation_rule] || 'random',
+      max_delay: cp[:max_delay] || 60,
       spreadsheet_data: s_data,
       mapping: mapping_data
     }
