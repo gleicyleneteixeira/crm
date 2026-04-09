@@ -199,6 +199,7 @@ class Accounts::CampaignsController < InternalController
     if @campaign.update(campaign_params.merge(step_params))
       redirect_to automation_account_campaign_path(@account, @campaign)
     else
+      @inboxes = @account.apps_chatwoots.first&.inboxes || []
       render :logistics, status: :unprocessable_entity
     end
   end
@@ -214,6 +215,7 @@ class Accounts::CampaignsController < InternalController
       end
       redirect_to account_campaigns_path(@account), notice: 'Campanha finalizada com sucesso!'
     else
+      @inboxes = @account.apps_chatwoots.first&.inboxes || []
       render :automation, status: :unprocessable_entity
     end
   end
@@ -263,42 +265,49 @@ class Accounts::CampaignsController < InternalController
     # Captura os parâmetros base
     cp = params.require(:campaign)
     
+    # Definimos quais chaves queremos processar
+    # Note: Usamos slice para garantir que só tentamos atualizar o que foi enviado
+    permitted_keys = [
+      :name, :campaign_category_id, :pipeline_id, :stage_id, 
+      :insert_ddi, :ai_randomization, :current_step, 
+      :chatwoot_inbox_ids, :batch_delay, :inbox_rotation_rule, :max_delay
+    ]
+
+    # Filtramos apenas o que está presente no hash cp
+    final_params = cp.permit(permitted_keys).to_h.symbolize_keys
+
+    # Tratamento especial para booleanos
+    final_params[:insert_ddi] = final_params[:insert_ddi].to_s == '1' || final_params[:insert_ddi].to_s == 'true' if cp.has_key?(:insert_ddi)
+    final_params[:ai_randomization] = final_params[:ai_randomization].to_s == '1' || final_params[:ai_randomization].to_s == 'true' if cp.has_key?(:ai_randomization)
+
     # Se spreadsheet_data vier como String (JSON), fazemos o parse manual
-    # Se vier como Array (multipart/form-data ou JSON), o Rails/Rack já pode ter parseado
-    s_data = cp[:spreadsheet_data]
-    if s_data.is_a?(String) && s_data.present?
-      begin
-        s_data = JSON.parse(s_data)
-      rescue => e
-        puts "ERR PARSING SPREADSHEET_DATA: #{e.message}"
+    if cp.has_key?(:spreadsheet_data)
+      s_data = cp[:spreadsheet_data]
+      if s_data.is_a?(String) && s_data.present?
+        begin
+          final_params[:spreadsheet_data] = JSON.parse(s_data)
+        rescue => e
+          puts "ERR PARSING SPREADSHEET_DATA: #{e.message}"
+        end
+      else
+        final_params[:spreadsheet_data] = s_data
       end
     end
 
-    mapping_data = cp[:mapping]
-    if mapping_data.is_a?(String) && mapping_data.present?
-      begin
-        mapping_data = JSON.parse(mapping_data)
-      rescue => e
-        puts "ERR PARSING MAPPING: #{e.message}"
+    if cp.has_key?(:mapping)
+      mapping_data = cp[:mapping]
+      if mapping_data.is_a?(String) && mapping_data.present?
+        begin
+          final_params[:mapping] = JSON.parse(mapping_data)
+        rescue => e
+          puts "ERR PARSING MAPPING: #{e.message}"
+        end
+      else
+        final_params[:mapping] = mapping_data
       end
     end
 
-    # Construímos o hash final permitido
-    {
-      name: cp[:name],
-      campaign_category_id: cp[:campaign_category_id],
-      pipeline_id: cp[:pipeline_id],
-      stage_id: cp[:stage_id],
-      insert_ddi: cp[:insert_ddi].to_s == '1' || cp[:insert_ddi].to_s == 'true',
-      ai_randomization: cp[:ai_randomization].to_s == 'true' || cp[:ai_randomization].to_s == '1',
-      current_step: cp[:current_step] || 1,
-      chatwoot_inbox_ids: cp[:chatwoot_inbox_ids] || [],
-      batch_delay: cp[:batch_delay],
-      inbox_rotation_rule: cp[:inbox_rotation_rule] || 'random',
-      max_delay: cp[:max_delay] || 60,
-      spreadsheet_data: s_data,
-      mapping: mapping_data
-    }
+    final_params
   end
 
   def composition_params
