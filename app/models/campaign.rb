@@ -26,6 +26,11 @@ class Campaign < ApplicationRecord
     message_sequence || []
   end
 
+  def total_leads
+    return 0 if spreadsheet_data.blank?
+    [spreadsheet_data.size - 1, 0].max
+  end
+
   after_initialize :set_defaults
 
   private

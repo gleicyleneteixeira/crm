@@ -78,7 +78,7 @@
            </div>
            <div class="<%= 'hidden' if @campaign.inbox_rotation_rule != 'random' %>" data-campaign--logistics-target="maxInput">
               <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-4">Máximo (segundos)</label>
-              <input type="number" value="10" name="campaign[max_delay]" class="w-full bg-[#0D1117] border-2 border-slate-800 rounded-2xl py-4 px-6 text-sm font-black text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all">
+              <%= f.number_field :max_delay, class: 'w-full bg-[#0D1117] border-2 border-slate-800 rounded-2xl py-4 px-6 text-sm font-black text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all' %>
            </div>
         </div>
       </section>

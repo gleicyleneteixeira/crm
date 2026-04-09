@@ -270,7 +270,8 @@ class Accounts::CampaignsController < InternalController
     permitted_keys = [
       :name, :campaign_category_id, :pipeline_id, :stage_id, 
       :insert_ddi, :ai_randomization, :current_step, 
-      :chatwoot_inbox_ids, :batch_delay, :inbox_rotation_rule, :max_delay
+      :batch_delay, :inbox_rotation_rule, :max_delay,
+      { chatwoot_inbox_ids: [] }
     ]
 
     # Filtramos apenas o que está presente no hash cp

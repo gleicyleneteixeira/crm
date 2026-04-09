@@ -4,6 +4,7 @@ export default class extends Controller {
     static targets = ["fixedDelay", "randomDelay", "minInput", "maxInput", "instanceCard", "instanceInput"]
 
     connect() {
+        console.log("Logistics Controller Connected")
         this.renderIcons()
     }
 
@@ -31,8 +32,14 @@ export default class extends Controller {
     }
 
     selectInstance(event) {
+        console.log("Select Instance Clicked", event.currentTarget)
         const card = event.currentTarget
         const checkbox = card.querySelector('input[type="checkbox"]')
+        
+        if (!checkbox) {
+            console.error("Checkbox not found in card")
+            return
+        }
 
         checkbox.checked = !checkbox.checked
         card.classList.toggle('border-emerald-500', checkbox.checked)
