@@ -28,7 +28,7 @@
             <div class="h-10 w-10 flex items-center justify-center border-solid border-2 border-light-palette-p3 rounded-l-md bg-brand-palette-08">
               <%= embedded_svg('vectooor2.svg', { class: 'h-5 w-5 color-fg-soft' }) %>
             </div>
-            <select class="px-2.5 h-10 mx-[-2px] border-solid border-2 border-light-palette-p3 flex-1 sm:flex-none sm:w-40 md:w-52 hover:border-light-palette-p2 hover:z-10 hover:cursor-pointer focus:border-light-palette-p2 focus:ring-0 hover:text-brand-palette-04 focus:z-10 typography-text-r-lh150 text-dark-gray-palette-p3 truncate" onchange="window.location=this.value">
+            <select class="px-2.5 h-10 mx-[-2px] border-solid border-2 border-light-palette-p3 flex-1 sm:flex-none sm:w-40 md:w-52 hover:border-light-palette-p2 hover:z-10 hover:cursor-pointer focus:border-light-palette-p2 focus:ring-0 hover:text-brand-palette-04 focus:z-10 typography-text-r-lh150 text-dark-gray-palette-p3 truncate" onchange="Turbo.visit(this.value)">
               <% @pipelines.each do |pipeline| %>
                 <option value="<%= account_pipeline_path(Current.account, pipeline.id) %>" <%= pipeline.id == @pipeline.id ? 'selected' : '' %>>
                   <%= pipeline.name %>
