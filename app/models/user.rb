@@ -14,6 +14,7 @@
 #  remember_created_at    :datetime
 #  reset_password_sent_at :datetime
 #  reset_password_token   :string
+#  theme_preference       :string           default("system"), not null
 #  created_at             :datetime         not null
 #  updated_at             :datetime         not null
 #
@@ -76,6 +77,12 @@ class User < ApplicationRecord
     operations_coordinator: 'operations_coordinator',
     executive_assistant: 'executive_assistant',
     other: 'other'
+  }
+
+  enum theme_preference: {
+    light: 'light',
+    dark: 'dark',
+    system: 'system'
   }
 
   def self.ransackable_attributes(_auth_object = nil)
