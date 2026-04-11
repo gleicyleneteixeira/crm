@@ -18,10 +18,10 @@
       <header class='self-center justify-self-center md:justify-self-auto'>
         <div class='w-52'>
           <% if current_user.present? %>
-            <%= image_tag 'logo.svg', class: 'w-full' %>
+            <%= image_tag 'logo.svg', class: 'w-full logo-dark-invert' %>
           <% else %>
             <%= link_to url_for do %>
-              <%= image_tag 'logo.svg', class: 'w-full' %>
+              <%= image_tag 'logo.svg', class: 'w-full logo-dark-invert' %>
             <% end %>
           <% end %>
         </div>
@@ -45,7 +45,7 @@
                   <%= image_tag "man-cellphone-onboarding.jpg" , class: 'w-full h-full object-cover rounded-lg' %>
                 </div>
                 <div class='rounded-[32px] w-8 h-8 bg-light-palette-p5 z-10 p-1'>
-                  <%= image_tag 'logo-patinha.svg' %>
+                  <%= image_tag 'logo-patinha.svg', class: 'logo-dark-invert' %>
                 </div>
                 <div class=' rounded-lg w-24 h-24 rotate-[12deg]'>
                   <%= image_tag "woman-cellphone-onboarding.jpg" , class: 'w-full h-full object-cover rounded-lg' %>
@@ -101,7 +101,7 @@
           <div class='hidden min-[1739px]:grid gap-2.5 grid-rows-[1fr_2fr_3fr]'>
             <div class='grid grid-cols-[1fr_1fr_150px] gap-2.5'>
               <div class='border rounded-[32px] border-color-default p-5 typography-body-s-lh150'>
-                <%= image_tag 'logo.svg', class: 'w-[100px] mb-2.5' %>
+                <%= image_tag 'logo.svg', class: 'w-[100px] mb-2.5 logo-dark-invert' %>
                 <p>
                   <%= t('views.layouts.devise.mastery', crm_name: 'Woof') %>
                 </p>

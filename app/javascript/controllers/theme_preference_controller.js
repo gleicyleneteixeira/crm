@@ -63,8 +63,10 @@ export default class extends Controller {
 
     if (shouldBeDark) {
       enableDarkMode(DARK_READER_CONFIG);
+      document.documentElement.classList.add("dark");
     } else {
       disableDarkMode();
+      document.documentElement.classList.remove("dark");
     }
   }
 

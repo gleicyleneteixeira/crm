@@ -8,7 +8,7 @@ module.exports = {
     "./app/views/**/*.{erb,haml,html,slim}",
     "./node_modules/flowbite/**/*.js",
   ],
-  darkMode: "false",
+  darkMode: "class",
   theme: {
     colors: {
       ...require("tailwindcss/colors"),
