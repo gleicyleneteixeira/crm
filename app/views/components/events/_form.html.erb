@@ -9,12 +9,12 @@
         <i data-lucide="chevron-down" class="text-gray-pallete-p3"></i>
       </button>
       <!-- Dropdown menu -->
-      <div id="dropdownDotsHorizontal" class="z-10 hidden left-16 bg-white divide-y divide-gray-300 rounded-lg shadow w-48 dark:bg-gray-700" >
-        <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownMenuIconHorizontalButton">
+      <div id="dropdownDotsHorizontal" class="z-10 hidden left-16 bg-white divide-y divide-gray-300 rounded-lg shadow w-48" >
+        <ul class="py-2 text-sm text-gray-700" aria-labelledby="dropdownMenuIconHorizontalButton">
           <% if Apps::EvolutionApi.any? %>
             <% if event&.contact&.phone&.present? || action_name.include?('bulk_action') %>
               <li>
-                <%= link_to header_evolution_api_message_url, class: "flex items-center space-x-2 px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 hover:text-dark-gray-palette-p1 dark:hover:text-white", data: {turbo_frame: dom_id(Event.new)  } do %>
+                <%= link_to header_evolution_api_message_url, class: "flex items-center space-x-2 px-4 py-2 hover:bg-gray-300 hover:text-dark-gray-palette-p1", data: {turbo_frame: dom_id(Event.new)  } do %>
                   <%= embedded_svg('icon-whtass.svg', class:"transition delay-100 duration-100 h-3.5 fill-gray-pallete-p3 mx-[5px] group-hover:fill-brand-palette-03") %>
                   <p class=" transition delay-100 duration-100 m-0  text-dark-gray-palette-p3 group-hover:text-dark-gray-palette-p1 group-hover:font-medium group-[.btn-active]:text-brand-palette-03 group-[.btn-active]:font-semibold">
                     WhatsApp
@@ -23,16 +23,16 @@
               </li>
             <% else %>
               <li>
-                <a data-popover-target="popover-default-whatsapp-mobile" data-popover-placement="left" type="button" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 hover:text-dark-gray-palette-p1 dark:hover:text-white">
+                <a data-popover-target="popover-default-whatsapp-mobile" data-popover-placement="left" type="button" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-300 hover:text-dark-gray-palette-p1">
                   <%= embedded_svg('icon-whtass.svg', class:"transition delay-100 duration-100 h-3.5 fill-gray-pallete-p3 mx-[5px] group-hover:fill-brand-palette-03") %>
                   <p class=" transition delay-100 duration-100 m-0  text-dark-gray-palette-p3 group-hover:text-dark-gray-palette-p1 group-hover:font-medium group-[.btn-active]:text-brand-palette-03 group-[.btn-active]:font-semibold">
                     WhatsApp
                   </p>
                 </a>
               </li>
-              <div data-popover id="popover-default-whatsapp-mobile" data-popover-placement="left" role="tooltip" class="absolute z-[1000] invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
-                <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
-                  <h3 class="font-semibold text-gray-900 dark:text-white">
+              <div data-popover id="popover-default-whatsapp-mobile" data-popover-placement="left" role="tooltip" class="absolute z-[1000] invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0">
+                <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg">
+                  <h3 class="font-semibold text-gray-900">
                     <%= t('views.components.events.form.messages.send_message', app: 'WhatsApp') %>
                   </h3>
                 </div>
@@ -46,7 +46,7 @@
             <% end %>
           <% end %>
           <li>
-            <%= link_to header_activity_url, class: 'flex items-center space-x-2 px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 hover:text-dark-gray-palette-p1 dark:hover:text-white', data: {turbo_frame: dom_id(Event.new)  } do %>
+            <%= link_to header_activity_url, class: 'flex items-center space-x-2 px-4 py-2 hover:bg-gray-300 hover:text-dark-gray-palette-p1', data: {turbo_frame: dom_id(Event.new)  } do %>
               <i data-lucide="calendar-check-2" class="transition delay-100 duration-100 h-3.5 text-gray-pallete-p3 group-hover:text-brand-palette-03 group-[.btn-active]:text-brand-palette-03"></i>
               <p class=" transition delay-100 duration-100 m-0  text-dark-gray-palette-p3 group-hover:text-dark-gray-palette-p1 group-hover:font-medium group-[.btn-active]:text-brand-palette-03 group-[.btn-active]:font-semibold">
                 <%= t('views.components.events.form.kinds.activity') %>
@@ -54,7 +54,7 @@
             <% end %>
           </li>
           <li>
-            <%= link_to header_note_url, class: 'flex items-center space-x-2 px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 hover:text-dark-gray-palette-p1 dark:hover:text-white', data: {turbo_frame: dom_id(Event.new)  } do %>
+            <%= link_to header_note_url, class: 'flex items-center space-x-2 px-4 py-2 hover:bg-gray-300 hover:text-dark-gray-palette-p1', data: {turbo_frame: dom_id(Event.new)  } do %>
               <i data-lucide="menu-square" class="transition delay-100 duration-100 h-3.5 text-gray-pallete-p3 group-hover:text-brand-palette-03 group-[.btn-active]:text-brand-palette-03"></i>
               <p class=" transition delay-100 duration-100 m-0  text-dark-gray-palette-p3 group-hover:text-dark-gray-palette-p1 group-hover:font-medium group-[.btn-active]:text-brand-palette-03 group-[.btn-active]:font-semibold">
                 <%= t('views.components.events.form.kinds.note') %>
@@ -64,7 +64,7 @@
           <% if Apps::Chatwoot.any? %>
             <% if current_user.account.apps_chatwoots.present? %>
               <li>
-                <%= link_to header_chatwoot_message_url, class: 'flex items-center space-x-2 px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 hover:text-dark-gray-palette-p1 dark:hover:text-white', data: {turbo_frame: dom_id(Event.new)  } do %>
+                <%= link_to header_chatwoot_message_url, class: 'flex items-center space-x-2 px-4 py-2 hover:bg-gray-300 hover:text-dark-gray-palette-p1', data: {turbo_frame: dom_id(Event.new)  } do %>
                   <i data-lucide="message-circle" class= "w-5 transition delay-100 duration-100 h-3.5 stroke-gray-pallete-p3 mx-[2px] group-[.btn-active]:stroke-brand-palette-03 -rotate-[101deg]"></i>
                   <p class=" transition delay-100 duration-100 m-0  text-dark-gray-palette-p3 group-hover:text-dark-gray-palette-p1 group-hover:font-medium group-[.btn-active]:text-brand-palette-03 group-[.btn-active]:font-semibold">
                     Chatwoot
@@ -73,16 +73,16 @@
               </li>
             <% else %>
               <li>
-                <a data-popover-target="popover-default-chatwoot-mobile" data-popover-placement="left" type="button" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 hover:text-dark-gray-palette-p1 dark:hover:text-white">
+                <a data-popover-target="popover-default-chatwoot-mobile" data-popover-placement="left" type="button" class="flex items-center space-x-2 px-4 py-2 hover:bg-gray-300 hover:text-dark-gray-palette-p1">
                   <i data-lucide="message-circle" class= "w-5 transition delay-100 duration-100 h-3.5 stroke-gray-pallete-p3 mx-[2px] group-[.btn-active]:stroke-brand-palette-03 -rotate-[101deg]"></i>
                   <p class=" transition delay-100 duration-100 m-0  text-dark-gray-palette-p3 group-hover:text-dark-gray-palette-p1 group-hover:font-medium group-[.btn-active]:text-brand-palette-03 group-[.btn-active]:font-semibold">
                     Chatwoot
                   </p>
                 </a>
               </li>
-              <div data-popover id="popover-default-chatwoot-mobile" data-popover-placement="left" role="tooltip" class="absolute z-[1000] invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
-                <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
-                  <h3 class="font-semibold text-gray-900 dark:text-white">
+              <div data-popover id="popover-default-chatwoot-mobile" data-popover-placement="left" role="tooltip" class="absolute z-[1000] invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0">
+                <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg">
+                  <h3 class="font-semibold text-gray-900">
                     <%= t('views.components.events.form.messages.send_message', app: 'Chatwoot') %>
                   </h3>
                 </div>
@@ -141,9 +141,9 @@
               <p class=" transition delay-100 duration-100 m-0 px-3  group-hover:text-dark-gray-palette-p1 group-hover:font-medium <%= event.chatwoot_message? ? "font-semibold text-brand-palette-03" : "text-dark-gray-palette-p3" %>">Chatwoot</p>
             </div>
           </a>
-          <div data-popover id="popover-chatwoot" role="tooltip" class="absolute z-[1000] invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
-            <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
-              <h3 class="font-semibold text-gray-900 dark:text-white">
+          <div data-popover id="popover-chatwoot" role="tooltip" class="absolute z-[1000] invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0">
+            <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg">
+              <h3 class="font-semibold text-gray-900">
                 <%= t('views.components.events.form.messages.send_message', app:'Chatwoot') %>
               </h3>
             </div>
@@ -180,9 +180,9 @@
               </p>
             </div>
           </a>
-          <div data-popover id="popover-whatsapp" role="tooltip" class="absolute z-[1000] invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
-            <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
-              <h3 class="font-semibold text-gray-900 dark:text-white">
+          <div data-popover id="popover-whatsapp" role="tooltip" class="absolute z-[1000] invisible inline-block w-64 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0">
+            <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg">
+              <h3 class="font-semibold text-gray-900">
                 <%= t('views.components.events.form.messages.send_message', app: 'WhatsApp') %>
               </h3>
             </div>

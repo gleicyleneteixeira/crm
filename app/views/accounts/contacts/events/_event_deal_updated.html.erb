@@ -1,4 +1,4 @@
-<div id=<%= dom_id(event, :tooltip) %> role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-xs opacity-0 tooltip dark:bg-gray-700">
+<div id=<%= dom_id(event, :tooltip) %> role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-xs opacity-0 tooltip">
   <% if event.deal_stage_change? %>
     <%= t('views.accounts.contacts.events.event_deal_updated.deal_stage_change',
         old_stage_name: event.additional_attributes.fetch('old_stage_name', ''),

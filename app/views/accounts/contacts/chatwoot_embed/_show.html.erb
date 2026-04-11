@@ -4,7 +4,7 @@
     <%= link_to account_pipelines_path(Current.account), class: 'btn-secondary !px-2', data: { tooltip_target: "tooltip-kanban-link" } do %>
       <i data-lucide="kanban"></i>
     <% end %>
-    <div id="tooltip-kanban-link" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-700 rounded-lg shadow-xs opacity-0 tooltip dark:bg-gray-700">
+    <div id="tooltip-kanban-link" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-700 rounded-lg shadow-xs opacity-0 tooltip">
       <%= t('views.accounts.contacts.chatwoot_embeded.show.kanban_view') %>
       <div class="tooltip-arrow" data-popper-arrow></div>
     </div>
