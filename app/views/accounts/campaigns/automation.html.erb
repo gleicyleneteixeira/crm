@@ -85,7 +85,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                <div>
                   <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-4">Inbox de Segurança (Failover)</label>
-                  <%= f.select :failover_inbox_id, options_from_collection_for_select(@inboxes, 'id', 'name'), { include_blank: 'Nenhum fallback selecionado' }, class: 'w-full bg-[#0D1117] border-slate-800 rounded-2xl py-4 px-6 text-xs font-bold text-white appearance-none focus:ring-emerald-500' %>
+                  <%= f.select :failover_inbox_id, options_for_select(@inboxes.map { |inbox| [inbox['name'], inbox['id']] }, @campaign.failover_inbox_id), { include_blank: 'Nenhum fallback selecionado' }, class: 'w-full bg-[#0D1117] border-slate-800 rounded-2xl py-4 px-6 text-xs font-bold text-white appearance-none focus:ring-emerald-500' %>
                </div>
                <div class="p-5 bg-[#0D1117] rounded-3xl border border-dashed border-slate-800 flex items-center gap-4">
                   <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center shrink-0">

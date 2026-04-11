@@ -271,6 +271,7 @@ class Accounts::CampaignsController < InternalController
       :name, :campaign_category_id, :pipeline_id, :stage_id, 
       :insert_ddi, :ai_randomization, :current_step, 
       :batch_delay, :inbox_rotation_rule, :max_delay,
+      :human_intervention_lock, :stop_words, :failover_inbox_id, :roi_conversion_value,
       { chatwoot_inbox_ids: [] }
     ]
 
