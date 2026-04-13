@@ -97,40 +97,6 @@
          </div>
       </section>
 
-      <!-- Section: ROI & Conversão -->
-      <section class="bg-gradient-to-br from-[#161B22] to-[#1F2937] border border-slate-800/60 rounded-[2.5rem] p-10 shadow-2xl">
-         <div class="flex items-center gap-4 mb-10">
-            <div class="w-12 h-12 bg-brand-palette-03/10 rounded-2xl flex items-center justify-center border border-brand-palette-03/20">
-               <i data-lucide="bar-chart-3" class="w-6 h-6 text-brand-palette-03"></i>
-            </div>
-            <div>
-               <h3 class="text-sm font-black text-white uppercase tracking-wider">Cálculo de ROI e Conversão</h3>
-               <p class="text-[11px] text-slate-500 font-medium">Defina métricas financeiras para medir o sucesso da campanha</p>
-            </div>
-         </div>
-
-         <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-            <div class="p-8 bg-[#0D1117] rounded-3xl border border-slate-800/50 shadow-inner">
-               <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-4 text-center">Valor da Conversão (ROI)</label>
-               <div class="flex items-center justify-center gap-3">
-                  <span class="text-lg font-black text-brand-palette-03">R$</span>
-                  <%= f.number_field :roi_conversion_value, class: 'bg-transparent border-none p-0 text-3xl font-black text-white focus:ring-0 w-40 text-center', placeholder: '0.00' %>
-               </div>
-               <p class="text-[9px] text-slate-600 text-center mt-6 font-bold uppercase tracking-widest italic">Calculado quando um card vira "Ganhado"</p>
-            </div>
-
-            <div class="space-y-6">
-               <div class="flex items-center justify-between text-[11px] font-bold">
-                  <span class="text-slate-500">Contatos Estimados</span>
-                  <span class="text-white"><%= @campaign.total_leads || 0 %></span>
-               </div>
-               <div class="h-1 w-full bg-slate-800 rounded-full">
-                  <div class="h-full bg-brand-palette-03 w-2/3 rounded-full"></div>
-               </div>
-               <p class="text-[10px] text-slate-500 leading-relaxed">Considerando a média de custo por mensagem gerada via IA, seu custo operacional base será de <span class="text-white font-bold">R$ 0,15</span> por contato.</p>
-            </div>
-         </div>
-      </section>
 
       <!-- Bottom Actions -->
       <div class="pt-8 flex flex-col items-center gap-6">
