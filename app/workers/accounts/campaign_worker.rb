@@ -6,6 +6,12 @@ class Accounts::CampaignWorker
     @campaign = Campaign.find(campaign_id)
     return unless @campaign.running? || @campaign.processing?
 
+    # Scheduling check: only start if we are within the start_date range (if defined)
+    if @campaign.start_date.present? && Time.current < @campaign.start_date
+      @campaign.campaign_logs.create!(status: 'paused', message: "Aguardando data de início agendada: #{@campaign.start_date}")
+      return
+    end
+
     @account = @campaign.account
     @chatwoot_app = @account.apps_chatwoots.first
     return if @chatwoot_app.nil?
@@ -22,6 +28,13 @@ class Accounts::CampaignWorker
       sleep(delay) if delay > 0
       
       break if @campaign.reload.paused? || @campaign.reload.canceled? || @campaign.failed?
+      
+      # Stop if we passed the end_date
+      if @campaign.end_date.present? && Time.current > @campaign.end_date
+        @campaign.completed!
+        @campaign.campaign_logs.create!(status: 'completed', message: "Campanha encerrada automaticamente por atingir a data de término.")
+        break
+      end
     end
 
     @campaign.completed! unless @campaign.paused?

@@ -98,20 +98,50 @@
       </section>
 
 
+      <!-- Section: Agendamento -->
+      <section class="bg-[#161B22] border border-slate-800/60 rounded-[2.5rem] p-10 shadow-2xl space-y-8 relative overflow-hidden group">
+         <div class="flex items-center gap-4 relative z-10">
+            <div class="w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center border border-amber-500/20">
+               <i data-lucide="calendar" class="w-6 h-6 text-amber-500"></i>
+            </div>
+            <div>
+               <h3 class="text-sm font-black text-white uppercase tracking-wider">Agendamento da Campanha</h3>
+               <p class="text-[11px] text-slate-500 font-medium">Defina o período de validade para execução dos disparos</p>
+            </div>
+         </div>
+
+         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+            <div class="space-y-4">
+               <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Data de Início</label>
+               <%= f.datetime_field :start_date, class: "w-full bg-[#0D1117] border-slate-800 rounded-2xl py-4 px-6 text-xs font-bold text-white focus:ring-amber-500" %>
+            </div>
+            <div class="space-y-4">
+               <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Data de Término</label>
+               <%= f.datetime_field :end_date, class: "w-full bg-[#0D1117] border-slate-800 rounded-2xl py-4 px-6 text-xs font-bold text-white focus:ring-amber-500" %>
+            </div>
+         </div>
+
+         <div class="p-5 bg-amber-500/5 rounded-3xl border border-dashed border-amber-500/20 flex items-center gap-4 relative z-10">
+            <i data-lucide="info" class="w-5 h-5 text-amber-500/50"></i>
+            <p class="text-[10px] text-slate-500 leading-relaxed font-bold uppercase tracking-wider">Os disparos serão pausados automaticamente após a data de término.</p>
+         </div>
+      </section>
+
       <!-- Bottom Actions -->
       <div class="pt-8 flex flex-col items-center gap-6">
          <div class="flex items-center gap-4 text-slate-500 mb-4 animate-bounce">
             <i data-lucide="mouse-pointer-2" class="w-4 h-4"></i>
-            <span class="text-[10px] font-black uppercase tracking-widest">Tudo pronto para disparar?</span>
+            <span class="text-[10px] font-black uppercase tracking-widest">Finalizar configuração?</span>
          </div>
          
          <div class="flex w-full gap-4">
             <button type="submit" name="campaign[status]" value="draft" class="flex-1 py-5 bg-slate-900 border border-slate-800 text-slate-400 rounded-3xl font-black text-xs uppercase tracking-[0.2em] hover:bg-slate-800 hover:text-white transition-all">Salvar como Rascunho</button>
-            <button type="submit" name="campaign[status]" value="running" class="flex-[2] py-5 bg-brand-palette-03 text-white rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-brand-palette-03/30 hover:scale-[1.02] hover:bg-brand-palette-04 transition-all active:scale-95 flex items-center justify-center gap-3">
-               <i data-lucide="rocket" class="w-5 h-5"></i>
-               Iniciar Campanha Agora
+            <button type="submit" name="campaign[status]" value="paused" class="flex-[2] py-5 bg-brand-palette-03 text-white rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-brand-palette-03/30 hover:scale-[1.02] hover:bg-brand-palette-04 transition-all active:scale-95 flex items-center justify-center gap-3">
+               <i data-lucide="check-circle" class="w-5 h-5 text-white"></i>
+               Tudo Pronto
             </button>
          </div>
+         <p class="text-[9px] text-slate-600 font-bold uppercase tracking-widest mt-2">A campanha será salva como pausada. Inicie manualmente na listagem.</p>
       </div>
 
     </div>
