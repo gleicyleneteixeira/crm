@@ -24,7 +24,7 @@
 #  index_users_on_reset_password_token  (reset_password_token) UNIQUE
 #
 class User < ApplicationRecord
-  SHOW_FIELDS = { details: [{ enum_fields: %i[job_description] }, :full_name, :email, :phone, :id, :created_at,
+  SHOW_FIELDS = { details: [:full_name, :email, :phone, :id, { enum_fields: %i[job_description] }, :created_at,
                              :updated_at] }.freeze
 
   has_one :installation
