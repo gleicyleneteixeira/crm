@@ -1,5 +1,5 @@
 class Accounts::CampaignsController < InternalController
-  before_action :set_campaign, only: %i[show edit update destroy composition update_composition process_campaign logistics update_logistics automation update_automation]
+  before_action :set_campaign, only: %i[show edit update destroy composition update_composition process_campaign logistics update_logistics automation update_automation pause resume cancel]
 
   def index
     @campaigns = @account.campaigns.where.not(status: :draft).order(created_at: :desc)
@@ -210,7 +210,7 @@ class Accounts::CampaignsController < InternalController
 
   def update_automation
     if @campaign.update(campaign_params)
-      if @campaign.status == 'running'
+      if @campaign.running?
         Accounts::CampaignWorker.perform_async(@campaign.id) 
       end
       redirect_to account_campaigns_path(@account), notice: 'Campanha finalizada com sucesso!'
@@ -220,9 +220,25 @@ class Accounts::CampaignsController < InternalController
     end
   end
 
+  def pause
+    @campaign.paused!
+    redirect_to account_campaigns_path(@account), notice: 'Campanha pausada.'
+  end
+
+  def resume
+    @campaign.running!
+    Accounts::CampaignWorker.perform_async(@campaign.id)
+    redirect_to account_campaigns_path(@account), notice: 'Campanha iniciada/retomada.'
+  end
+
+  def cancel
+    @campaign.canceled!
+    redirect_to account_campaigns_path(@account), notice: 'Campanha cancelada.'
+  end
+
   def process_campaign
     if @campaign.draft? || @campaign.failed?
-      @campaign.processing!
+      @campaign.running!
       Accounts::CampaignWorker.perform_async(@campaign.id)
       redirect_to account_campaign_path(@account, @campaign), notice: 'Processamento da campanha iniciado.'
     else

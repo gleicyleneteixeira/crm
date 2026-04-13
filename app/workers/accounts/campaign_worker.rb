@@ -4,7 +4,7 @@ class Accounts::CampaignWorker
 
   def perform(campaign_id)
     @campaign = Campaign.find(campaign_id)
-    return unless @campaign.processing?
+    return unless @campaign.running? || @campaign.processing?
 
     @account = @campaign.account
     @chatwoot_app = @account.apps_chatwoots.first
@@ -21,7 +21,7 @@ class Accounts::CampaignWorker
       delay = @campaign.batch_delay.to_i
       sleep(delay) if delay > 0
       
-      break if @campaign.reload.paused? || @campaign.failed?
+      break if @campaign.reload.paused? || @campaign.reload.canceled? || @campaign.failed?
     end
 
     @campaign.completed! unless @campaign.paused?

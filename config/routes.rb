@@ -134,6 +134,9 @@ Rails.application.routes.draw do
         patch :update_logistics
         get :automation
         patch :update_automation
+        patch :pause
+        patch :resume
+        patch :cancel
         post :process_campaign
         get :spreadsheet_data
       end

@@ -9,9 +9,12 @@ class Campaign < ApplicationRecord
 
   enum status: {
     draft: 'draft',
-    processing: 'processing',
+    running: 'running',
+    paused: 'paused',
     completed: 'completed',
-    failed: 'failed'
+    failed: 'failed',
+    canceled: 'canceled',
+    processing: 'processing'
   }
 
   def ai_randomization?
