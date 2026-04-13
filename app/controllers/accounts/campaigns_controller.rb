@@ -285,7 +285,7 @@ class Accounts::CampaignsController < InternalController
     # Note: Usamos slice para garantir que só tentamos atualizar o que foi enviado
     permitted_keys = [
       :name, :campaign_category_id, :pipeline_id, :stage_id, 
-      :insert_ddi, :ai_randomization, :current_step, 
+      :insert_ddi, :ai_randomization, :current_step, :status,
       :batch_delay, :inbox_rotation_rule, :max_delay,
       :human_intervention_lock, :stop_words, :failover_inbox_id, :roi_conversion_value,
       :start_date, :end_date,
