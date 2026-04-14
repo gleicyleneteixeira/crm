@@ -105,11 +105,22 @@
                 <% 
                   status_classes = case campaign.status
                     when 'running' then 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                    when 'scheduled' then 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20'
                     when 'paused' then 'bg-amber-500/10 text-amber-500 border-amber-500/20'
                     when 'completed' then 'bg-brand-palette-03/10 text-brand-palette-03 border-brand-palette-03/20'
                     when 'failed' then 'bg-red-500/10 text-red-500 border-red-500/20'
                     when 'canceled' then 'bg-slate-800 text-slate-500 border-slate-700'
                     else 'bg-slate-800 text-slate-400 border-slate-700'
+                    end
+                  
+                  status_name = case campaign.status
+                    when 'running' then 'Andamento'
+                    when 'scheduled' then 'Agendada'
+                    when 'paused' then 'Pausada'
+                    when 'completed' then 'Concluída'
+                    when 'canceled' then 'Cancelada'
+                    when 'failed' then 'Falhou'
+                    else campaign.status.humanize
                     end
                 %>
                 <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border <%= status_classes %>">
@@ -119,7 +130,7 @@
                       <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                     </span>
                   <% end %>
-                  <span class="text-[9px] font-black uppercase tracking-[0.1em]"><%= campaign.status.humanize %></span>
+                  <span class="text-[9px] font-black uppercase tracking-[0.1em]"><%= status_name %></span>
                 </div>
               </td>
               <td class="px-10 py-8 whitespace-nowrap">
@@ -134,11 +145,13 @@
                     <% end %>
                   <% end %>
 
-                  <% if campaign.running? %>
+                  <% if campaign.running? || campaign.scheduled? %>
                     <%= button_to pause_account_campaign_path(@account, campaign), method: :patch, title: 'Pausar Envio', class: 'p-3 bg-amber-500 text-[#0D1117] rounded-xl hover:bg-amber-400 transition-all border-none cursor-pointer shadow-lg shadow-amber-500/10' do %>
                       <i data-lucide="pause" class="w-4 h-4 fill-current"></i>
                     <% end %>
-                    
+                  <% end %>
+
+                  <% if campaign.running? || campaign.scheduled? || campaign.paused? %>
                     <%= button_to cancel_account_campaign_path(@account, campaign), method: :patch, title: 'Cancelar Definitivo', data: { confirm: 'Deseja realmente cancelar esta campanha? Esta ação não pode ser desfeita.' }, class: 'p-3 bg-slate-900 border border-slate-800 text-slate-500 rounded-xl hover:text-white hover:border-slate-600 transition-all cursor-pointer' do %>
                       <i data-lucide="x-circle" class="w-4 h-4"></i>
                     <% end %>

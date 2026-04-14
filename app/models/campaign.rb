@@ -10,6 +10,7 @@ class Campaign < ApplicationRecord
   enum status: {
     draft: 'draft',
     running: 'running',
+    scheduled: 'scheduled',
     paused: 'paused',
     completed: 'completed',
     failed: 'failed',

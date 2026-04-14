@@ -4,11 +4,14 @@ class Accounts::CampaignWorker
 
   def perform(campaign_id)
     @campaign = Campaign.find(campaign_id)
-    return unless @campaign.running? || @campaign.processing?
+    return unless @campaign.running? || @campaign.processing? || @campaign.scheduled?
+
+    # If it was scheduled, move to running now that it's starting
+    @campaign.running! if @campaign.scheduled?
 
     # Scheduling check: only start if we are within the start_date range (if defined)
     if @campaign.start_date.present? && Time.current < @campaign.start_date
-      @campaign.campaign_logs.create!(status: 'paused', message: "Aguardando data de início agendada: #{@campaign.start_date}")
+      Rails.logger.info "[CampaignWorker] Campaign #{@campaign.id} is not ready to start yet. Scheduled for: #{@campaign.start_date}"
       return
     end
 
@@ -17,6 +20,8 @@ class Accounts::CampaignWorker
       @campaign.campaign_logs.create!(status: 'paused', message: "Fora da janela de atendimento permitida (#{@campaign.start_hour} - #{@campaign.end_hour}).")
       return
     end
+
+    Rails.logger.info "[CampaignWorker] Starting execution for Campaign: #{@campaign.name} (#{@campaign.id})"
 
     @account = @campaign.account
     @chatwoot_app = @account.apps_chatwoots.first
@@ -132,41 +137,66 @@ class Accounts::CampaignWorker
 
   def send_message(contact, block)
     content = render_content(contact, block['content'])
-    inbox_id = select_inbox
     
-    case block['type']
-    when 'text'
-      if @campaign.ai_randomization?
-        content = AiManager.call(@account, context: :campaign, content: content)
+    # Supported retries for failover
+    max_retries = [@campaign.inbox_ids.size, 3].min
+    attempt = 0
+    success = false
+
+    while attempt < max_retries && !success
+      inbox_id = select_inbox
+      
+      begin
+        case block['type']
+        when 'text'
+          if @campaign.ai_randomization?
+            content = AiManager.call(@account, context: :campaign, content: content)
+          end
+        when 'audio'
+          audio_url = Accounts::Campaigns::ElevenLabsService.call(@account, content)
+          content = audio_url if audio_url.present?
+        end
+
+        event = contact.events.new(
+          account: @account,
+          kind: 'chatwoot_message',
+          content: content,
+          app: @chatwoot_app,
+          from_me: true,
+          done_at: Time.current,
+          additional_attributes: { campaign_id: @campaign.id, block_type: block['type'] }
+        )
+
+        conversation_response = Accounts::Apps::Chatwoots::FindOrCreateConversation.call(
+          @chatwoot_app, 
+          contact.additional_attributes['chatwoot_id'], 
+          inbox_id
+        )
+        
+        conversation = conversation_response[:ok]
+        
+        if conversation.present?
+          Accounts::Apps::Chatwoots::SendMessage.call(@chatwoot_app, conversation['id'], event)
+          find_or_create_deal_with_conversation(contact, conversation)
+          success = true
+          Rails.logger.info "[CampaignWorker] Success sending to #{contact.phone} via Inbox #{inbox_id}"
+        else
+          raise "Conversation could not be created for Inbox #{inbox_id}"
+        end
+      rescue => e
+        attempt += 1
+        Rails.logger.error "[CampaignWorker] Attempt #{attempt} failed for #{contact.phone} via Inbox #{inbox_id}: #{e.message}"
+        # If we have more inboxes, the next loop iteration will pick a different one (randomly)
+        sleep(1) if attempt < max_retries
       end
-    when 'audio'
-      # ElevenLabs Integration with Caching
-      audio_url = Accounts::Campaigns::ElevenLabsService.call(@account, content)
-      content = audio_url if audio_url.present?
     end
 
-    event = contact.events.new(
-      account: @account,
-      kind: 'chatwoot_message',
-      content: content,
-      app: @chatwoot_app,
-      from_me: true,
-      done_at: Time.current,
-      additional_attributes: { campaign_id: @campaign.id, block_type: block['type'] }
-    )
-
-    # We need the conversation to update or create the Deal link
-    conversation_response = Accounts::Apps::Chatwoots::FindOrCreateConversation.call(
-      @chatwoot_app, 
-      contact.additional_attributes['chatwoot_id'], 
-      inbox_id
-    )
-    
-    conversation = conversation_response[:ok]
-    
-    if conversation.present?
-      Accounts::Apps::Chatwoots::SendMessage.call(@chatwoot_app, conversation['id'], event)
-      find_or_create_deal_with_conversation(contact, conversation)
+    unless success
+      @campaign.campaign_logs.create!(
+        status: 'failed',
+        message: "Falha total no envio para #{contact.phone} após #{attempt} tentativas.",
+        contact_id: contact.id
+      )
     end
     
     # Small delay between blocks in sequence
@@ -229,14 +259,11 @@ class Accounts::CampaignWorker
   end
 
   def select_inbox
-    # Handle rotation logic
     ids = @campaign.inbox_ids
     return ids.first if ids.size <= 1
 
-    # Simple rotation based on current_index
-    idx = @campaign.current_index % ids.size
-    @campaign.increment!(:current_index)
-    ids[idx]
+    # Random selection as requested to avoid patterns
+    ids.sample
   end
 
   def broadcast_progress

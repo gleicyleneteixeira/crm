@@ -210,8 +210,14 @@ class Accounts::CampaignsController < InternalController
 
   def update_automation
     if @campaign.update(campaign_params)
-      if @campaign.running?
-        Accounts::CampaignWorker.perform_async(@campaign.id) 
+      if @campaign.running? || @campaign.scheduled?
+        if @campaign.start_date.present? && @campaign.start_date > Time.current
+          @campaign.scheduled!
+          Accounts::CampaignWorker.perform_at(@campaign.start_date, @campaign.id)
+        else
+          @campaign.running!
+          Accounts::CampaignWorker.perform_async(@campaign.id)
+        end
       end
       redirect_to account_campaigns_path(@account), notice: 'Campanha finalizada com sucesso!'
     else
@@ -226,9 +232,15 @@ class Accounts::CampaignsController < InternalController
   end
 
   def resume
-    @campaign.running!
-    Accounts::CampaignWorker.perform_async(@campaign.id)
-    redirect_to account_campaigns_path(@account), notice: 'Campanha iniciada/retomada.'
+    if @campaign.start_date.present? && @campaign.start_date > Time.current
+      @campaign.scheduled!
+      Accounts::CampaignWorker.perform_at(@campaign.start_date, @campaign.id)
+      redirect_to account_campaigns_path(@account), notice: 'Campanha agendada para o horário configurado.'
+    else
+      @campaign.running!
+      Accounts::CampaignWorker.perform_async(@campaign.id)
+      redirect_to account_campaigns_path(@account), notice: 'Campanha iniciada/retomada.'
+    end
   end
 
   def cancel
