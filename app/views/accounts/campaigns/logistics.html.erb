@@ -152,6 +152,50 @@
         </div>
       </section>
 
+      <!-- Janela de Atendimento (NEW SECTION) -->
+      <section class="bg-[#161B22] border border-slate-800/60 rounded-[2.5rem] p-10 shadow-2xl space-y-8">
+        <div class="flex items-center gap-4">
+           <div class="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center border border-indigo-500/20">
+              <i data-lucide="calendar" class="w-5 h-5 text-indigo-500"></i>
+           </div>
+           <div>
+              <h3 class="text-sm font-black text-white uppercase tracking-wider">Janela de Atendimento</h3>
+              <p class="text-[11px] text-slate-500 font-medium leading-relaxed">Defina quais dias e horários a campanha pode realizar disparos</p>
+           </div>
+        </div>
+
+        <div class="space-y-6">
+           <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Dias Permitidos</label>
+           <div class="flex flex-wrap gap-2">
+              <% [['D', 0], ['S', 1], ['T', 2], ['Q', 3], ['Q', 4], ['S', 5], ['S', 6]].each do |label, value| %>
+                <% is_checked = @campaign.allowed_days&.include?(value.to_s) || @campaign.allowed_days&.include?(value) %>
+                <div role="button" 
+                     data-action="click->campaign--logistics#toggleDay"
+                     class="w-12 h-12 rounded-2xl border-2 flex items-center justify-center text-xs font-black transition-all shadow-lg 
+                            <%= is_checked ? 'bg-emerald-500 text-[#0D1117] border-emerald-500' : 'bg-slate-800/50 text-slate-400 border-slate-800 hover:border-slate-700' %>">
+                   <%= label %>
+                   <input type="checkbox" name="campaign[allowed_days][]" value="<%= value %>" class="hidden" <%= 'checked' if is_checked %>>
+                </div>
+              <% end %>
+           </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-8 pt-4">
+           <div>
+              <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-4">Horário de Início</label>
+              <%= f.time_field :start_hour, 
+                              value: @campaign.start_hour || "00:00",
+                              class: 'w-full bg-[#0D1117] border-2 border-slate-800 rounded-2xl py-4 px-6 text-sm font-black text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all' %>
+           </div>
+           <div>
+              <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-4">Horário de Término</label>
+              <%= f.time_field :end_hour, 
+                              value: @campaign.end_hour || "23:59",
+                              class: 'w-full bg-[#0D1117] border-2 border-slate-800 rounded-2xl py-4 px-6 text-sm font-black text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all' %>
+           </div>
+        </div>
+      </section>
+
       <!-- Variação com IA (Image 1 Bottom) -->
       <section class="bg-[#161B22] border border-slate-800/60 rounded-3xl p-10 shadow-2xl relative overflow-hidden group">
          <div class="flex items-center justify-between relative z-10">

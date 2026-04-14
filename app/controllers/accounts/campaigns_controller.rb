@@ -288,8 +288,8 @@ class Accounts::CampaignsController < InternalController
       :insert_ddi, :ai_randomization, :current_step, :status,
       :batch_delay, :inbox_rotation_rule, :max_delay,
       :human_intervention_lock, :stop_words, :failover_inbox_id, :roi_conversion_value,
-      :start_date, :end_date,
-      { chatwoot_inbox_ids: [] }
+      :start_date, :end_date, :start_hour, :end_hour,
+      { chatwoot_inbox_ids: [], allowed_days: [] }
     ]
 
     # Filtramos apenas o que está presente no hash cp

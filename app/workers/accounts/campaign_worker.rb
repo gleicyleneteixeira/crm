@@ -12,6 +12,12 @@ class Accounts::CampaignWorker
       return
     end
 
+    # Scheduling window check: Days and Hours
+    unless @campaign.allowed_time?
+      @campaign.campaign_logs.create!(status: 'paused', message: "Fora da janela de atendimento permitida (#{@campaign.start_hour} - #{@campaign.end_hour}).")
+      return
+    end
+
     @account = @campaign.account
     @chatwoot_app = @account.apps_chatwoots.first
     return if @chatwoot_app.nil?
@@ -33,6 +39,12 @@ class Accounts::CampaignWorker
       if @campaign.end_date.present? && Time.current > @campaign.end_date
         @campaign.completed!
         @campaign.campaign_logs.create!(status: 'completed', message: "Campanha encerrada automaticamente por atingir a data de término.")
+        break
+      end
+
+      # Stop if we are now outside the allowed time window
+      unless @campaign.allowed_time?
+        @campaign.campaign_logs.create!(status: 'paused', message: "Interrompido: Fora da janela de atendimento permitida (#{@campaign.start_hour} - #{@campaign.end_hour}).")
         break
       end
     end

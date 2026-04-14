@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-    static targets = ["fixedDelay", "randomDelay", "minInput", "maxInput", "instanceCard", "instanceInput"]
+    static targets = ["fixedDelay", "randomDelay", "minInput", "maxInput", "instanceCard", "instanceInput", "dayCard", "dayInput"]
 
     connect() {
         console.log("Logistics Controller Connected")
@@ -49,6 +49,19 @@ export default class extends Controller {
         if (checkIcon) checkIcon.classList.toggle('hidden', !checkbox.checked)
 
         this.updateSelectedCount()
+    }
+
+    toggleDay(event) {
+        const card = event.currentTarget
+        const checkbox = card.querySelector('input[type="checkbox"]')
+        
+        checkbox.checked = !checkbox.checked
+        card.classList.toggle('bg-emerald-500', checkbox.checked)
+        card.classList.toggle('text-[#0D1117]', checkbox.checked)
+        card.classList.toggle('border-emerald-500', checkbox.checked)
+        card.classList.toggle('bg-slate-800/50', !checkbox.checked)
+        card.classList.toggle('text-slate-400', !checkbox.checked)
+        card.classList.toggle('border-slate-800', !checkbox.checked)
     }
 
     updateSelectedCount() {
