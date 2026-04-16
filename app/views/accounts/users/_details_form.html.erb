@@ -1,0 +1,20 @@
+<%= form_with(model: model, url: url, html:{class: "flex flex-col gap-5"} ) do | form | %>
+  <% if model.errors.any? %>
+    <div>
+      <ul>
+        <% model.errors.each do |error| %>
+          <li class="typography-body-s-lh150 text-auxiliary-palette-red"><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+  <%= render 'components/show_model/form_fields', model: model, form: form %>
+  <div class="flex gap-2 self-end">
+    <% if model.persisted? %>
+      <%= link_to polymorphic_path([current_user.account, model]), class: "button-default-fill-secondary-sm" do %>
+        <%= t('activerecord.models.cancel') %>
+      <% end %>
+    <% end %>
+    <%= submit_button(form) %>
+  </div>
+<% end %>
