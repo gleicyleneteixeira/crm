@@ -14,7 +14,7 @@
           <% product.image_attachments.each do |attachment| %>
             <%= turbo_frame_tag attachment do %>
               <div class="grid rounded h-16 w-16 relative">
-                <div class=" w-full h-full rounded" data-controller="lightbox">
+                <div class="h-16 w-16 rounded" data-controller="lightbox">
                   <%= image_tag attachment.file, class: 'cursor-pointer object-cover w-full h-full rounded', alt: attachment.file.filename.to_s, data: { src: rails_blob_url(attachment.file), sub_html: attachment.file.filename.to_s } %>
                 </div>
                 <%= link_to account_attachment_path(Current.account, attachment), method: :delete, data: { confirm: 'Are you sure?' }, class: 'flex items-center h-4 w-4 p-1 color-fg-default color-bg-fill-soft rounded-full border-[1px] border-brand-palette-07 hover:border-brand-palette-06 hover:border-[1px] hover:bg-brand-palette-08 hover:rounded-full hover:text-brand-palette-03 transtion ease-in-out delay-250 absolute top-0.5 right-0.5' do %>
