@@ -33,11 +33,10 @@ module Accounts
         end
 
         if contacts_to_upsert.any?
-          # Upsert contacts based on phone number (unique constraint)
-          @account.contacts.upsert_all(
+          # Insert contacts based on phone number (unique constraint) - Skip existing to preserve their data
+          @account.contacts.insert_all(
             contacts_to_upsert,
-            unique_by: :index_contacts_on_phone,
-            update_only: [:full_name, :email, :custom_attributes]
+            unique_by: :index_contacts_on_phone
           )
         end
       end

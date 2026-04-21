@@ -21,18 +21,19 @@ class Accounts::CampaignWorker
       return
     end
 
-    Rails.logger.info "[CampaignWorker] Starting execution for Campaign: #{@campaign.name} (#{@campaign.id})"
-
     @account = @campaign.account
     @chatwoot_app = @account.apps_chatwoots.first
     return if @chatwoot_app.nil?
 
-    @contacts = find_or_initialize_contacts
-    
-    @campaign.update(total_leads: @contacts.size, processed_leads: 0)
+    # Get rows (drop header)
+    rows = @campaign.spreadsheet_data.drop(1)
+    @campaign.update(total_leads: rows.size, processed_leads: 0)
 
-    @contacts.each_with_index do |contact, index|
-      process_contact(contact, index)
+    rows.each_with_index do |row, index|
+      contact = find_or_create_contact_from_row(row)
+      next if contact.nil?
+
+      process_contact(contact, row, index)
       
       # Rate limiting: use batch_delay or random interval if configured
       delay = @campaign.batch_delay.to_i
@@ -54,7 +55,7 @@ class Accounts::CampaignWorker
       end
     end
 
-    @campaign.completed! unless @campaign.paused?
+    @campaign.completed! unless @campaign.paused? || @campaign.canceled?
   rescue => e
     @campaign.failed!
     @campaign.campaign_logs.create!(status: 'failed', message: "Erro fatal: #{e.message}")
@@ -62,18 +63,48 @@ class Accounts::CampaignWorker
 
   private
 
-  def find_or_initialize_contacts
-    return [] if @campaign.spreadsheet_data.blank? || @campaign.mapping.blank?
+  def find_or_create_contact_from_row(row)
+    phone_raw = value_from_row(row, 'contact.phone')
+    return nil if phone_raw.blank?
 
-    # Extract phones from spreadsheet (drop header)
-    phone_field = @campaign.mapping.find { |_, v| v == 'contact.phone' }&.first
-    return [] if phone_field.nil?
+    phone = format_phone(phone_raw)
+    return nil if phone.blank?
 
-    phone_idx = @campaign.spreadsheet_data.first.index(phone_field)
-    phones = @campaign.spreadsheet_data.drop(1).map { |row| format_phone(row[phone_idx]) }.compact.uniq
+    contact = @account.contacts.find_by(phone: phone)
+    
+    if contact.nil?
+      # Create new contact if not exists
+      full_name = value_from_row(row, 'contact.full_name') || "Contato #{phone}"
+      email = value_from_row(row, 'contact.email')
+      
+      contact = @account.contacts.create!(
+        full_name: full_name,
+        phone: phone,
+        email: email
+      )
+    end
+    
+    contact
+  end
 
-    # Fetch contacts already upserted by InitializeContactsService
-    @account.contacts.where(phone: phones)
+  def value_from_row(row, crm_field)
+    mapping = @campaign.mapping
+    return nil if mapping.blank?
+
+    # Try finding by crm_field being the VALUE (header -> field)
+    header = mapping.find { |k, v| v == crm_field }&.first
+    if header
+      idx = @campaign.spreadsheet_data.first.index(header)
+      return row[idx] if idx
+    end
+
+    # Try finding by crm_field being the KEY (field -> index)
+    idx = mapping[crm_field]
+    if idx.to_s.match?(/^\d+$/)
+      return row[idx.to_i]
+    end
+
+    nil
   end
 
   def format_phone(phone)
@@ -83,7 +114,7 @@ class Accounts::CampaignWorker
     "+#{phone}"
   end
 
-  def process_contact(contact, index)
+  def process_contact(contact, row, index)
     # 1. MILLISECOND BLACKLIST CHECK
     return if contact.reload.respond_to?(:blacklist?) && contact.blacklist?
 
@@ -105,7 +136,7 @@ class Accounts::CampaignWorker
 
     # 5. SEND SEQUENCE
     @campaign.sequence.each do |block|
-      send_message(contact, block)
+      send_message(contact, row, block)
     end
 
     @campaign.increment!(:processed_leads)
@@ -135,8 +166,8 @@ class Accounts::CampaignWorker
     words.any? { |word| content.include?(word) }
   end
 
-  def send_message(contact, block)
-    content = render_content(contact, block['content'])
+  def send_message(contact, row, block)
+    content = render_content(contact, row, block['content'])
     
     # Supported retries for failover
     max_retries = [@campaign.inbox_ids.size, 3].min
@@ -203,25 +234,45 @@ class Accounts::CampaignWorker
     sleep(2)
   end
 
-  def render_content(contact, content)
+  def render_content(contact, row, content)
     return "" if content.blank?
     
     processed = content.dup
     
+    # Prioritize spreadsheet data for variables
+    spreadsheet_full_name = value_from_row(row, 'contact.full_name')
+    spreadsheet_first_name = spreadsheet_full_name.to_s.split(' ').first.to_s.capitalize if spreadsheet_full_name.present?
+
     # Process {{first_name}}
     if processed.downcase.include?('{{first_name}}')
-      first_name = contact.full_name.to_s.split(' ').first.to_s.capitalize
-      processed.gsub!(/\{\{first_name\}\}/i, first_name.presence || "[Nome]")
+      val = spreadsheet_first_name || contact.full_name.to_s.split(' ').first.to_s.capitalize
+      processed.gsub!(/\{\{first_name\}\}/i, val.presence || "[Nome]")
+    end
+
+    # Process {{nome}}
+    if processed.downcase.include?('{{nome}}')
+      val = spreadsheet_full_name || contact.full_name
+      processed.gsub!(/\{\{nome\}\}/i, val.to_s)
     end
 
     # Process all variables from contact custom_attributes
     contact.custom_attributes.each do |key, val|
       variable_tag = "{{#{key}}}"
-      processed.gsub!(Regexp.new(Regexp.escape(variable_tag), Regexp::IGNORECASE), val.to_s)
+      # Overlay with spreadsheet data if mapped
+      row_val = value_from_row(row, "contact.#{key}") || value_from_row(row, "extra_#{key}")
+      final_val = row_val || val
+      processed.gsub!(Regexp.new(Regexp.escape(variable_tag), Regexp::IGNORECASE), final_val.to_s)
     end
-    
-    # Re-process {{nome}} specifically if mapped to full_name but tag used is {{nome}}
-    processed.gsub!(/\{\{nome\}\}/i, contact.full_name) if processed.downcase.include?('{{nome}}')
+
+    # Handle unmapped extra variables from spreadsheet row
+    @campaign.mapping.each do |key, value|
+      if key.start_with?('extra_') || value == 'extra_variable'
+        tag_key = key.start_with?('extra_') ? key.sub('extra_', '') : key.parameterize.underscore
+        variable_tag = "{{#{tag_key}}}"
+        row_val = value_from_row(row, key)
+        processed.gsub!(Regexp.new(Regexp.escape(variable_tag), Regexp::IGNORECASE), row_val.to_s) if row_val.present?
+      end
+    end
 
     processed
   end
