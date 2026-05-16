@@ -150,9 +150,20 @@ RSpec.describe Accounts::ContactsController, type: :request do
         sign_in(user)
       end
 
-      it 'renders new contact page' do
-        get "/accounts/#{account.id}/contacts/new"
-        expect(response).to have_http_status(200)
+      context 'renders new contact page' do
+        it do
+          get "/accounts/#{account.id}/contacts/new"
+          expect(response).to have_http_status(200)
+        end
+
+        context 'when there is chatwoot integration' do
+          let!(:chatwoot) { create(:apps_chatwoots, :skip_validate) }
+
+          it do
+            get "/accounts/#{account.id}/contacts/new"
+            expect(response).to have_http_status(200)
+          end
+        end
       end
     end
   end
