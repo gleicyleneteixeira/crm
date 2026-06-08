@@ -4,6 +4,9 @@ ENV POSTGRES_USER=postgres
 ENV POSTGRES_PASSWORD=password
 ENV POSTGRES_DB=woofed_crm_production
 ENV DATABASE_URL=postgres://postgres:password@localhost/woofed_crm_production
+ENV WOOFED_AI_DATABASE_URL=postgresql+psycopg://postgres:password@localhost/woofed_ai
+ENV WOOFED_AI_URL=http://0.0.0.0:7777
+ENV OS_SECURITY_KEY=IyT96NY5VGwX9WlkLT-4trh5Horti2J0ed1eIh4Zg1R4UKLt3jzBGAtksNhNIRrp
 ENV RAILS_ENV production
 ENV RAILS_SERVE_STATIC_FILES true
 ENV RAILS_LOG_TO_STDOUT true
@@ -58,9 +61,16 @@ USER postgres
 RUN /usr/lib/postgresql/16/bin/initdb -E UTF8 -D /app/storage/postgresql/data
 USER root
 
+## AI agent (Python 3.12 via uv — see ai-agent/ and Dockerfile.ai_agent)
+COPY --from=ghcr.io/astral-sh/uv:0.5 /uv /uvx /usr/local/bin/
+# uv manages a standalone Python 3.12 (Debian bookworm only ships 3.11).
+RUN uv python install 3.12 \
+  && cd /app/ai-agent \
+  && uv sync --frozen --no-install-project
+
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-EXPOSE 80 5432 6379
+EXPOSE 80 5432 6379 7777
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=120s --retries=5 \
   CMD ["curl", "-f", "http://localhost/up"]
