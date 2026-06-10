@@ -189,6 +189,20 @@ Rails.application.routes.draw do
     end
   end
 
+  # Inertia controllers live under app/controllers/inertia/accounts for
+  # organisation, but their routes drop the /inertia path prefix so the URLs
+  # match the rest of the app (the long-term goal is for everything to use
+  # Inertia). `scope module: :inertia` keeps the controller namespace without
+  # adding a path or route-helper prefix.
+  scope module: :inertia do
+    resources :accounts, module: :accounts, only: [] do
+      resource :woofed_ai, only: [:show] do
+        post 'create_message'
+        post 'create_session'
+      end
+    end
+  end
+
   namespace :embedded do
     resources :accounts, module: :accounts do
       namespace :apps do
