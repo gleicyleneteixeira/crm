@@ -17,17 +17,45 @@
 default: &default
   adapter: postgresql
   encoding: unicode
-  # For details on connection pooling, see Rails configuration guide
-  # https://guides.rubyonrails.org/configuring.html#database-pooling
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  url: <%= "#{ENV['DATABASE_URL']}woofed_crm_#{Rails.env}" %>
+  # Host/credentials come from DATABASE_URL; each config overrides only the
+  # `database:` name. DATABASE_URL is auto-applied only to the primary, so the
+  # ai_agent database would otherwise lose the host and fall back to a local
+  # unix socket that does not exist in CI.
+  url: <%= ENV["DATABASE_URL"] %>
+
+primary: &primary
+  <<: *default
+  database: <%= "woofed_crm_#{Rails.env}" %>
+
+# Session store for the woofed-ai-agent (agno). agno creates and owns its own
+# tables at runtime, so Rails never manages a schema here. In production
+# `db:create` provisions the empty database; in dev/test the agent does not run,
+# so `database_tasks: false` keeps Rails from trying to create or load a schema
+# for it (there is no `db/ai_agent_schema.rb`).
+ai_agent: &ai_agent
+  <<: *default
+  database: <%= "woofed_ai_#{Rails.env}" %>
+  migrations_paths: db/ai_agent_migrate
 
 development:
-  <<: *default
+  primary:
+    <<: *primary
+  ai_agent:
+    <<: *ai_agent
+    database_tasks: false
 
 test:
-  <<: *default
+  primary:
+    <<: *primary
+  ai_agent:
+    <<: *ai_agent
+    database_tasks: false
 
 production:
-  <<: *default
-  url: <%= ENV['DATABASE_URL'] %>
+  primary:
+    <<: *primary
+    url: <%= ENV['DATABASE_URL'] %>
+  ai_agent:
+    <<: *ai_agent
+    url: <%= ENV['AI_AGENT_DATABASE_URL'] %>
