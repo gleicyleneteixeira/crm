@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_06_01_205859) do
+ActiveRecord::Schema[7.1].define(version: 2026_07_17_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -123,6 +123,28 @@ ActiveRecord::Schema[7.1].define(version: 2026_06_01_205859) do
     t.index ["attachable_type", "attachable_id"], name: "index_attachments_on_attachable"
   end
 
+  create_table "companies", force: :cascade do |t|
+    t.string "name", default: "", null: false
+    t.string "phone", default: "", null: false
+    t.string "email", default: "", null: false
+    t.jsonb "custom_attributes", default: {}
+    t.jsonb "additional_attributes", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index "NULLIF((phone)::text, ''::text)", name: "index_companies_on_phone", unique: true
+    t.index "lower(NULLIF((email)::text, ''::text))", name: "index_companies_on_lower_email", unique: true
+  end
+
+  create_table "company_contacts", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.bigint "contact_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id", "contact_id"], name: "index_company_contacts_on_company_id_and_contact_id", unique: true
+    t.index ["company_id"], name: "index_company_contacts_on_company_id"
+    t.index ["contact_id"], name: "index_company_contacts_on_contact_id"
+  end
+
   create_table "contacts", force: :cascade do |t|
     t.string "full_name", default: "", null: false
     t.string "phone", default: "", null: false
@@ -156,6 +178,16 @@ ActiveRecord::Schema[7.1].define(version: 2026_06_01_205859) do
     t.index ["deal_id", "user_id"], name: "index_deal_assignees_on_deal_id_and_user_id", unique: true
     t.index ["deal_id"], name: "index_deal_assignees_on_deal_id"
     t.index ["user_id"], name: "index_deal_assignees_on_user_id"
+  end
+
+  create_table "deal_companies", force: :cascade do |t|
+    t.bigint "deal_id", null: false
+    t.bigint "company_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id"], name: "index_deal_companies_on_company_id"
+    t.index ["deal_id", "company_id"], name: "index_deal_companies_on_deal_id_and_company_id", unique: true
+    t.index ["deal_id"], name: "index_deal_companies_on_deal_id"
   end
 
   create_table "deal_lost_reasons", force: :cascade do |t|
@@ -676,8 +708,12 @@ ActiveRecord::Schema[7.1].define(version: 2026_06_01_205859) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "company_contacts", "companies"
+  add_foreign_key "company_contacts", "contacts"
   add_foreign_key "deal_assignees", "deals"
   add_foreign_key "deal_assignees", "users"
+  add_foreign_key "deal_companies", "companies"
+  add_foreign_key "deal_companies", "deals"
   add_foreign_key "deal_products", "deals"
   add_foreign_key "deal_products", "products"
   add_foreign_key "deals", "contacts"
