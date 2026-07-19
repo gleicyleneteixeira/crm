@@ -48,6 +48,7 @@ class Accounts::Apps::Chatwoots::Webhooks::ImportContact
       chatwoot.request_headers
     )
 
+    body = JSON.parse(contact_response.body)
     if body['payload'].present?
       conversations_tags = body['payload'].map { |c| c['labels'] }.flatten.uniq
       contact.assign_attributes({ chatwoot_conversations_label_list: conversations_tags })
