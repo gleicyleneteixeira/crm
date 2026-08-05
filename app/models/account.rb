@@ -62,11 +62,15 @@ class Account < ApplicationRecord
   end
 
   def campaigns
-    Campaign.all
+    Campaign.where(account_id: id)
+  end
+
+  def workflows
+    Workflow.where(account_id: id)
   end
 
   def custom_attribute_definitions
-    CustomAttributeDefinition.all
+    CustomAttributeDefinition.where(account_id: id)
   end
 
   def custom_attributes_definitions
@@ -110,11 +114,11 @@ class Account < ApplicationRecord
   end
 
   def ai_prompts
-    AiPrompt.all
+    AiPrompt.where(account_id: id)
   end
 
   def ai_providers
-    AiProvider.all
+    AiProvider.where(account_id: id)
   end
 
   def site_url=(url)

@@ -2,7 +2,7 @@ class Accounts::WorkflowsController < InternalController
   before_action :set_workflow, only: %i[edit update destroy]
 
   def index
-    @workflows = Workflow.all.order(created_at: :desc)
+    @workflows = Workflow.where(account_id: current_user.account.id).order(created_at: :desc)
   end
 
   def new
@@ -12,7 +12,7 @@ class Accounts::WorkflowsController < InternalController
   def edit; end
 
   def create
-    @workflow = Workflow.new(workflow_params)
+    @workflow = current_user.account.workflows.new(workflow_params)
 
     if @workflow.save
       redirect_to account_workflows_path(current_user.account), notice: "Workflow criado com sucesso."
@@ -37,7 +37,7 @@ class Accounts::WorkflowsController < InternalController
   private
 
   def set_workflow
-    @workflow = Workflow.find(params[:id])
+    @workflow = current_user.account.workflows.find(params[:id])
   end
 
   def workflow_params
