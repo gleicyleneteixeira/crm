@@ -159,11 +159,12 @@ export default class extends Controller {
         this.aiButtonTarget.disabled = true
 
         try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
             const response = await fetch(`/accounts/${this.getAccountId()}/campaigns/${this.getId()}/generate_variations`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+                    'X-CSRF-Token': csrfToken
                 },
                 body: JSON.stringify({ message })
             })
@@ -207,11 +208,12 @@ export default class extends Controller {
         this.audioButtonTarget.disabled = true
 
         try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
             const response = await fetch(`/accounts/${this.getAccountId()}/campaigns/${this.getId()}/generate_audio`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+                    'X-CSRF-Token': csrfToken
                 },
                 body: JSON.stringify({ text })
             })
@@ -403,13 +405,15 @@ export default class extends Controller {
             if (window.lucide) window.lucide.createIcons()
 
             try {
-                const formData = new FormData(document.getElementById('campaign-form'))
+                const form = document.getElementById('campaign-form');
+                if (!form) return;
+                const formData = new FormData(form)
                 const url = `/accounts/${this.getAccountId()}/campaigns/${this.getId()}/update_composition`
                 const response = await fetch(url, {
                     method: 'PATCH',
                     headers: {
                         'Accept': 'application/json',
-                        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+                        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
                     },
                     body: formData
                 })

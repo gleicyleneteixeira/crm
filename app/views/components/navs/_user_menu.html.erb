@@ -32,11 +32,19 @@
         <p><%= t('activerecord.models.profile_settings') %></p>
       <% end %>
     </li>
+    <li>
+      <%= link_to '/motor_admin',
+          class: "flex items-center gap-2 px-4 py-2 hover:bg-gray-300 hover:text-dark-gray-palette-p1 dark:hover:bg-gray-600 dark:hover:text-white" do %>
+        <i data-lucide="shield" class='w-4 h-4'></i>
+        <p>Motor Admin</p>
+      <% end %>
+    </li>
   </ul>
   <div class="py-1 typography-text-m-lh150 text-dark-gray-palette-p3">
-    <%= link_to destroy_user_session_path,
-        class: "flex items-center gap-2 px-4 py-2 hover:bg-gray-300 hover:text-dark-gray-palette-p1 dark:hover:bg-gray-600 dark:hover:text-white",
-        method: :delete do %>
+    <%= button_to destroy_user_session_path,
+        method: :delete,
+        class: "w-full text-left flex items-center gap-2 px-4 py-2 hover:bg-gray-300 hover:text-dark-gray-palette-p1 dark:hover:bg-gray-600 dark:hover:text-white",
+        form: { style: "display:block" } do %>
       <i data-lucide="log-out" class='w-4 h-4'></i>
       <p><%= t('views.layouts.shared.navbar_pipe.logout') %></p>
     <% end %>

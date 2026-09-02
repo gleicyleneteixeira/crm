@@ -240,6 +240,14 @@
     @apply relative z-[9999] scale-[1.03] shadow-2xl;
   }
 
+  /* Prevent details element from consuming clicks on deal cards */
+  .deal-card details {
+    pointer-events: none;
+  }
+  .deal-card details > summary {
+    pointer-events: auto;
+  }
+
   .deal-outcome-button-won {
     @apply inline-flex items-center justify-center w-full rounded-md px-4 py-2 bg-auxiliary-palette-green-down text-auxiliary-palette-green text-center hover:bg-auxiliary-palette-green hover:text-white font-semibold;
   }

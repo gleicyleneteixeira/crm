@@ -12,7 +12,9 @@
     <% end %>
   </header>
   <ul id="<%= dom_id(contact, :chatwoot_embed_deals) %>">
-    <%= turbo_stream_from [contact.account.id, contact.id, :deals] %>
+    <% if contact.account %>
+      <%= turbo_stream_from [contact.account.id, contact.id, :deals] %>
+    <% end %>
     <%# Cache v3 para forçar atualização da ordenação personalizada %>
     <% cache ["chatwoot_embed_deals_list_v4", contact, Current.account.id] do %>
       <% 

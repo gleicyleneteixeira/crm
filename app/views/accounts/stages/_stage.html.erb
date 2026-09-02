@@ -24,21 +24,25 @@
     <div id="dropdownDotsHorizontal<%=stage.id%>" class="z-10 hidden left-16 bg-white divide-y divide-gray-300 rounded-lg shadow w-48 dark:bg-slate-800/60 dark:divide-slate-700 dark:border dark:border-white/10 dark:backdrop-blur-lg">
       <ul class="py-2 typography-text-m-lh150 text-dark-gray-palette-p3 dark:text-slate-100" aria-labelledby="dropdownDefaultButton">
         <li>
-          <%= link_to bulk_action_account_pipeline_path(Current.account, stage.pipeline.id, stage_id: stage.id), class: "flex items-center space-x-2 px-4 py-2 hover:bg-gray-300 dark:hover:bg-slate-800/60 dark:hover:backdrop-blur-lg hover:text-dark-gray-palette-p1 dark:hover:text-white", data: { turbo_frame: 'modal' } do %>
-            <i data-lucide="layers"></i>
-            <p>
-              <%= t('views.accounts.pipelines.stage.bulk_action') %>
-              <b class="typography-micro-b-lh150 text-dark-palette-p3 text-[6px]"> BETA </b>
-            </p>
+          <% if stage.pipeline %>
+            <%= link_to bulk_action_account_pipeline_path(Current.account, stage.pipeline.id, stage_id: stage.id), class: "flex items-center space-x-2 px-4 py-2 hover:bg-gray-300 dark:hover:bg-slate-800/60 dark:hover:backdrop-blur-lg hover:text-dark-gray-palette-p1 dark:hover:text-white", data: { turbo_frame: 'modal' } do %>
+              <i data-lucide="layers"></i>
+              <p>
+                <%= t('views.accounts.pipelines.stage.bulk_action') %>
+                <b class="typography-micro-b-lh150 text-dark-palette-p3 text-[6px]"> BETA </b>
+              </p>
+            <% end %>
           <% end %>
         </li>
         <li>
-          <%= link_to account_pipeline_import_path(Current.account, stage.pipeline.id, stage_id: stage.id), class: "flex items-center space-x-2 px-4 py-2 hover:bg-gray-300 dark:hover:bg-slate-800/60 dark:hover:backdrop-blur-lg hover:text-dark-gray-palette-p1 dark:hover:text-white", data: { turbo_frame: :modal } do %>
-            <i data-lucide="file-input"></i>
-            <p>
-              <%= t('views.accounts.pipelines.stage.import_deals') %>
-            </p>
-          <%end%>
+          <% if stage.pipeline %>
+            <%= link_to account_pipeline_import_path(Current.account, stage.pipeline.id, stage_id: stage.id), class: "flex items-center space-x-2 px-4 py-2 hover:bg-gray-300 dark:hover:bg-slate-800/60 dark:hover:backdrop-blur-lg hover:text-dark-gray-palette-p1 dark:hover:text-white", data: { turbo_frame: :modal } do %>
+              <i data-lucide="file-input"></i>
+              <p>
+                <%= t('views.accounts.pipelines.stage.import_deals') %>
+              </p>
+            <%end%>
+          <% end %>
         </li>
       </ul>
     </div>

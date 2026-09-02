@@ -16,7 +16,7 @@
           </p>
         <% end %>
       </div>
-      <%= link_to account_deal_assignee_path(Current.account, deal_assignee), method: :delete, data: { confirm: 'Are you sure?' }, class: 'button-default-blank-secondary-icon-only-sm' do %>
+      <%= button_to account_deal_assignee_path(Current.account, deal_assignee), method: :delete, data: { confirm: 'Are you sure?' }, class: 'button-default-blank-secondary-icon-only-sm', form: { style: "display:inline-block" } do %>
         <i data-lucide="trash-2"></i>
       <% end %>
     </li>

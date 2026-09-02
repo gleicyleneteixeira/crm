@@ -29,11 +29,17 @@ class Contact::Merge
   end
 
   def merge_deals
-    @mergee_contact.deals.update_all(contact_id: @base_contact.id)
+    # Use find_each with update to trigger callbacks (broadcasts, validations)
+    @mergee_contact.deals.find_each do |deal|
+      deal.update(contact_id: @base_contact.id)
+    end
   end
 
   def merge_events
-    @mergee_contact.events.update_all(contact_id: @base_contact.id)
+    # Use find_each with update to trigger callbacks
+    @mergee_contact.events.find_each do |event|
+      event.update(contact_id: @base_contact.id)
+    end
   end
 
   def merge_labels

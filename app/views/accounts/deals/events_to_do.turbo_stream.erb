@@ -1,15 +1,17 @@
-<%= turbo_stream.append "events_to_do_list_#{@deal.contact.id}" do %>
-  <% @events.each do |event| %>
-    <%= render partial: 'accounts/contacts/events/event', locals: {event: event, deal: @deal} %>
+<% if @deal.contact %>
+  <%= turbo_stream.append "events_to_do_list_#{@deal.contact.id}" do %>
+    <% @events.each do |event| %>
+      <%= render partial: 'accounts/contacts/events/event', locals: {event: event, deal: @deal} %>
+    <% end %>
   <% end %>
-<% end %>
 
-<%= turbo_stream.replace "pagination_events_to_do_#{@deal.contact.id}" do %>
-  <%= turbo_frame_tag "pagination_events_to_do_#{@deal.contact.id}" do %>
-    <% if @pagy.next.present? %>
-      <div class="flex justify-center p-4">
-        <%= link_to t('views.accounts.contacts.events.load_more'), events_to_do_account_deal_path(@deal.account, @deal, page: @pagy.next, format: :turbo_stream), class: "btn-load-more text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-brand-palette-03 transition-all", data: { turbo_stream: true } %>
-      </div>
+  <%= turbo_stream.replace "pagination_events_to_do_#{@deal.contact.id}" do %>
+    <%= turbo_frame_tag "pagination_events_to_do_#{@deal.contact.id}" do %>
+      <% if @pagy.next.present? %>
+        <div class="flex justify-center p-4">
+          <%= link_to t('views.accounts.contacts.events.load_more'), events_to_do_account_deal_path(@deal.account, @deal, page: @pagy.next, format: :turbo_stream), class: "btn-load-more text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-brand-palette-03 transition-all", data: { turbo_stream: true } %>
+        </div>
+      <% end %>
     <% end %>
   <% end %>
 <% end %>

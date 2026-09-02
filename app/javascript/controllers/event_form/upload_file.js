@@ -17,7 +17,9 @@ export default class UploadFile {
 
   process() {
     const fileWrapper = this.insertUpload();
+    if (!fileWrapper) return;
     const progressBar = fileWrapper.querySelector("#progressWrapper");
+    if (!progressBar) return;
     if (!this.acceptedTypes.includes(this.getFileType())) {
       progressBar.remove();
       this.showErrorMessage("this file type is not allowed", fileWrapper);
@@ -114,24 +116,27 @@ export default class UploadFile {
     const progress = document.querySelector(
       `#upload_${this.directUpload.id}_info #progressWrapper #progressBar`
     );
-    progress.style.width = `${percentage}%`;
+    if (progress) progress.style.width = `${percentage}%`;
   }
   createHiddenBlobInput(blob, uploadId) {
     const input = document.createElement("input");
     const inputWrapper = document.getElementById(`upload_${uploadId}`);
+    if (!inputWrapper) return;
     input.type = "hidden";
     input.name = this.fileInput.name;
     input.value = blob.signed_id;
     inputWrapper.appendChild(input);
   }
   createAudioWrapper() {
-    const fileWrapper = document.querySelector("#audioWrapper").cloneNode(true);
+    const audioWrapper = document.querySelector("#audioWrapper");
+    if (!audioWrapper) return null;
+    const fileWrapper = audioWrapper.cloneNode(true);
     const uploadInfo = fileWrapper.querySelector("#uploadInfo");
     const fileName = fileWrapper.querySelector("#fileName");
     fileWrapper.classList.remove("hidden");
     fileWrapper.id = `upload_${this.directUpload.id}`;
-    uploadInfo.id = `upload_${this.directUpload.id}_info`;
-    fileName.textContent = this.directUpload.file.name;
+    if (uploadInfo) uploadInfo.id = `upload_${this.directUpload.id}_info`;
+    if (fileName) fileName.textContent = this.directUpload.file.name;
     this.addFileToUploadList(fileWrapper);
     return fileWrapper;
   }
@@ -145,20 +150,22 @@ export default class UploadFile {
     return fileWrapper;
   }
   createFileWrapper() {
-    const fileWrapper = document.querySelector("#fileWrapper").cloneNode(true);
+    const fileWrapperTemplate = document.querySelector("#fileWrapper");
+    if (!fileWrapperTemplate) return null;
+    const fileWrapper = fileWrapperTemplate.cloneNode(true);
     const uploadInfo = fileWrapper.querySelector("#uploadInfo");
     const fileName = fileWrapper.querySelector("#fileName");
     fileWrapper.classList.remove("hidden");
     fileWrapper.id = `upload_${this.directUpload.id}`;
-    uploadInfo.id = `upload_${this.directUpload.id}_info`;
-    fileName.textContent = this.directUpload.file.name;
+    if (uploadInfo) uploadInfo.id = `upload_${this.directUpload.id}_info`;
+    if (fileName) fileName.textContent = this.directUpload.file.name;
     this.setLinkFileThumb(fileWrapper);
     this.addFileToUploadList(fileWrapper);
     return fileWrapper;
   }
   addFileToUploadList(file) {
     const uploadList = document.querySelector("#uploads");
-    uploadList.appendChild(file);
+    if (uploadList) uploadList.appendChild(file);
   }
   setLinkFileThumb(fileWrapper) {
     let reader = new FileReader();
@@ -169,10 +176,12 @@ export default class UploadFile {
     reader.readAsDataURL(this.directUpload.file);
     reader.onloadend = () => {
       if (reader.result !== null && this.fileTypeIs("image")) {
-        fileInfoWrapper.setAttribute("data-controller", "lightbox");
-        fileThumb.src = reader.result;
-        linkThumb.href = reader.result;
-        linkThumb.classList.remove("pointer-events-none");
+        if (fileInfoWrapper) fileInfoWrapper.setAttribute("data-controller", "lightbox");
+        if (fileThumb) fileThumb.src = reader.result;
+        if (linkThumb) {
+          linkThumb.href = reader.result;
+          linkThumb.classList.remove("pointer-events-none");
+        }
       }
     };
   }
@@ -192,6 +201,6 @@ export default class UploadFile {
       "border-auxiliary-palette-red"
     );
     const messageError = `<p class='w-4/5 typography-text-m-lh150 text-auxiliary-palette-red truncate'>${message}</p>`;
-    uploadInfo.insertAdjacentHTML("beforeend", messageError);
+    if (uploadInfo) uploadInfo.insertAdjacentHTML("beforeend", messageError);
   }
 }

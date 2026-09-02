@@ -14,7 +14,7 @@
         <%= link_to edit_deal_product_account_deal_path(deal_product.account, deal_product.deal, deal_product_id: deal_product.id), class: 'button-default-blank-secondary-icon-only-sm' do %>
           <i data-lucide="pencil" height="16"></i>
         <% end %>
-        <%= link_to account_deal_product_path(deal_product.account, deal_product), method: :delete, data: { confirm: 'Are you sure?' }, class: 'button-default-blank-secondary-icon-only-sm' do %>
+        <%= button_to account_deal_product_path(deal_product.account, deal_product), method: :delete, data: { confirm: 'Are you sure?' }, class: 'button-default-blank-secondary-icon-only-sm', form: { style: "display:inline-block" } do %>
           <i data-lucide="trash-2" height="16"></i>
         <% end %>
       </div>

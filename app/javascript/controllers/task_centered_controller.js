@@ -26,12 +26,10 @@ export default class extends Controller {
     this.backdropTarget.classList.add("active");
     this.backdropTarget.style.display = "block";
 
-    // Global Listeners
-    setTimeout(() => {
-      document.addEventListener("click", this.closeHandler);
-      document.addEventListener("keydown", this.keyHandler);
-      if (window.lucide) window.lucide.createIcons();
-    }, 50);
+    // Global Listeners - immediate execution for faster response
+    document.addEventListener("click", this.closeHandler);
+    document.addEventListener("keydown", this.keyHandler);
+    if (window.lucide) window.lucide.createIcons();
 
     this.prepareForm();
   }
@@ -39,9 +37,11 @@ export default class extends Controller {
   prepareForm() {
     const frame = this.frameTarget;
     
-    // Autofocus
+    // Autofocus - use requestAnimationFrame for smoother focus
     const input = frame.querySelector('input[type="text"], textarea');
-    if (input) setTimeout(() => input.focus(), 150);
+    if (input) {
+      requestAnimationFrame(() => input.focus());
+    }
 
     // Submission Handling
     const form = frame.querySelector('form');
@@ -81,10 +81,13 @@ export default class extends Controller {
     
     this.cleanup();
     
-    // Reset frame to avoid showing old data
+    // Reset frame to avoid showing old data - use more efficient cleanup
     if (this.hasFrameTarget) {
-      this.frameTarget.src = "";
-      this.frameTarget.innerHTML = "";
+      // Only clear innerHTML if frame will not be reused immediately
+      // This prevents full DOM teardown when reopening quickly
+      if (!this.frameTarget.src || this.frameTarget.src === "") {
+        this.frameTarget.innerHTML = "";
+      }
     }
 
     // Senior Sync: notify other controllers that we are closed 

@@ -18,8 +18,10 @@ export default class extends Controller {
         const stageName = document.querySelector(
           `[data-name-stage-id="${arrowElementId}"]`
         );
-        stageName.parentNode.classList.add("!bg-auxiliary-palette-green-down");
-        stageName.classList.add("!text-auxiliary-palette-green");
+        if (stageName && stageName.parentNode) {
+          stageName.parentNode.classList.add("!bg-auxiliary-palette-green-down");
+          stageName.classList.add("!text-auxiliary-palette-green");
+        }
       }
       if (linkElementId) {
         try {
@@ -40,7 +42,9 @@ export default class extends Controller {
         const stageName = document.querySelector(
           `[data-name-stage-id="${arrowElementId}"]`
         );
-        stageName.parentNode.classList.add("!bg-gray-400");
+        if (stageName && stageName.parentNode) {
+          stageName.parentNode.classList.add("!bg-gray-400");
+        }
       }
       if (linkElementId) {
         try {
@@ -68,10 +72,12 @@ export default class extends Controller {
         const stageName = document.querySelector(
           `[data-name-stage-id="${arrowElementId}"]`
         );
-        stageName.parentNode.classList.remove(
-          "!bg-auxiliary-palette-green-down"
-        );
-        stageName.classList.remove("!text-auxiliary-palette-green");
+        if (stageName && stageName.parentNode) {
+          stageName.parentNode.classList.remove(
+            "!bg-auxiliary-palette-green-down"
+          );
+          stageName.classList.remove("!text-auxiliary-palette-green");
+        }
       }
       if (linkElementId) {
         try {
@@ -92,7 +98,9 @@ export default class extends Controller {
         const stageName = document.querySelector(
           `[data-name-stage-id="${arrowElementId}"]`
         );
-        stageName.parentNode.classList.remove("!bg-gray-400");
+        if (stageName && stageName.parentNode) {
+          stageName.parentNode.classList.remove("!bg-gray-400");
+        }
       }
       if (linkElementId) {
         try {

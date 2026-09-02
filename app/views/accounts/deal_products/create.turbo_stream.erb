@@ -17,8 +17,10 @@
         </p>
       </div>
       <div class='flex gap-2'>
-        <%= link_to new_account_deal_product_path(@deal_product.account, deal_id: @deal_product.deal.id), class: 'button-default-blank-secondary-icon-only-sm' do %>
-          <i data-lucide="plus"></i>
+        <% if @deal_product.deal %>
+          <%= link_to new_account_deal_product_path(@deal_product.account, deal_id: @deal_product.deal.id), class: 'button-default-blank-secondary-icon-only-sm' do %>
+            <i data-lucide="plus"></i>
+          <% end %>
         <% end %>
         <button type="button" class="button-default-blank-secondary-icon-only-sm" data-accordion-target="#accordion-collapse-products" aria-expanded="true" aria-controls="accordion-collapse-products ">
           <i data-accordion-icon data-lucide="chevron-down" class="rotate-180 shrink-0" height="16"></i>

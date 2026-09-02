@@ -54,7 +54,9 @@
     </header>
 
     <ul class="p-4 flex flex-col gap-2 border-t border-slate-200 dark:border-slate-700" id="<%= dom_id(contact, :deals) %>">
-      <%= turbo_stream_from [contact.account.id, contact.id, :deals] %>
+      <% if contact.account %>
+        <%= turbo_stream_from [contact.account.id, contact.id, :deals] %>
+      <% end %>
       <%# Lógica de Ordenação: Aberto (1), Perdido/Cancelado (2), Ganho (3) %>
       <% ordered_deals = contact.deals.sort_by { |d| { 'open' => 1, 'lost' => 2, 'cancelled' => 2, 'won' => 3 }[d.status] || 4 } %>
       

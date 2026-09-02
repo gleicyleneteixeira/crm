@@ -46,41 +46,44 @@ export default class UploadFile {
     const progress = document.querySelector(
       `#upload_${this.directUpload.id} #progressBar`
     );
-    progress.style.width = `${percentage}%`;
+    if (progress) progress.style.width = `${percentage}%`;
   }
   createHiddenBlobInput(blob, uploadId) {
     const input = document.createElement("input");
     const inputWrapper = document.getElementById(`upload_${uploadId}`);
+    if (!inputWrapper) return;
     input.type = "hidden";
     input.name = `product[attachments_attributes][${this.directUpload.id}][file]`;
     input.value = blob.signed_id;
     inputWrapper.appendChild(input);
   }
   createFileWrapper() {
-    const fileWrapper = document.querySelector("#fileWrapper").cloneNode(true);
+    const fileWrapperTemplate = document.querySelector("#fileWrapper");
+    if (!fileWrapperTemplate) return null;
+    const fileWrapper = fileWrapperTemplate.cloneNode(true);
     const uploadInfo = fileWrapper.querySelector("#uploadInfo");
     const fileName = fileWrapper.querySelector("#fileName");
     fileWrapper.classList.remove("hidden");
     fileWrapper.id = `upload_${this.directUpload.id}`;
-    uploadInfo.id = `upload_${this.directUpload.id}_info`;
-    fileName.textContent = this.directUpload.file.name;
+    if (uploadInfo) uploadInfo.id = `upload_${this.directUpload.id}_info`;
+    if (fileName) fileName.textContent = this.directUpload.file.name;
     this.setThumbAttachment(fileWrapper);
     this.addFileToUploadList(fileWrapper);
     return fileWrapper;
   }
   addFileToUploadList(file) {
     const uploadList = document.querySelector("#uploads");
-    uploadList.appendChild(file);
+    if (uploadList) uploadList.appendChild(file);
   }
   setThumbAttachment(fileWrapper) {
     if (this.fileTypeIs("image")) {
       this.setLinkFileThumb(fileWrapper);
     } else if (this.fileTypeIs("video")) {
       const iconVideo = fileWrapper.querySelector("[data-lucide='video']");
-      iconVideo.classList.remove("hidden");
+      if (iconVideo) iconVideo.classList.remove("hidden");
     } else {
       const iconFile = fileWrapper.querySelector("[data-lucide='file']");
-      iconFile.classList.remove("hidden");
+      if (iconFile) iconFile.classList.remove("hidden");
     }
   }
   setLinkFileThumb(fileWrapper) {
@@ -88,14 +91,16 @@ export default class UploadFile {
     const fileInfoWrapper = fileWrapper.querySelector("#fileInfoWrapper");
     const fileThumb = fileWrapper.querySelector("#fileThumb");
     const linkThumb = fileWrapper.querySelector("#linkThumb");
-    fileThumb.classList.remove("hidden");
+    if (fileThumb) fileThumb.classList.remove("hidden");
     reader.readAsDataURL(this.directUpload.file);
     reader.onloadend = () => {
       if (reader.result !== null) {
-        fileInfoWrapper.setAttribute("data-controller", "lightbox");
-        fileThumb.src = reader.result;
-        linkThumb.href = reader.result;
-        linkThumb.classList.remove("pointer-events-none");
+        if (fileInfoWrapper) fileInfoWrapper.setAttribute("data-controller", "lightbox");
+        if (fileThumb) fileThumb.src = reader.result;
+        if (linkThumb) {
+          linkThumb.href = reader.result;
+          linkThumb.classList.remove("pointer-events-none");
+        }
       }
     };
   }
@@ -115,6 +120,6 @@ export default class UploadFile {
       "border-auxiliary-palette-red"
     );
     const messageError = `<p class='w-4/5 typography-text-m-lh150 text-auxiliary-palette-red truncate'>${message}</p>`;
-    uploadInfo.insertAdjacentHTML("beforeend", messageError);
+    if (uploadInfo) uploadInfo.insertAdjacentHTML("beforeend", messageError);
   }
 }

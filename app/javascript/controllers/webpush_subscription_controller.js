@@ -49,9 +49,9 @@ export default class extends Controller {
   }
 
   get #vapidPublicKey() {
-    const encodedVapidPublicKey = document.querySelector(
-      'meta[name="vapid-public-key"]'
-    ).content;
+    const metaTag = document.querySelector('meta[name="vapid-public-key"]');
+    if (!metaTag) return null;
+    const encodedVapidPublicKey = metaTag.content;
     return this.#urlBase64ToUint8Array(encodedVapidPublicKey);
   }
 

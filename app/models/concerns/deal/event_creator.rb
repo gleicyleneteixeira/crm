@@ -34,6 +34,9 @@ module Deal::EventCreator
     old_stage = Stage.find_by(id: old_stage_id) if old_stage_id
     new_stage = Stage.find_by(id: new_stage_id) if new_stage_id
 
+    # Guard against deleted stages - skip event creation if either stage is missing
+    return unless old_stage && new_stage
+
     Event.create!(
       deal: self,
       kind: 'deal_stage_change',

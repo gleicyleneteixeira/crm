@@ -56,6 +56,9 @@ export default class extends Controller {
   openMenu() {
     if (!this.hasMenuTarget) return;
 
+    // Always remove existing listener first to prevent accumulation
+    document.removeEventListener("click", this.closeMenuHandler);
+
     window.dispatchEvent(new CustomEvent("task-menu:opened", { detail: { eventId: this.eventIdValue } }));
 
     const menu = this.menuTarget;
@@ -75,9 +78,8 @@ export default class extends Controller {
     menu.style.top = "100%";
     menu.style.right = "0";
 
-    setTimeout(() => {
-      document.addEventListener("click", this.closeMenuHandler);
-    }, 1);
+    // Add click listener
+    document.addEventListener("click", this.closeMenuHandler);
   }
 
   closeMenu(event) {

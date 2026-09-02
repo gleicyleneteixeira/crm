@@ -60,26 +60,27 @@
           <%= render "accounts/events/task_menu", event: event, show_date: true, minimal: true %>
         </div>
       <% else %>
-        <%# Delicate Task Creation Trigger %>
-        <div data-controller="task-creation-delicate" 
-             data-task-creation-delicate-url-value="<%= account_contact_events_path(account_id: deal.account, contact_id: deal.contact.id, deal_id: deal.id) %>"
-             class="relative inline-block">
-          
-          <button type="button" 
-                  data-task-creation-delicate-target="trigger"
-                  data-action="click->task-creation-delicate#toggle"
-                  class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-slate-500/40 text-[10px] text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-95 opacity-0 whitespace-nowrap"
-                  data-as-badge="true">
-            <i data-lucide="plus" class="w-2.5 h-2.5 text-sky-400"></i>
-            <span>Nova tarefa</span>
-          </button>
-
-          <%# THE DELICATE BOX (REDUCED) %>
-          <div data-task-creation-delicate-target="form" 
-               class="hidden w-[240px] bg-slate-900 border border-slate-700 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-4 cursor-default pointer-events-auto transition-all duration-300 z-[2147483647]">
+        <% if deal.contact %>
+          <%# Delicate Task Creation Trigger %>
+          <div data-controller="task-creation-delicate" 
+               data-task-creation-delicate-url-value="<%= account_contact_events_path(account_id: deal.account, contact_id: deal.contact.id, deal_id: deal.id) %>"
+               class="relative inline-block">
             
-            <%= form_with model: Event.new, url: account_contact_events_path(account_id: deal.account, contact_id: deal.contact.id, deal_id: deal.id), method: :post, id: dom_id(Event.new, :chatwoot_delicate), data: { turbo: false } do |f| %>
-              <%= f.hidden_field :contact_id, value: deal.contact.id %>
+            <button type="button" 
+                    data-task-creation-delicate-target="trigger"
+                    data-action="click->task-creation-delicate#toggle"
+                    class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-slate-500/40 text-[10px] text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-95 opacity-0 whitespace-nowrap"
+                    data-as-badge="true">
+              <i data-lucide="plus" class="w-2.5 h-2.5 text-sky-400"></i>
+              <span>Nova tarefa</span>
+            </button>
+
+            <%# THE DELICATE BOX (REDUCED) %>
+            <div data-task-creation-delicate-target="form" 
+                 class="hidden w-[240px] bg-slate-900 border border-slate-700 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-4 cursor-default pointer-events-auto transition-all duration-300 z-[2147483647]">
+              
+              <%= form_with model: Event.new, url: account_contact_events_path(account_id: deal.account, contact_id: deal.contact.id, deal_id: deal.id), method: :post, id: dom_id(Event.new, :chatwoot_delicate), data: { turbo: false } do |f| %>
+                <%= f.hidden_field :contact_id, value: deal.contact.id %>
               <%= f.hidden_field :deal_id, value: deal.id %>
               <%= f.hidden_field :kind, value: 'activity' %>
               
@@ -119,6 +120,7 @@
             <% end %>
           </div>
         </div>
+        <% end %>
       <% end %>
 
     </div>

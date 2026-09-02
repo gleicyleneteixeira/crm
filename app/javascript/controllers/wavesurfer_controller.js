@@ -44,8 +44,10 @@ export default class extends Controller {
 
     wavesurfer.on("ready", () => {
       this.loadingTarget.remove();
-      document.getElementById("waveform" + this.eventIdValue).className =
-        "w-full";
+      const waveformEl = document.getElementById("waveform" + this.eventIdValue);
+      if (waveformEl) {
+        waveformEl.className = "w-full";
+      }
     });
 
     wavesurfer.on("finish", () => {

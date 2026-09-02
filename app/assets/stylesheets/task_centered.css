@@ -7,6 +7,7 @@
   display: none;
   opacity: 0;
   transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
 .task-centered-overlay {
@@ -26,20 +27,20 @@
   opacity: 0;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
-  display: flex;
   flex-direction: column;
+  pointer-events: none;
 }
 
 /* Visibility State */
 .task-centered-overlay.active,
 .task-centered-backdrop.active {
-  display: block;
+  display: flex;
   opacity: 1;
+  pointer-events: auto;
 }
 
 .task-centered-overlay.active {
   transform: translate(-50%, -50%) scale(1);
-  display: flex;
 }
 
 /* Scrollable Form Content */

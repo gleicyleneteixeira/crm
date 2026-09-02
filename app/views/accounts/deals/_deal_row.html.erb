@@ -46,11 +46,12 @@
                <%= render "accounts/events/task_menu", event: event, show_date: true, minimal: true %>
             </div>
           <% else %>
-            <span class="text-slate-300 mx-1">|</span>
-            <%# Delicate Task Creation Trigger %>
-            <div data-controller="task-creation-delicate" 
-                 data-task-creation-delicate-url-value="<%= account_contact_events_path(account_id: deal.account, contact_id: deal.contact.id, deal_id: deal.id) %>"
-                 class="relative inline-block">
+            <% if deal.contact %>
+              <span class="text-slate-300 mx-1">|</span>
+              <%# Delicate Task Creation Trigger %>
+              <div data-controller="task-creation-delicate" 
+                   data-task-creation-delicate-url-value="<%= account_contact_events_path(account_id: deal.account, contact_id: deal.contact.id, deal_id: deal.id) %>"
+                   class="relative inline-block">
               
               <button type="button" 
                       data-task-creation-delicate-target="trigger"
@@ -100,8 +101,9 @@
                       <%= f.submit "Criar", 
                           class: "bg-sky-600 hover:bg-sky-500 text-white text-[11px] font-bold px-4 py-1.5 rounded-lg shadow-lg shadow-sky-900/20 transition-all active:scale-95 cursor-pointer" %>
                     </div>
-                  </div>
-                <% end %>
+              </div>
+            <% end %>
+          <% end %>
               </div>
             </div>
           <% end %>

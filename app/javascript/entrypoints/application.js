@@ -61,24 +61,33 @@ function applyThemeFromPreference() {
   } catch (e) { }
 }
 
+let initLibrariesTimeout = null;
+
+function scheduleInitLibraries() {
+  if (initLibrariesTimeout) clearTimeout(initLibrariesTimeout);
+  initLibrariesTimeout = setTimeout(() => {
+    if (typeof initFlowbite === 'function') initFlowbite();
+    lucide.createIcons();
+  }, 80);
+}
+
 $(document).on("turbo:load", () => {
   applyThemeFromPreference();
-  initLibraries();
+  scheduleInitLibraries();
 });
 
 $(document).on("turbo:render", () => {
   applyThemeFromPreference();
-  initLibraries();
+  scheduleInitLibraries();
 });
 
 $(document).on("turbo:frame-render", () => {
   applyThemeFromPreference();
-  initLibraries();
+  scheduleInitLibraries();
 });
 
-function initLibraries() {
-  initFlowbite();
-  lucide.createIcons();
-}
+$(document).on("turbo:before-stream-render", () => {
+  scheduleInitLibraries();
+});
 
 setBrowserTimezoneCookie();

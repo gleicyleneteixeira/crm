@@ -48,7 +48,7 @@
             <div class=' w-full h-[150px] ' data-controller='lightbox'>
               <%= image_tag attachment.file, class: 'cursor-pointer object-cover w-full h-full rounded-t-md' , data: { src: rails_blob_url(attachment.file), sub_html: attachment.file.filename.to_s } %>
             </div>
-            <%= link_to account_attachment_path(Current.account, attachment), method: :delete, data: { confirm: 'Are you sure?' }, class: 'flex items-center h-7 w-7 p-1 text-dark-gray-palette-p3 bg-light-palette-p5 rounded-full border-[1px] border-brand-palette-07 hover:border-brand-palette-06 hover:border-[1px] hover:bg-brand-palette-08 hover:rounded-full hover:text-brand-palette-03 transtion ease-in-out delay-250 absolute top-1 right-1' do %>
+            <%= button_to account_attachment_path(Current.account, attachment), method: :delete, data: { confirm: 'Are you sure?' }, class: 'flex items-center h-7 w-7 p-1 text-dark-gray-palette-p3 bg-light-palette-p5 rounded-full border-[1px] border-brand-palette-07 hover:border-brand-palette-06 hover:border-[1px] hover:bg-brand-palette-08 hover:rounded-full hover:text-brand-palette-03 transtion ease-in-out delay-250 absolute top-1 right-1', form: { style: "display:inline-block" } do %>
               <i data-lucide="trash-2" height="14"></i>
             <% end %>
             <div class='bg-brand-palette-08 p-1.5 grid gap-0.5 rounded-b-md'>
@@ -76,7 +76,7 @@
             <div class=' w-full max-h-[250px] '>
               <%= video_tag rails_blob_url(attachment.file), size:'250x250', controls: true, class: 'rounded-t-md object-scale-down w-full max-h-[250px]' %>
             </div>
-            <%= link_to account_attachment_path(Current.account, attachment), method: :delete, data: { confirm: 'Are you sure?' }, class: 'flex items-center h-7 w-7 p-1 text-dark-gray-palette-p3 bg-light-palette-p5 rounded-full border-[1px] border-brand-palette-07 hover:border-brand-palette-06 hover:border-[1px] hover:bg-brand-palette-08 hover:rounded-full hover:text-brand-palette-03 transtion ease-in-out delay-250 absolute top-1 right-1' do %>
+            <%= button_to account_attachment_path(Current.account, attachment), method: :delete, data: { confirm: 'Are you sure?' }, class: 'flex items-center h-7 w-7 p-1 text-dark-gray-palette-p3 bg-light-palette-p5 rounded-full border-[1px] border-brand-palette-07 hover:border-brand-palette-06 hover:border-[1px] hover:bg-brand-palette-08 hover:rounded-full hover:text-brand-palette-03 transtion ease-in-out delay-250 absolute top-1 right-1', form: { style: "display:inline-block" } do %>
               <i data-lucide="trash-2" height="14"></i>
             <% end %>
             <div class='bg-brand-palette-08 p-1.5 grid gap-0.5 rounded-b-md'>
@@ -103,7 +103,7 @@
           <div class='grid border-2 rounded-md w-[200px]'>
             <div class='flex items-center h-[100px] relative'>
               <i data-lucide="file" style="width: 50px; height: 50px" class=" stroke-dark-gray-palette-p3 m-auto"></i>
-              <%= link_to account_attachment_path(Current.account, attachment), method: :delete, data: { confirm: 'Are you sure?' }, class: 'flex items-center h-7 w-7 p-1 text-dark-gray-palette-p3 border-[1.5px] border-[#e5e7eb00] hover:border-brand-palette-06 hover:border-[1.5px] hover:bg-brand-palette-08 hover:rounded-full hover:text-brand-palette-03 transtion ease-in-out delay-250 absolute top-1 right-1' do %>
+              <%= button_to account_attachment_path(Current.account, attachment), method: :delete, data: { confirm: 'Are you sure?' }, class: 'flex items-center h-7 w-7 p-1 text-dark-gray-palette-p3 border-[1.5px] border-[#e5e7eb00] hover:border-brand-palette-06 hover:border-[1.5px] hover:bg-brand-palette-08 hover:rounded-full hover:text-brand-palette-03 transtion ease-in-out delay-250 absolute top-1 right-1', form: { style: "display:inline-block" } do %>
                 <i data-lucide="trash-2" height="14"></i>
               <% end %>
             </div>

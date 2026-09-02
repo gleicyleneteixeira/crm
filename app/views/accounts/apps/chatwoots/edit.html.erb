@@ -43,8 +43,8 @@
     </div>
 
     <div class="flex justify-end gap-3 pt-5">
-      <%= link_to t('views.accounts.apps.chatwoots.edit.delete'), account_apps_chatwoot_path(current_user.account, @chatwoot),
-          method: :delete, data: {confirm: t('views.accounts.apps.chatwoots.edit.are_you_sure?')}, class: 'btn-secondary text-red-600 border-red-200 hover:bg-red-50' %>
+      <%= button_to t('views.accounts.apps.chatwoots.edit.delete'), account_apps_chatwoot_path(current_user.account, @chatwoot),
+          method: :delete, data: {confirm: t('views.accounts.apps.chatwoots.edit.are_you_sure?')}, class: 'btn-secondary text-red-600 border-red-200 hover:bg-red-50', form: { style: "display:inline-block" } %>
       <%= form.submit 'Salvar Configurações', class: 'btn-primary cursor-pointer' %>
     </div>
 <% end %>

@@ -13,6 +13,7 @@ export default class extends Controller {
       animation: 150,
       sort: true,
       group: "pipeline",
+      handle: ".drag-handle",
       onStart: () => {
         document.body.classList.add("is-dragging");
       },
@@ -23,8 +24,6 @@ export default class extends Controller {
   }
 
   async end(event) {
-    event.from.classList.add("pointer-events-none");
-    event.to.classList.add("pointer-events-none");
     const dealId = event.item.dataset.id;
     const accountId = event.item.dataset.accountId;
 
@@ -36,8 +35,6 @@ export default class extends Controller {
       if (fromList && event.item) {
         fromList.insertBefore(event.item, fromList.firstChild);
       }
-      event.from.classList.remove("pointer-events-none");
-      event.to.classList.remove("pointer-events-none");
       return;
     }
 
@@ -60,8 +57,6 @@ export default class extends Controller {
       },
       success: (response) => {
         Turbo.renderStreamMessage(response);
-        event.from.classList.remove("pointer-events-none");
-        event.to.classList.remove("pointer-events-none");
       },
       error: (response) => {
         Turbo.renderStreamMessage(response);
@@ -69,9 +64,6 @@ export default class extends Controller {
         if (fromList && event.item) {
           fromList.insertBefore(event.item, fromList.firstChild);
         }
-
-        event.from.classList.remove("pointer-events-none");
-        event.to.classList.remove("pointer-events-none");
       },
     });
   }
@@ -201,15 +193,18 @@ class Position {
   }
 
   positionForNewStage() {
+    // When moving to a new stage, calculate position based on neighbors
     if (this.nextElement) {
-      return this.nextElementPosition + 1;
+      // If there's a next element, position before it
+      return this.nextElementPosition - 1;
     }
     if (this.previousElement) {
-      if (this.previousElementPosition === 1) return 1;
-      return this.previousElementPosition - 1;
+      // If there's a previous element but no next, position after it
+      return this.previousElementPosition + 1;
     }
 
-    return null;
+    // If moving to empty stage, position at 1
+    return 1;
   }
   positionInCurrentStage() {
     if (this.quantityElementsPassed === 0) return this.elementCurrentPosition;

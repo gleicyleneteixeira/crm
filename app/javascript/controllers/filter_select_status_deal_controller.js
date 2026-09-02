@@ -36,6 +36,7 @@ export default class extends Controller {
   }
   dropdownHide() {
     const dropdwon_element = document.getElementById("dropdownSort");
+    if (!dropdwon_element) return;
     const dropdown = new Dropdown(
       dropdwon_element,
       this.buttonTarget
