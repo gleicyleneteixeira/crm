@@ -13,7 +13,6 @@ export default class extends Controller {
       animation: 150,
       sort: true,
       group: "pipeline",
-      handle: ".drag-handle",
       onStart: () => {
         document.body.classList.add("is-dragging");
       },
