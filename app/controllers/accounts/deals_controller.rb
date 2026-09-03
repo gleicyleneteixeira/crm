@@ -10,8 +10,11 @@ class Accounts::DealsController < InternalController
   # GET /deals or /deals.json
   def index
     @first_pipeline = Pipeline.first
+    @deal_card_definitions = current_user.account.custom_attribute_definitions
+                                          .where(attribute_model: 'deal_attribute', show_in_card: true)
     @deals = if params[:query].present?
               Deal.left_joins(:contact)
+                  .includes(:stage, :pipeline, :contact, :creator)
                   .where(
                     'deals.name ILIKE :search OR ' +
                     'contacts.full_name ILIKE :search OR ' +
@@ -21,7 +24,8 @@ class Accounts::DealsController < InternalController
                   )
                   .order(updated_at: :desc)
               else
-                Deal.all.order(created_at: :desc)
+                Deal.includes(:stage, :pipeline, :contact, :creator)
+                    .order(created_at: :desc)
               end
 
     @pagy, @deals = pagy(@deals)
@@ -214,7 +218,7 @@ class Accounts::DealsController < InternalController
   private
 
   def set_deal
-    @deal = current_user.account.deals.find(params[:id])
+    @deal = current_user.account.deals.includes(:contact, :stage, :pipeline, :creator).find(params[:id])
   end
 
   def set_deal_product

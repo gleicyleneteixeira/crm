@@ -86,7 +86,7 @@
 
     <%# NÍVEL 2: TRIBUTOS DINÂMICOS %>
     <div class="mt-2 flex flex-wrap gap-1.5">
-      <% deal.account.custom_attribute_definitions.where(attribute_model: 'deal_attribute', show_in_card: true).each do |definition| %>
+      <% (@deal_card_definitions || deal.account.custom_attribute_definitions.where(attribute_model: 'deal_attribute', show_in_card: true)).each do |definition| %>
         <% key = definition.attribute_key %>
         <% value = deal.custom_attributes[key] %>
         <% next if value.blank? %>
@@ -156,7 +156,7 @@
           </div>
         <% end %>
 
-        <% if Apps::Chatwoot.first.present? %>
+        <% if chatwoot_configured? %>
           <% if deal.chatwoot_conversation_url.present? %>
             <%= link_to deal.chatwoot_conversation_url,
                         target: :_blank,

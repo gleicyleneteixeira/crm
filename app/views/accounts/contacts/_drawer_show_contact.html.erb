@@ -1,5 +1,5 @@
 <% content_for :show_additional_content do %>
-  <% if Apps::Chatwoot.first.present? %>
+  <% if chatwoot_configured? %>
     <%# Card do Chatwoot: Dinâmico (Branco no Claro / Azul Marinho no Escuro) %>
     <div class="mb-5 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-white/10 rounded shadow-sm dark:shadow-none dark:backdrop-blur-md transition-colors" id="<%= "#{Apps::Chatwoot.model_name.human.downcase}-#{contact.class.name.downcase}" %>-section">
       <header class="flex flex-wrap items-center justify-between gap-2 p-4">
@@ -72,7 +72,7 @@
   <%= render 'components/show_model/sidebar', model: contact,
       links: [
         { label: t('activerecord.models.show'), icon: "info" },
-        (Apps::Chatwoot.first.present? ? { label: Apps::Chatwoot.model_name.human, icon: "message-circle" } : nil),
+        (chatwoot_configured? ? { label: Apps::Chatwoot.model_name.human, icon: "message-circle" } : nil),
         { label: t('activerecord.models.deal.other'), icon: "clipboard-list" }
       ].compact %>
 <% end %>

@@ -18,7 +18,7 @@
       </div>
       <% if model.is_a?(Contact) %>
         <%= render '/components/links/chatwoot_conversation_link', contact: model %>
-      <% elsif model.is_a?(Deal) && Apps::Chatwoot.first.present? %>
+      <% elsif model.is_a?(Deal) && chatwoot_configured? %>
         <% if model.chatwoot_conversation_url.present? %>
           <%= link_to model.chatwoot_conversation_url,
                       target: :_blank,

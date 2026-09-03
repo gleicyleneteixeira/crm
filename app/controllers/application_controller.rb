@@ -10,6 +10,8 @@ class ApplicationController < ActionController::Base
   before_action :set_account
   before_action :setup_installation if Installation.installation_flow?
 
+  helper_method :chatwoot_configured?
+
   private
 
   def setup_installation
@@ -20,5 +22,9 @@ class ApplicationController < ActionController::Base
 
   def set_account
     @account = Current.account
+  end
+
+  def chatwoot_configured?
+    @chatwoot_configured ||= Apps::Chatwoot.exists?
   end
 end

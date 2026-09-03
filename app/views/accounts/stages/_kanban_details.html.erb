@@ -1,11 +1,12 @@
 <div class='flex items-center justify-between gap-1.5' id='stage-<%= stage.id %>-<%= filter_status_deal %>-kaban-details'>
+  <% total_amount = stage.total_amount_deals(filter_status_deal) %>
   <%# VALOR: Cinza no tema claro e Branco no tema escuro %>
   <div class='typography-body-900 text-gray-600 dark:text-white font-bold cursor-default truncate' data-tooltip-target="tooltip-stage-<%= stage.id %>-deals-total-amount" data-tooltip-placement="bottom">
-    <%= render 'components/formatters/currency', value: stage.total_amount_deals(filter_status_deal) %>
+    <%= render 'components/formatters/currency', value: total_amount %>
   </div>
 
   <div id="tooltip-stage-<%= stage.id %>-deals-total-amount" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 typography-label-900 font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-xs opacity-0 tooltip dark:bg-gray-700">
-    <%= render 'components/formatters/currency', value: stage.total_amount_deals(filter_status_deal) %>
+    <%= render 'components/formatters/currency', value: total_amount %>
     <div class="tooltip-arrow" data-popper-arrow></div>
   </div>
 

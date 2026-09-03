@@ -6,7 +6,7 @@ class Accounts::EventsController < InternalController
     start_date = Time.zone.parse(params[:start])
     end_date = Time.zone.parse(params[:end])
 
-    events = Event.planned.where(scheduled_at: start_date..end_date)
+    events = Event.planned.includes(:contact, :deal).where(scheduled_at: start_date..end_date)
 
     render json: events.map { |event| {
       id: event.id,

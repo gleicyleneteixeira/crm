@@ -127,7 +127,7 @@
 
     <%# Custom Fields (Dynamic) %>
     <div class="mb-3 flex flex-wrap gap-1.5">
-      <% deal.account.custom_attribute_definitions.where(attribute_model: 'deal_attribute', show_in_card: true).each do |definition| %>
+      <% (@deal_card_definitions || deal.account.custom_attribute_definitions.where(attribute_model: 'deal_attribute', show_in_card: true)).each do |definition| %>
         <% value = deal.custom_attributes[definition.attribute_key] %>
         <% next if value.blank? %>
         <div class="bg-blue-50 dark:bg-slate-800/50 text-blue-600 dark:text-blue-300 px-1.5 py-0.5 rounded text-[9px] font-medium border border-blue-100 dark:border-slate-700/50">
