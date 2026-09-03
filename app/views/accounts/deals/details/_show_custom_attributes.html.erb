@@ -2,7 +2,7 @@
   if model.class.name == 'Deal'
     built_ins = [
       { key: '__deal_creator__', name: 'Criado por' },
-      { key: '__deal_amount__', name: 'Quantia' }
+      { key: '__deal_amount__', name: 'Quantia', show_in_card: true }
     ]
 
     built_ins.each do |bi|
@@ -12,7 +12,7 @@
       ) do |definition|
         definition.attribute_display_name = bi[:name]
         definition.show_in_deal = true
-        definition.show_in_card = false
+        definition.show_in_card = bi[:show_in_card] || false
       end
     end
   elsif model.class.name == 'Contact'
